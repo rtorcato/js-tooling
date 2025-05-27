@@ -1,6 +1,6 @@
 {
 	"name": "@rtorcato/js-tooling",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.",
 	"type": "module",
 	"keywords": [
