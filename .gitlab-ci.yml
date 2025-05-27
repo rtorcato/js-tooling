@@ -171,9 +171,9 @@ varcheck:
 publish:
   stage: release
   image: node:20.8-alpine
-  dependencies:
+  # dependencies:
   # - verify-release
-  - build
+  # - build
   # tags:
   # - specific # Use a specific runner tag if needed
   cache:
