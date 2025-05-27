@@ -1,0 +1,1 @@
+this test is just used for testing vitest

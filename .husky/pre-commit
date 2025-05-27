@@ -1,0 +1,23 @@
+
+
+echo "🔍 Running pre-commit checks..."
+# npx lint-staged
+
+echo "🧹 Running lint (pnpm run check)..."
+pnpm run check
+CHECK_STATUS=$?
+
+if [ $CHECK_STATUS -ne 0 ]; then
+  echo "❌ Linting failed!"
+  exit 1
+else
+  echo "✅ Linting passed!"
+fi
+
+# If you later enable lint-staged
+# echo "🎯 Running lint-staged..."
+# npx lint-staged
+
+echo "🎉 Pre-commit checks passed successfully!"
+
+pnpm exec biome format .

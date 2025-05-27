@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx", // Use the new JSX transform for React 17+
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],// Include DOM types for browser APIs
+    "types": ["node"], // Node types are often needed for tooling
+  },
+  "include": ["src", "index.d.ts", "types"],
+  "exclude": ["node_modules", "dist", "build", "out", "**/*.test.ts", "**/*.spec.ts"]
+}

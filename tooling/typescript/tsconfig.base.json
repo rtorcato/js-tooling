@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    // 🔧 Output & Module Resolution
+    "module": "esnext", // 
+    "moduleResolution": "node", // Prefer "bundler" if you're using Vite, esbuild, etc.
+    "target": "esnext", // 
+    "lib": ["ES2022"], // Specify library files to be included in the compilation
+    "baseUrl": ".", // Base directory to resolve non-relative module names
+    "rootDir": "src",
+    "outDir": "dist",
+    // 🔍 JavaScript Support
+    "allowJs": true, // Allow JavaScript files to be compiled
+    "checkJs": true, // Enable type checking on JavaScript files
+    "resolveJsonModule": true,  // Allow importing JSON files
+    "isolatedModules": true, // Ensure that each file can be safely transpiled independently
+    "esModuleInterop": true, // Enables emit interoperability between CommonJS and ES Modules
+    "allowSyntheticDefaultImports": true, // recommend enabling this for smoother interop
+
+    // ⚙️ Module Detection
+    "moduleDetection": "force", // Force module detection
+
+    // 📈 Performance
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "incremental": true, // Enable incremental compilation
+    "disableSourceOfProjectReferenceRedirect": true, // Disable source of project reference redirect
+
+    // 🚨 Strict Type Checking
+    "strict": true, // Enable all strict type checking options
+    "noUncheckedIndexedAccess": true, // Disallow accessing an index signature with an arbitrary key
+    "noImplicitAny": true, // Disallow implicit any type
+    "noImplicitReturns": true, // Disallow functions that do not return a value
+    "noImplicitOverride": true, // Ensure override keyword is used
+    "noImplicitThis": true, // Disallow 'this' with an implicit any type
+    "noPropertyAccessFromIndexSignature": true, // Disallow property access from index signature
+    "allowSyntheticDefaultImports":false, // Allow default imports from modules with no default export
+
+    // 🧹 Lint-Like Settings
+    "noUnusedLocals": true, // Disallow unused locals
+    "noUnusedParameters": true, // Disallow unused parameters
+    "noFallthroughCasesInSwitch": true, // Disallow fallthrough cases in switch statements
+
+    // 📦 Types & Declarations
+    "types": ["node"], // Specify type declaration files to be included in the compilation
+    "declaration": false, // Do not generate .d.ts files
+    "declarationMap": false, // Do not generate sourcemaps for d.ts files
+
+    // 🛑 Emit Settings
+    "noEmit": true, // Do not emit output files
+    "sourceMap": true // Generate sourcemaps for .ts files
+  },
+  "include": ["src/**/*", "index.d.ts"], // Include files in the src directory and index.d.ts
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    ".next",
+    ".expo",
+    "OLD",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    ".turbo",
+    "out",
+    "not-used",
+    "vitest.config.ts"
+  ] // Exclude directories from compilation
+}

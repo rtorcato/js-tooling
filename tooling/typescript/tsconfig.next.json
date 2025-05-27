@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "preserve", // Let Next.js handle JSX transformation
+    "lib": ["DOM", "DOM.Iterable", "ESNext"], // Include DOM types for browser APIs
+    "module": "esnext", // Next.js expects ESNext modules
+    "moduleResolution": "bundler", // Modern module resolution for Next.js
+    "allowJs": true, // Allow JavaScript files
+    "esModuleInterop": true, // Interop for CommonJS/ESM
+    "types": ["node"], // Next.js provides its own types, node is required,
+    "paths": {
+  "@/*": ["src/*"]
+}
+  },
+  "include": ["next-env.d.ts", "src", "pages", "app", "components", "types", "index.d.ts"],
+  "exclude": ["node_modules", "dist", ".next", "build", "out"]
+}

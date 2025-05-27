@@ -1,0 +1,138 @@
+{
+	"name": "@rtorcato/js-tooling",
+	"version": "0.0.0-development",
+	"description": "JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.",
+	"type": "module",
+	"keywords": [
+		"tooling",
+		"typescript",
+		"eslint"
+	],
+	"author": "Richard Torcato",
+	"sideEffects": false,
+	"license": "UNLICENSED",
+	"scripts": {
+		"build-dev": "rimraf ./dist && cross-env NODE_ENV=development node build.mjs && tsc --emitDeclarationOnly --project tsconfig.build.json",
+		"build-prod": "rimraf ./dist && cross-env NODE_ENV=production node build.mjs && tsc --emitDeclarationOnly --project tsconfig.build.json",
+		"prepublishOnly": "./scripts/fix-bins.sh",
+		"==================== Common ====================": "",
+		"lint": "pnpm exec biome lint .",
+		"format": "pnpm exec biome format .",
+		"check:fix": "pnpm exec biome check --fix",
+		"check": "pnpm exec biome check .",
+		"prepare": "husky",
+		"typecheck1": "tsc --noEmit",
+		"test": "vitest",
+		"test:watch": "vitest --watch",
+		"coverage": "vitest run --coverage",
+		"commit": "cz",
+		"================================================": ""
+	},
+	"files": [
+		"tooling/*",
+		"tooling/commitlint/commitlint.config.mjs",
+		"tooling/esbuild/index.mjs",
+		"tooling/eslint/*.mjs",
+		"tooling/jest-presets/**",
+		"tooling/prettier/index.mjs",
+		"tooling/typescript/*.json",
+		"tooling/typescript/reset.d.ts",
+		"tooling/vitest/vitest.config.mjs",
+		"tooling/tsup/index.ts",
+		"tooling/biome/biome.json",
+		"tooling/semantic-release/*.mjs",
+		"README.md"
+	],
+	"exports": {
+		"./commitlint/config": {
+			"import": "./tooling/commitlint/commitlint.mjs"
+		},
+		"./esbuild": "./tooling/esbuild/index.mjs",
+		"./eslint/base": "./tooling/eslint/base.mjs",
+		"./eslint/nextjs": "./tooling/eslint/nextjs.mjs",
+		"./jest-presets/browser/jest-preset": "./tooling/jest-presets/browser/jest-preset.mjs",
+		"./jest-presets/node/jest-preset": "./tooling/jest-presets/node/jest-preset.mjs",
+		"./prettier": "./tooling/prettier/index.mjs",
+		"./typescript/base": "./tooling/typescript/tsconfig.base.json",
+		"./typescript/next": "./tooling/typescript/tsconfig.next.json",
+		"./typescript/express": "./tooling/typescript/tsconfig.express.json",
+		"./typescript/node": "./tooling/typescript/tsconfig.node.json",
+		"./typescript/react": "./tooling/typescript/tsconfig.react.json",
+		"./typescript/test": "./tooling/typescript/tsconfig.test.json",
+		"./typescript/reset": "./tooling/typescript/reset.d.ts",
+		"./vitest/config": "./tooling/vitest/vitest.config.mjs",
+		"./tsup": "./tooling/tsup/index.ts",
+		"./biome": "./tooling/biome/biome.json",
+		"./semantic-release": "./tooling/semantic-release/index.mjs",
+		"./semantic-release/docker": "./tooling/semantic-release/docker.mjs"
+	},
+	"dependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@commitlint/cli": "^19.8.1",
+		"@commitlint/config-conventional": "^19.8.1",
+		"@semantic-release/commit-analyzer": "^13.0.1",
+		"@semantic-release/exec": "^7.1.0",
+		"@semantic-release/git": "^10.0.1",
+		"@semantic-release/gitlab": "^13.2.5",
+		"@semantic-release/npm": "^12.0.1",
+		"@semantic-release/release-notes-generator": "^14.0.3",
+		"@total-typescript/ts-reset": "0.6.1",
+		"@types/node": "^22.14.1",
+		"@typescript-eslint/eslint-plugin": "^8.20.0",
+		"@typescript-eslint/parser": "^8.20.0",
+		"commitizen": "^4.3.1",
+		"conventional-changelog-conventionalcommits": "^8.0.0",
+		"cz-conventional-changelog": "^3.3.0",
+		"esbuild": "^0.25.4",
+		"esbuild-node-externals": "^1.18.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.0.0",
+		"semantic-release": "^24.2.3",
+		"typescript": "^5.7.3",
+		"typescript-eslint": "latest",
+		"vitest": "3.0.2"
+	},
+	"devDependencies": {
+		"@next/eslint-plugin-next": "^15.1.5",
+		"cross-env": "^7.0.3",
+		"eslint": "9.18.0",
+		"eslint-config-airbnb": "^19.0.4",
+		"eslint-config-prettier": "10.0.1",
+		"eslint-config-turbo": "^2.3.3",
+		"eslint-plugin-import": "^2.31.0",
+		"eslint-plugin-jest": "28.11.0",
+		"eslint-plugin-jsx-a11y": "^6.10.2",
+		"eslint-plugin-react": "^7.37.4",
+		"eslint-plugin-react-hooks": "^5.1.0",
+		"eslint-plugin-vitest": "0.5.4",
+		"prettier": "^3.4.2",
+		"prettier-plugin-tailwindcss": "^0.6.10",
+		"rimraf": "6.0.1",
+		"ts-jest": "^29.2.5",
+		"tsup": "8.3.5"
+	},
+	"lint-staged": {
+		"*.{js,ts,json,md}": [
+			"pnpm exec biome lint",
+			"pnpm exec biome format",
+			"git add"
+		]
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"bin": {
+		"commitmessage": "scripts/commitmessage.sh",
+		"helloworld": "scripts/helloworld.sh"
+	},
+	"config": {
+		"commitizen": {
+			"path": "cz-conventional-changelog"
+		}
+	},
+	"publishConfig": {
+		"registry": "https://gitlab.com/api/v4/projects/60855075/packages/npm/"
+	}
+}

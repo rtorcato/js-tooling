@@ -1,0 +1,40 @@
+{
+  "editor.defaultFormatter": "biomejs.biome",
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "editor.formatOnSave": true,
+  "files.associations": {
+    "pre-commit": "shellscript",
+    "commit-msg": "shellscript",
+    ".husky/*": "shellscript"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.insertSpaces": true, // Or false for tabs
+    "editor.tabSize": 4 // Customize as needed
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.insertSpaces": true, // Or false for tabs
+    "editor.tabSize": 4 // Customize as needed
+  },
+  "[mjs]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.insertSpaces": true, // Or false for tabs
+    "editor.tabSize": 4 // Customize as needed
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.insertSpaces": true, // Or false for tabs
+    "editor.tabSize": 4 // Customize as needed
+  },
+  "[makefile]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.insertSpaces": true, // Or false for tabs
+    "editor.tabSize": 4 // Customize as needed
+  }
+}
