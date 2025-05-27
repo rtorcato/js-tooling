@@ -196,11 +196,10 @@ publish:
   - git fetch --unshallow || true # Ensure we have a full git history
   - git pull origin main --ff-only || true # Ensure we are on the latest main branch
   # 🔐 Inject dynamic .npmrc for auth
-  # - echo "@rtorcato/js-tooling:registry=https://gitlab.com/api/v4/projects/60855075/packages/npm/" > ~/.npmrc
-  # - echo "//gitlab.com/api/v4/projects/60855075/packages/npm/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
-  - echo "@rtorcato:registry=https://gitlab.com/api/v4/packages/npm/" > ~/.npmrc
-  - echo "//gitlab.com/api/v4/packages/npm/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
-
+  - echo "@rtorcato/js-tooling:registry=https://gitlab.com/api/v4/projects/60855075/packages/npm/" > ~/.npmrc
+  - echo "//gitlab.com/api/v4/projects/60855075/packages/npm/:_authToken=${NODE_AUTH_TOKEN}" >> ~/.npmrc
+  # - echo "@rtorcato:registry=https://gitlab.com/api/v4/packages/npm/" > ~/.npmrc
+  # - echo "//gitlab.com/api/v4/packages/npm/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
   - npx semantic-release --no-ci # Publish the package
 
 ####################################################
