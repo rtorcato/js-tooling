@@ -26,6 +26,7 @@ export default {
 						release: false, // no Patch release for README changes
 					},
 					// { type: 'chore', release: 'patch' }, // Chore changes
+					{ type: 'update', release: 'patch' },
 					{ type: 'refactor', release: 'patch' },
 					{ type: 'revert', release: 'patch' },
 					{ type: 'style', release: false },
@@ -46,12 +47,12 @@ export default {
 				gitlabUrl: 'https://gitlab.com',
 			},
 		],
-		// [
-		// 	'@semantic-release/exec',
-		// 	{
-		// 		prepareCmd: 'pnpm exec biome format',
-		// 	},
-		// ],
+		[
+			'@semantic-release/changelog',
+			{
+				changelogFile: 'CHANGELOG.md',
+			},
+		],
 		['@semantic-release/npm', { npmPublish: true, pkgRoot: '.' }],
 		// NPM plugin to publish the package
 		[
@@ -66,3 +67,10 @@ export default {
 		],
 	],
 }
+
+// [
+// 	'@semantic-release/exec',
+// 	{
+// 		prepareCmd: 'pnpm exec biome format',
+// 	},
+// ],
