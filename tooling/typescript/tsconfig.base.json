@@ -2,13 +2,18 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     // 🔧 Output & Module Resolution
-    "module": "esnext", // 
-    "moduleResolution": "node", // Prefer "bundler" if you're using Vite, esbuild, etc.
-    "target": "esnext", // 
+    "moduleResolution": "node16",
+    "module": "Node16",
+    "target": "esnext",
+    // "module": "esnext", // 
+    // "moduleResolution": "node", // Prefer "bundler" if you're using Vite, esbuild, etc.
+    // "target": "esnext", // 
     "lib": ["ES2022"], // Specify library files to be included in the compilation
     "baseUrl": ".", // Base directory to resolve non-relative module names
     "rootDir": "src",
     "outDir": "dist",
+
+    
     // 🔍 JavaScript Support
     "allowJs": true, // Allow JavaScript files to be compiled
     "checkJs": true, // Enable type checking on JavaScript files

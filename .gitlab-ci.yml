@@ -195,6 +195,8 @@ publish:
   - pnpm install # Install dependencies
   - git fetch --unshallow || true # Ensure we have a full git history
   - git pull origin main --ff-only || true # Ensure we are on the latest main branch
+  - rm -f .npmrc || true # Deletes the .npmrc in your current working directory
+  - rm -f ~/.npmrc || true # Remove existing .npmrc if it exists
   # 🔐 Inject dynamic .npmrc for auth
   - echo "@rtorcato/js-tooling:registry=https://gitlab.com/api/v4/projects/60855075/packages/npm/" > ~/.npmrc
   - echo "//gitlab.com/api/v4/projects/60855075/packages/npm/:_authToken=${NODE_AUTH_TOKEN}" >> ~/.npmrc
