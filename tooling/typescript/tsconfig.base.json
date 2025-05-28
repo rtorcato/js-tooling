@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     // 🔧 Output & Module Resolution
-    "moduleResolution": "node16",
-    "module": "Node16",
+    "moduleResolution": "bundler",
+    "module": "esnext",
     "target": "esnext",
     // "module": "esnext", // 
     // "moduleResolution": "node", // Prefer "bundler" if you're using Vite, esbuild, etc.
@@ -38,7 +38,6 @@
     "noImplicitOverride": true, // Ensure override keyword is used
     "noImplicitThis": true, // Disallow 'this' with an implicit any type
     "noPropertyAccessFromIndexSignature": true, // Disallow property access from index signature
-    "allowSyntheticDefaultImports":false, // Allow default imports from modules with no default export
 
     // 🧹 Lint-Like Settings
     "noUnusedLocals": true, // Disallow unused locals
