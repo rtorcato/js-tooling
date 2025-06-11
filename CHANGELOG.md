@@ -1,3 +1,10 @@
+## [1.0.11](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.10...v1.0.11) (2025-06-11)
+
+
+### Bug Fixes
+
+* vitest resolve ([78cd367](https://gitlab.com/rtorcato/js-tooling/commit/78cd36779cbc74b024adc0738036ce99795ebf5a))
+
 ## [1.0.10](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.9...v1.0.10) (2025-06-11)
 
 
