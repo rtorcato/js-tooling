@@ -1,3 +1,10 @@
+## [1.0.10](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.9...v1.0.10) (2025-06-11)
+
+
+### Bug Fixes
+
+* add docker semantic release ([61238ac](https://gitlab.com/rtorcato/js-tooling/commit/61238ac79d99497200f183b1cc1b54714c7d4f7d))
+
 ## [1.0.9](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.8...v1.0.9) (2025-05-28)
 
 
