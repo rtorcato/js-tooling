@@ -1,3 +1,10 @@
+## [1.0.12](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.11...v1.0.12) (2025-06-16)
+
+
+### Bug Fixes
+
+* update ts ([728e386](https://gitlab.com/rtorcato/js-tooling/commit/728e386479d9ba43298f333ce631dcfe6db02497))
+
 ## [1.0.11](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.10...v1.0.11) (2025-06-11)
 
 
