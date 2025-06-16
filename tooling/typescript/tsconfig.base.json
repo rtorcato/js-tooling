@@ -45,13 +45,18 @@
     "noFallthroughCasesInSwitch": true, // Disallow fallthrough cases in switch statements
 
     // 📦 Types & Declarations
-    "types": ["node"], // Specify type declaration files to be included in the compilation
+    "types": ["node", "vitest"], // Specify type declaration files to be included in the compilation
     "declaration": false, // Do not generate .d.ts files
     "declarationMap": false, // Do not generate sourcemaps for d.ts files
 
     // 🛑 Emit Settings
     "noEmit": true, // Do not emit output files
-    "sourceMap": true // Generate sourcemaps for .ts files
+    "sourceMap": true, // Generate sourcemaps for .ts files
+    
+    "paths": { // Path mapping for module resolution
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*", "index.d.ts"], // Include files in the src directory and index.d.ts
   "exclude": [

@@ -7,10 +7,12 @@
     "moduleResolution": "bundler", // Modern module resolution for Next.js
     "allowJs": true, // Allow JavaScript files
     "esModuleInterop": true, // Interop for CommonJS/ESM
-    "types": ["node"], // Next.js provides its own types, node is required,
+    "types": ["react", "tailwindcss", "vitest"],
+    "plugins": [ { "name": "next" } ], // Next.js plugin for TypeScript
     "paths": {
-  "@/*": ["src/*"]
-}
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["next-env.d.ts", "src", "pages", "app", "components", "types", "index.d.ts"],
   "exclude": ["node_modules", "dist", ".next", "build", "out"]
