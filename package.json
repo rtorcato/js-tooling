@@ -106,7 +106,7 @@
 		"semantic-release": "^25.0.1",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "latest",
-		"vitest": "4.0.2"
+		"vitest": "4.0.3"
 	},
 	"devDependencies": {
 		"@next/eslint-plugin-next": "^16.0.0",

@@ -9,7 +9,6 @@
     // "moduleResolution": "node", // Prefer "bundler" if you're using Vite, esbuild, etc.
     // "target": "esnext", // 
     "lib": ["ES2022"], // Specify library files to be included in the compilation
-    "baseUrl": ".", // Base directory to resolve non-relative module names
     "rootDir": "src",
     "outDir": "dist",
 
