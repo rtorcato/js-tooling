@@ -7,8 +7,6 @@ A comprehensive collection of JavaScript/TypeScript development tools and config
 Install the package globally or use it directly with npx:
 
 ```bash
-# Global installation
-npm install -g @rtorcato/js-tooling
 
 # Or use with npx
 npx @rtorcato/js-tooling setup
