@@ -1,3 +1,11 @@
+## [1.0.2](https://github.com/rtorcato/js-tooling/compare/v1.0.1...v1.0.2) (2025-10-24)
+
+
+### Bug Fixes
+
+* handle ignored files in fix-bins.sh script ([41b43c9](https://github.com/rtorcato/js-tooling/commit/41b43c90d76d35f8f9c3da71f0ad81a3ab03ecc6))
+* remove non-existent dist assets from GitHub release ([d94a16f](https://github.com/rtorcato/js-tooling/commit/d94a16f720157c23c35cc83cc63e2bcf2bba2182))
+
 ## [1.0.1](https://github.com/rtorcato/js-tooling/compare/v1.0.0...v1.0.1) (2025-10-24)
 
 
