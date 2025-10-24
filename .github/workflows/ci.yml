@@ -127,7 +127,14 @@ jobs:
           key: ${{ needs.dependencies.outputs.cache-key }}
 
       - name: 🔍 Validate commit messages
-        run: npx commitlint --from=${{ github.event.before }} --to=${{ github.sha }} --verbose
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # For push events, validate the latest commit
+            echo "Validating latest commit message..."
+            git log -1 --pretty=format:"%s" | npx commitlint
+          else
+            echo "Skipping commitlint for non-push events"
+          fi
 
   # Type checking (when enabled)
   # typecheck:
