@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/rtorcato/js-tooling/compare/v1.0.0...v1.0.1) (2025-10-24)
+
+
+### Bug Fixes
+
+* add CLI build step to release workflow ([e10078a](https://github.com/rtorcato/js-tooling/commit/e10078aa9312e36c495ef1b8f6d433400b01576c))
+
 # 1.0.0 (2025-10-24)
 
 
