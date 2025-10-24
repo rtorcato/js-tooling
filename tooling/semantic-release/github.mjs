@@ -9,7 +9,7 @@ export default {
 		{ name: 'beta', prerelease: true }, // → beta branch = beta tag
 		{ name: 'alpha', prerelease: true }, // → alpha branch = alpha tag
 	],
-	repositoryUrl: `https://gitlab-ci-token:${process.env.GITLAB_TOKEN}@gitlab.com/${process.env.CI_PROJECT_NAMESPACE}/${process.env.CI_PROJECT_NAME}.git`,
+	repositoryUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}.git`,
 	plugins: [
 		[
 			'@semantic-release/commit-analyzer',
@@ -39,11 +39,10 @@ export default {
 		'@semantic-release/release-notes-generator',
 		// Release notes generator plugin to generate release notes
 		[
-			'@semantic-release/gitlab',
+			'@semantic-release/github',
 			{
 				assets: ['dist/*.js', 'dist/*.js.map', 'CHANGELOG.md', 'package.json', 'README.md'],
 				message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
-				gitlabUrl: 'https://gitlab.com',
 			},
 		],
 		[

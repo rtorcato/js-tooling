@@ -3,7 +3,6 @@ stages:
 - dependencies
 - lint
 - varcheck
-# - test
 # - build
 # - verify-release
 - release
@@ -92,12 +91,12 @@ varcheck:
     else
       echo "GITLAB_TOKEN is set"
     fi
-    if [ -z "$NPM_TOKEN" ]; then
-      echo "NPM_TOKEN is not set"
-      exit 1
-    else
-      echo "NPM_TOKEN is set"
-    fi
+    # if [ -z "$NPM_TOKEN" ]; then
+    #   echo "NPM_TOKEN is not set"
+    #   exit 1
+    # else
+    #   echo "NPM_TOKEN is set"
+    # fi
 
 ####################################################
 
@@ -195,11 +194,10 @@ publish:
   - pnpm install # Install dependencies
   - git fetch --unshallow || true # Ensure we have a full git history
   - git pull origin main --ff-only || true # Ensure we are on the latest main branch
-  - rm -f .npmrc || true # Deletes the .npmrc in your current working directory
-  - rm -f ~/.npmrc || true # Remove existing .npmrc if it exists
-  # 🔐 Inject dynamic .npmrc for auth
-  - echo "@rtorcato/js-tooling:registry=https://gitlab.com/api/v4/projects/60855075/packages/npm/" > ~/.npmrc
-  - echo "//gitlab.com/api/v4/projects/60855075/packages/npm/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+  - rm -f .npmrc || true # Remove existing .npmrc files
+  - rm -f ~/.npmrc || true
+  # Configure npm authentication for public registry
+  - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
   - npx semantic-release --no-ci # Publish the package
 
 ####################################################

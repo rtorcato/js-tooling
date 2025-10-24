@@ -1,0 +1,274 @@
+name: 🚀 CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, release, ci-testing ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    # Allow manual triggers
+
+    # Prevent concurrent runs on same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Skip CI if commit message contains [skip ci] or [ci skip]
+  check-skip:
+    runs-on: ubuntu-latest
+    outputs:
+      should-skip: ${{ steps.skip-check.outputs.should-skip }}
+    steps:
+    - name: Check for skip CI
+      id: skip-check
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" =~ \[(ci skip|skip ci)\] ]]; then
+          echo "should-skip=true" >> $GITHUB_OUTPUT
+        else
+          echo "should-skip=false" >> $GITHUB_OUTPUT
+        fi
+
+  # Install dependencies and cache them
+  dependencies:
+    runs-on: ubuntu-latest
+    needs: check-skip
+    if: needs.check-skip.outputs.should-skip != 'true'
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+    - name: 📦 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 📦 Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: latest
+
+    - name: 📦 Generate cache key
+      id: cache-key
+      run: echo "key=${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+
+    - name: 📦 Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pnpm-store
+          node_modules
+        key: ${{ steps.cache-key.outputs.key }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-
+
+    - name: 📦 Install dependencies
+      run: pnpm install --frozen-lockfile
+
+  # Linting and code quality
+  lint:
+    runs-on: ubuntu-latest
+    needs: [ dependencies, check-skip ]
+    if: needs.check-skip.outputs.should-skip != 'true'
+    steps:
+    - name: 📦 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 📦 Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: latest
+
+    - name: 📦 Restore dependencies cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pnpm-store
+          node_modules
+        key: ${{ needs.dependencies.outputs.cache-key }}
+
+    - name: 🔍 Run linting
+      run: pnpm lint
+
+  # Type checking (when enabled)
+  # typecheck:
+  #   runs-on: ubuntu-latest
+  #   needs: [dependencies, check-skip]
+  #   if: needs.check-skip.outputs.should-skip != 'true'
+  #   steps:
+  #     - name: 📦 Checkout repository
+  #       uses: actions/checkout@v4
+
+  #     - name: 📦 Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+
+  #     - name: 📦 Setup pnpm
+  #       uses: pnpm/action-setup@v4
+  #       with:
+  #         version: latest
+
+  #     - name: 📦 Restore dependencies cache
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           ~/.pnpm-store
+  #           node_modules
+  #         key: ${{ needs.dependencies.outputs.cache-key }}
+
+  #     - name: 🔍 Type check
+  #       run: pnpm typecheck
+
+  # Variable validation
+  varcheck:
+    runs-on: ubuntu-latest
+    needs: [ dependencies, check-skip ]
+    if: needs.check-skip.outputs.should-skip != 'true'
+    steps:
+    - name: 🔍 Check environment variables
+      run: |
+        echo "GITHUB_REF: ${{ github.ref }}"
+        echo "GITHUB_SHA: ${{ github.sha }}"
+        echo "GITHUB_EVENT_NAME: ${{ github.event_name }}"
+        echo "GITHUB_ACTOR: ${{ github.actor }}"
+
+        if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then
+          echo "❌ GITHUB_TOKEN is not set"
+          exit 1
+        else
+          echo "✅ GITHUB_TOKEN is available"
+        fi
+
+        if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+          echo "⚠️  NPM_TOKEN is not set - required for publishing"
+          echo "   Add NPM_TOKEN to repository secrets for publishing to work"
+        else
+          echo "✅ NPM_TOKEN is available"
+        fi
+
+  # Testing (when enabled)
+  # test:
+  #   runs-on: ubuntu-latest
+  #   needs: [dependencies, check-skip]
+  #   if: needs.check-skip.outputs.should-skip != 'true'
+  #   steps:
+  #     - name: 📦 Checkout repository
+  #       uses: actions/checkout@v4
+
+  #     - name: 📦 Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+
+  #     - name: 📦 Setup pnpm
+  #       uses: pnpm/action-setup@v4
+  #       with:
+  #         version: latest
+
+  #     - name: 📦 Restore dependencies cache
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           ~/.pnpm-store
+  #           node_modules
+  #         key: ${{ needs.dependencies.outputs.cache-key }}
+
+  #     - name: 🧪 Run tests
+  #       run: pnpm test
+
+  # Build (when enabled)
+  # build:
+  #   runs-on: ubuntu-latest
+  #   needs: [dependencies, check-skip]
+  #   if: needs.check-skip.outputs.should-skip != 'true'
+  #   steps:
+  #     - name: 📦 Checkout repository
+  #       uses: actions/checkout@v4
+
+  #     - name: 📦 Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+
+  #     - name: 📦 Setup pnpm
+  #       uses: pnpm/action-setup@v4
+  #       with:
+  #         version: latest
+
+  #     - name: 📦 Restore dependencies cache
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           ~/.pnpm-store
+  #           node_modules
+  #         key: ${{ needs.dependencies.outputs.cache-key }}
+
+  #     - name: 🏗️ Build project
+  #       run: pnpm build-prod
+
+  #     - name: 📦 Upload build artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: build-artifacts
+  #         path: |
+  #           dist/
+  #           package.json
+  #           README.md
+  #           pnpm-lock.yaml
+  #         retention-days: 7
+
+  # Release and publish
+  release:
+    runs-on: ubuntu-latest
+    needs: [ dependencies, lint, varcheck, check-skip ]
+    if: needs.check-skip.outputs.should-skip != 'true' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+    - name: 📦 Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Fetch full history for semantic-release
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: 📦 Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: latest
+
+    - name: 📦 Restore dependencies cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pnpm-store
+          node_modules
+        key: ${{ needs.dependencies.outputs.cache-key }}
+
+    - name: 🔧 Configure Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: 🚀 Run semantic-release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: npx semantic-release
