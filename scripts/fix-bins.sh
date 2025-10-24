@@ -18,7 +18,12 @@ for script in $BIN_SCRIPTS; do
   if [ ! -x "$script" ]; then
     echo "⚙️  Fixing permissions: $script"
     chmod +x "$script"
-    git add "$script"
+    # Only add to git if not ignored
+    if git check-ignore "$script" >/dev/null 2>&1; then
+      echo "📁 File is ignored by .gitignore, skipping git add"
+    else
+      git add "$script"
+    fi
   else
     echo "✅ Executable: $script"
   fi
