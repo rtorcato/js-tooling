@@ -23,9 +23,13 @@ jobs:
       - name: Check for skip CI
         id: skip-check
         run: |
-          if [[ "${{ github.event.head_commit.message }}" =~ \[(ci skip|skip ci)\] ]]; then
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          echo "Commit message: $COMMIT_MSG"
+          if [[ "$COMMIT_MSG" =~ \[skip\ ci\]|\[ci\ skip\] ]]; then
+            echo "✅ Found skip CI directive - skipping pipeline"
             echo "should-skip=true" >> $GITHUB_OUTPUT
           else
+            echo "🚀 No skip CI directive found - running pipeline"
             echo "should-skip=false" >> $GITHUB_OUTPUT
           fi
 
