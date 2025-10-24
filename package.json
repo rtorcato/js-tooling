@@ -10,7 +10,7 @@
 	],
 	"author": "Richard Torcato",
 	"sideEffects": false,
-	"license": "UNLICENSED",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/rtorcato/js-tooling.git"
@@ -85,7 +85,7 @@
 		"@semantic-release/commit-analyzer": "^13.0.1",
 		"@semantic-release/exec": "^7.1.0",
 		"@semantic-release/git": "^10.0.1",
-		"@semantic-release/gitlab": "^13.2.9",
+
 		"@semantic-release/npm": "^13.1.1",
 		"@semantic-release/release-notes-generator": "^14.1.0",
 		"@total-typescript/ts-reset": "0.6.1",
