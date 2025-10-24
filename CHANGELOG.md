@@ -1,3 +1,10 @@
+## [1.0.8](https://github.com/rtorcato/js-tooling/compare/v1.0.7...v1.0.8) (2025-10-24)
+
+
+### Bug Fixes
+
+* improve commitlint validation in CI environment ([727fe98](https://github.com/rtorcato/js-tooling/commit/727fe98ccefb1eaba188515ee7de0fabe1530a2b))
+
 ## [1.0.7](https://github.com/rtorcato/js-tooling/compare/v1.0.6...v1.0.7) (2025-10-24)
 
 
