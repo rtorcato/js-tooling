@@ -77,12 +77,18 @@ program
 		console.log(chalk.cyan('\n🛠️  Available tooling configurations:\n'))
 
 		const configs = [
-			{ name: 'TypeScript', desc: 'Base, React, Next.js, Node.js, Express configurations' },
+			{
+				name: 'TypeScript',
+				desc: 'Base, React, Next.js, Node.js, Express configurations',
+			},
 			{ name: 'ESLint', desc: 'Base and Next.js ESLint configurations' },
 			{ name: 'Biome', desc: 'Fast formatter and linter configuration' },
 			{ name: 'Prettier', desc: 'Code formatter configuration' },
 			{ name: 'Vitest', desc: 'Testing framework configuration' },
-			{ name: 'Jest', desc: 'Testing framework presets for browser and Node.js' },
+			{
+				name: 'Jest',
+				desc: 'Testing framework presets for browser and Node.js',
+			},
 			{ name: 'Playwright', desc: 'End-to-end testing configuration' },
 			{ name: 'Commitlint', desc: 'Conventional commit linting' },
 			{ name: 'Husky', desc: 'Git hooks for pre-commit validation' },
