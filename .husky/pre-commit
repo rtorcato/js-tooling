@@ -20,4 +20,4 @@ fi
 
 echo "🎉 Pre-commit checks passed successfully!"
 
-pnpm exec biome format .
+pnpm exec biome format --config-path=tooling/biome/biome.json src scripts

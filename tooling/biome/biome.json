@@ -1,5 +1,4 @@
 {
-	"root": false,
 	"$schema": "https://biomejs.dev/schemas/2.3.0/schema.json",
 	"vcs": {
 		"enabled": false,
@@ -25,16 +24,27 @@
 		"indentStyle": "tab",
 		"lineWidth": 100
 	},
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
 		"enabled": true,
 		"rules": {
 			"recommended": true,
 			"style": {
 				"noInferrableTypes": "off"
+			},
+			"complexity": {
+				"useLiteralKeys": "off"
+			},
+			"suspicious": {
+				"noExplicitAny": "off",
+				"noTemplateCurlyInString": "off"
 			}
-			// "noUnusedVariables": "error", ❌ Not supported yet
-			// "noExplicitAny": "warn"       ❌ Not supported yet
+		}
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "off"
+			}
 		}
 	},
 	"javascript": {
@@ -42,6 +52,12 @@
 			"quoteStyle": "single",
 			"trailingCommas": "es5",
 			"semicolons": "asNeeded"
+		}
+	},
+	"json": {
+		"formatter": {
+			"indentStyle": "space",
+			"indentWidth": 2
 		}
 	}
 }

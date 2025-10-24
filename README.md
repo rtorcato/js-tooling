@@ -58,11 +58,109 @@ The package provides several CLI commands:
 # Interactive project setup wizard
 npx @rtorcato/js-tooling setup
 
+# Copy configuration files to current directory
+npx @rtorcato/js-tooling copy biome
+npx @rtorcato/js-tooling copy tsconfig
+
+# List all available configurations
+npx @rtorcato/js-tooling list
+
 # Run commit message helper
 npx @rtorcato/js-tooling commitmessage
 
 # Hello world example
 npx @rtorcato/js-tooling helloworld
+```
+
+## Configuration Usage
+
+### Biome (Formatter & Linter)
+
+Since Biome doesn't support configuration extension, use the copy command to get the base configuration:
+
+```bash
+# Copy base Biome configuration
+npx @rtorcato/js-tooling copy biome
+```
+
+This creates a `biome.json` file with:
+- Tab indentation, 100 character line width
+- Single quotes, ES5 trailing commas
+- Recommended linting rules with sensible overrides
+- Smart file patterns excluding build directories
+
+After copying, customize for your project:
+
+```json
+{
+  "linter": {
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "error"
+      }
+    }
+  }
+}
+```
+
+### TypeScript
+
+Import TypeScript configurations directly in your `tsconfig.json`:
+
+```json
+{
+  "extends": "@rtorcato/js-tooling/typescript/base"
+}
+```
+
+Available configurations:
+- `typescript/base` - Base configuration for all projects
+- `typescript/react` - React-specific settings
+- `typescript/next` - Next.js optimized configuration
+- `typescript/node` - Node.js server configuration
+- `typescript/express` - Express.js API configuration
+
+### ESLint
+
+```javascript
+// eslint.config.js
+import baseConfig from '@rtorcato/js-tooling/eslint/base'
+import nextjsConfig from '@rtorcato/js-tooling/eslint/nextjs'
+
+export default [
+  ...baseConfig,
+  // Add project-specific rules
+]
+```
+
+### Commitlint
+
+```javascript
+// commitlint.config.js
+import config from '@rtorcato/js-tooling/commitlint/config'
+export default config
+```
+
+### Vitest
+
+```javascript
+// vitest.config.js
+import { defineConfig } from 'vitest/config'
+import baseConfig from '@rtorcato/js-tooling/vitest/config'
+
+export default defineConfig({
+  ...baseConfig,
+  // Add project-specific settings
+})
+```
+
+### Semantic Release
+
+```javascript
+// release.config.js
+import config from '@rtorcato/js-tooling/semantic-release/github'
+export default config
 ```
 
 ## Using with Package Managers

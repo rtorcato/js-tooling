@@ -21,6 +21,54 @@ program
 	.action(setupProject)
 
 program
+	.command('copy <config>')
+	.description('📋 Copy a specific configuration file to current directory')
+	.action(async (config: string) => {
+		const availableConfigs = {
+			biome: {
+				source: 'tooling/biome/biome.json',
+				target: 'biome.json',
+				desc: 'Biome formatter and linter configuration',
+			},
+			tsconfig: {
+				source: 'tooling/typescript/tsconfig.base.json',
+				target: 'tsconfig.json',
+				desc: 'TypeScript base configuration',
+			},
+		}
+
+		if (!availableConfigs[config as keyof typeof availableConfigs]) {
+			console.error(chalk.red(`\n❌ Unknown configuration: ${config}`))
+			console.log(chalk.gray('Available configurations:'))
+			Object.entries(availableConfigs).forEach(([key, { desc }]) => {
+				console.log(`  ${chalk.green('●')} ${chalk.bold(key)}: ${chalk.gray(desc)}`)
+			})
+			console.log()
+			return
+		}
+
+		const { source, target, desc } = availableConfigs[config as keyof typeof availableConfigs]
+
+		try {
+			const fs = (await import('fs-extra')).default
+			const path = (await import('node:path')).default
+
+			// Get the package installation path
+			const packagePath = path.dirname(path.dirname(new URL(import.meta.url).pathname))
+			const sourcePath = path.join(packagePath, source)
+			const targetPath = path.join(process.cwd(), target)
+
+			await fs.copy(sourcePath, targetPath)
+
+			console.log(chalk.green(`\n✅ Copied ${desc}`))
+			console.log(chalk.gray(`   From: ${source}`))
+			console.log(chalk.gray(`   To:   ${target}\n`))
+		} catch (error) {
+			console.error(chalk.red(`\n❌ Error copying configuration: ${error}\n`))
+		}
+	})
+
+program
 	.command('list')
 	.alias('ls')
 	.description('📋 List all available tooling configurations')

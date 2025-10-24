@@ -1,8 +1,3 @@
-// import config from '/builds/rtorcato/js-tooling/tooling/commitlint.config.cjs'
+import baseConfig from './tooling/commitlint/commitlint.mjs'
 
-// export default config
-
-export default {
-	extends: ['@commitlint/config-conventional'],
-	ignores: [(commit) => commit.includes('[skip ci]')],
-}
+export default baseConfig
