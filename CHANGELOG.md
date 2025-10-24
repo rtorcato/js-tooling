@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/rtorcato/js-tooling/compare/v1.0.9...v1.1.0) (2025-10-24)
+
+
+### Bug Fixes
+
+* correct CLI path resolution for config copying ([08bc2d3](https://github.com/rtorcato/js-tooling/commit/08bc2d36d5e7ed81730562f859a0690b2904f8b3))
+
+
+### Features
+
+* enforce stricter commit message limits ([f048600](https://github.com/rtorcato/js-tooling/commit/f04860048a9449de86d3684a6ab729e3728377ef))
+
 ## [1.0.9](https://github.com/rtorcato/js-tooling/compare/v1.0.8...v1.0.9) (2025-10-24)
 
 
