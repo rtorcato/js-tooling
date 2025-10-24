@@ -41,7 +41,7 @@ export default {
 		[
 			'@semantic-release/github',
 			{
-				assets: ['dist/*.js', 'dist/*.js.map', 'CHANGELOG.md', 'package.json', 'README.md'],
+				assets: ['CHANGELOG.md', 'package.json', 'README.md'],
 				message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
 			},
 		],
