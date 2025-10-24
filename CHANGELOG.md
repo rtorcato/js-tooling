@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/rtorcato/js-tooling/compare/v1.0.5...v1.0.6) (2025-10-24)
+
+
+### Bug Fixes
+
+* prevent Husky setup failure in CI environment ([d40caf0](https://github.com/rtorcato/js-tooling/commit/d40caf01d453349843653b8f50579138131c3e55))
+
 ## [1.0.5](https://github.com/rtorcato/js-tooling/compare/v1.0.4...v1.0.5) (2025-10-24)
 
 
