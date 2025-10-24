@@ -72,7 +72,7 @@ export async function getEntryPoints(dir, fileExtension = '.ts', excludeTestFile
 			)
 			.map((entry) => path.join(dir, entry.name))
 	} catch (error) {
-		// @ts-ignore
+		// @ts-expect-error
 		if (error.code === 'ENOENT') {
 			console.warn(`Directory ${dir} does not exist.`)
 			return []

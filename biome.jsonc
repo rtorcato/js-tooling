@@ -9,7 +9,7 @@
     "ignoreUnknown": false,
     "includes": [
       "**",
-      "!**/.pnpm-store/**",
+      "!**/.pnpm-store",
       "!**/package.json",
       "!**/tsconfig*.json",
       "!**/node_modules",
@@ -35,9 +35,12 @@
       },
       "complexity": {
         "useLiteralKeys": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noTemplateCurlyInString": "off"
       }
       // "noUnusedVariables": "error", ❌ Not supported yet
-      // "noExplicitAny": "warn"       ❌ Not supported yet
     }
   },
   "assist": {

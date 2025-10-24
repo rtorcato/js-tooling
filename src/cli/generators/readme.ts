@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import path from 'path'
+import path from 'node:path'
 import type { ProjectConfig } from '../commands/setup.js'
 
 export async function generateReadme(config: ProjectConfig, targetDir: string) {
@@ -151,7 +151,7 @@ function generateTestingSection(config: ProjectConfig): string {
 		commands.push('pnpm test:e2e:ui   # Run E2E tests with UI')
 	}
 
-	return '```bash\n' + commands.join('\n') + '\n```'
+	return `\`\`\`bash\n${commands.join('\n')}\n\`\`\``
 }
 
 function generateBuildingSection(config: ProjectConfig): string {

@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { ProjectConfig } from '../commands/setup.js'
 import { generateBuildConfigs } from './build.js'
 import { generateGitConfigs } from './git.js'

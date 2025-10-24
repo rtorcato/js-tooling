@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import path from 'path'
+import path from 'node:path'
 import type { ProjectConfig } from '../commands/setup.js'
 
 export async function generateGitHubActions(config: ProjectConfig, targetDir: string) {

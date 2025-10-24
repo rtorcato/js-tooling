@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
-import path from 'path'
+import path from 'node:path'
 import { generateConfigs } from '../generators/index.js'
 import { installDependencies } from '../utils/install.js'
 
