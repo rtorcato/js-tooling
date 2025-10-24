@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/rtorcato/js-tooling/compare/v1.0.3...v1.0.4) (2025-10-24)
+
+
+### Bug Fixes
+
+* trigger release with updated NPM automation token ([5f99afe](https://github.com/rtorcato/js-tooling/commit/5f99afe0b7b2a52bab947184521063278617c4cd))
+
 ## [1.0.3](https://github.com/rtorcato/js-tooling/compare/v1.0.2...v1.0.3) (2025-10-24)
 
 
