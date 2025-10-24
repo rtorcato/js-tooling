@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/rtorcato/js-tooling/compare/v1.0.2...v1.0.3) (2025-10-24)
+
+
+### Bug Fixes
+
+* ensure package publishing works after GitLab migration ([c53937d](https://github.com/rtorcato/js-tooling/commit/c53937d10697e090fd605819a0c74792c9836a60))
+
 ## [1.0.2](https://github.com/rtorcato/js-tooling/compare/v1.0.1...v1.0.2) (2025-10-24)
 
 
@@ -44,5 +51,3 @@
 ---
 
 *Changelog entries prior to v1.0.0 have been removed as part of the migration from GitLab to GitHub.*
-
-

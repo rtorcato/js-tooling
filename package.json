@@ -1,6 +1,6 @@
 {
 	"name": "@rtorcato/js-tooling",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"description": "JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.",
 	"type": "module",
 	"keywords": [
@@ -85,7 +85,6 @@
 		"@semantic-release/commit-analyzer": "^13.0.1",
 		"@semantic-release/exec": "^7.1.0",
 		"@semantic-release/git": "^10.0.1",
-
 		"@semantic-release/npm": "^13.1.1",
 		"@semantic-release/release-notes-generator": "^14.1.0",
 		"@total-typescript/ts-reset": "0.6.1",
