@@ -20,10 +20,10 @@ export default {
 				'test',
 			],
 		],
-		// Enforce length limits
-		'header-max-length': [2, 'always', 72],
-		'body-max-line-length': [2, 'always', 100],
-		'footer-max-line-length': [2, 'always', 100],
+		// Enforce length limits (strict)
+		'header-max-length': [2, 'always', 50],
+		'body-max-line-length': [2, 'always', 72],
+		'footer-max-line-length': [2, 'always', 72],
 		// Enforce case rules (allow common patterns)
 		'subject-case': [0], // Disable case enforcement to allow flexibility
 		'type-case': [2, 'always', 'lower-case'],
