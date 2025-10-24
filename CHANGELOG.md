@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/rtorcato/js-tooling/compare/v1.0.4...v1.0.5) (2025-10-24)
+
+
+### Bug Fixes
+
+* republish package after unpublished version conflict ([15b3ad4](https://github.com/rtorcato/js-tooling/commit/15b3ad460db9c49848fbc0c0dd564404f7e1b694))
+
 ## [1.0.4](https://github.com/rtorcato/js-tooling/compare/v1.0.3...v1.0.4) (2025-10-24)
 
 
