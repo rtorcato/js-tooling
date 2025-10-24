@@ -53,8 +53,9 @@ program
 			const fs = (await import('fs-extra')).default
 			const path = (await import('node:path')).default
 
-			// Get the package installation path
-			const packagePath = path.dirname(path.dirname(new URL(import.meta.url).pathname))
+			// Get the package installation path - CLI is in dist/cli/index.js, need to go up 3 levels
+			const cliFile = new URL(import.meta.url).pathname
+			const packagePath = path.dirname(path.dirname(path.dirname(cliFile)))
 			const sourcePath = path.join(packagePath, source)
 			const targetPath = path.join(process.cwd(), target)
 
