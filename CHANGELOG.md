@@ -1,3 +1,11 @@
+## [1.0.7](https://github.com/rtorcato/js-tooling/compare/v1.0.6...v1.0.7) (2025-10-24)
+
+
+### Bug Fixes
+
+* add npm provenance and optimize workflow structure ([86f0bc4](https://github.com/rtorcato/js-tooling/commit/86f0bc408f472e437049cd1da7b0b8ccce5f8fc9))
+* enhance config management and add CLI copy command ([36f973e](https://github.com/rtorcato/js-tooling/commit/36f973e3ef223bf19dcdc447227b0ed24d010b96))
+
 ## [1.0.6](https://github.com/rtorcato/js-tooling/compare/v1.0.5...v1.0.6) (2025-10-24)
 
 
