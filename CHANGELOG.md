@@ -41,39 +41,8 @@
 
 * add CLI with project setup wizard and migrate to GitHub ([73b81bc](https://github.com/rtorcato/js-tooling/commit/73b81bc44e435ace0e35b4732124d00e082fd20b))
 
-## [1.0.12](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.11...v1.0.12) (2025-06-16)
+---
+
+*Changelog entries prior to v1.0.0 have been removed as part of the migration from GitLab to GitHub.*
 
 
-### Bug Fixes
-
-* update ts ([728e386](https://gitlab.com/rtorcato/js-tooling/commit/728e386479d9ba43298f333ce631dcfe6db02497))
-
-## [1.0.11](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.10...v1.0.11) (2025-06-11)
-
-
-### Bug Fixes
-
-* vitest resolve ([78cd367](https://gitlab.com/rtorcato/js-tooling/commit/78cd36779cbc74b024adc0738036ce99795ebf5a))
-
-## [1.0.10](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.9...v1.0.10) (2025-06-11)
-
-
-### Bug Fixes
-
-* add docker semantic release ([61238ac](https://gitlab.com/rtorcato/js-tooling/commit/61238ac79d99497200f183b1cc1b54714c7d4f7d))
-
-## [1.0.9](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.8...v1.0.9) (2025-05-28)
-
-
-### Bug Fixes
-
-* update ts base config ([2943996](https://gitlab.com/rtorcato/js-tooling/commit/2943996fc322cd903ccfd8912550cbed8c880edf))
-
-## [1.0.8](https://gitlab.com/rtorcato/js-tooling/compare/v1.0.7...v1.0.8) (2025-05-28)
-
-
-### Bug Fixes
-
-* for changelog release ([efb176d](https://gitlab.com/rtorcato/js-tooling/commit/efb176dc2e2a2c94cf25b6ddcdff95f4bd97b274))
-
-# @rtorcato/js-tooling !!!
