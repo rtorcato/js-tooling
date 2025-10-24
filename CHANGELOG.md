@@ -1,3 +1,10 @@
+## [1.0.9](https://github.com/rtorcato/js-tooling/compare/v1.0.8...v1.0.9) (2025-10-24)
+
+
+### Bug Fixes
+
+* improve skip CI detection regex pattern ([f29294b](https://github.com/rtorcato/js-tooling/commit/f29294bfa7f56d047923c4cecde09746ed4593ad))
+
 ## [1.0.8](https://github.com/rtorcato/js-tooling/compare/v1.0.7...v1.0.8) (2025-10-24)
 
 
