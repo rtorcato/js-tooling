@@ -1,0 +1,56 @@
+---
+title: js-tooling
+description: JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.
+template: splash
+hero:
+  tagline: One package. Full dev toolchain. TypeScript, linting, testing, commits, releases — wired together and validated against each other.
+  actions:
+    - text: Get Started
+      link: /js-tooling/guides/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/rtorcato/js-tooling
+      icon: external
+---
+
+import { CardGrid, Card } from '@astrojs/starlight/components'
+
+## Why this exists
+
+Most tooling libraries give you one piece — just TypeScript configs, or just an ESLint preset. **js-tooling** covers the entire lifecycle: TypeScript, Biome/ESLint, Vitest/Jest, Commitlint, Husky, Semantic Release, and GitHub Actions CI, all wired together and validated against each other.
+
+The interactive `setup` wizard scaffolds all of it in one shot for a new project, and `doctor` checks an existing project for drift.
+
+## What's included
+
+<CardGrid>
+  <Card title="TypeScript" icon="document">
+    Base configs for library, React, Next.js, Node, and Express projects.
+  </Card>
+  <Card title="Biome & ESLint" icon="approve-check">
+    Opinionated linting and formatting presets. Biome recommended for new projects.
+  </Card>
+  <Card title="Vitest & Jest" icon="rocket">
+    Testing framework configs and Jest presets for browser and Node environments.
+  </Card>
+  <Card title="Commitlint & Husky" icon="setting">
+    Conventional commit enforcement with git hooks pre-wired.
+  </Card>
+  <Card title="Semantic Release" icon="star">
+    Automated versioning, changelog, and npm publishing pipelines.
+  </Card>
+  <Card title="CLI" icon="puzzle">
+    `setup` wizard, `doctor` drift checker, and `copy` command for individual files.
+  </Card>
+</CardGrid>
+
+## Quick install
+
+```bash
+npx @rtorcato/js-tooling setup
+```
+
+[![CI](https://github.com/rtorcato/js-tooling/actions/workflows/ci.yml/badge.svg)](https://github.com/rtorcato/js-tooling/actions/workflows/ci.yml)
+[![npm version](https://badge.fury.io/js/@rtorcato%2Fjs-tooling.svg)](https://badge.fury.io/js/@rtorcato%2Fjs-tooling)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

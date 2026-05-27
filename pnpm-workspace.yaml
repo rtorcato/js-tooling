@@ -1,4 +1,9 @@
+packages:
+  - 'apps/*'
+
 allowBuilds:
   esbuild: true
+  sharp: true
 onlyBuiltDependencies:
   - esbuild
+  - sharp
