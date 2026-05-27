@@ -4,6 +4,13 @@
 
 `@rtorcato/js-tooling` has solid bones — clean `exports` map, well-organized CLI under `src/cli/`, proper semantic-release wiring — but had drifted (~7 months between feature work). The v2.0.0 cleanup pass fixed the inverted dependency split, broken build/typecheck/lint-staged scripts, missing CI gates, and Node-version enforcement. What remains below is the forward-looking backlog.
 
+## 🔴 Release pipeline
+
+- [ ] **Rotate `NPM_TOKEN`** — current secret in GitHub Actions is invalid (`EINVALIDNPMTOKEN 401`), blocking the v2.0.0 release. Generate a fresh Automation token at https://www.npmjs.com/settings/rtorcato/tokens with publish access on `@rtorcato/*`, then update `Settings → Secrets and variables → Actions → NPM_TOKEN`.
+- [ ] **Re-run the failed release workflow** once `NPM_TOKEN` is fixed (Actions UI → failed run → Re-run all jobs). Commits since v1.1.0 still contain the `BREAKING CHANGE:` footer, so semantic-release will publish v2.0.0.
+- [ ] **Set up npm Trusted Publishers (OIDC)** to eliminate long-lived tokens entirely. The current release attempt tried OIDC first (`OIDC token exchange ... 404 package not found`) — npm needs a trusted publisher config for this package. Docs: https://docs.npmjs.com/trusted-publishers. Once configured, drop `NPM_TOKEN` from Actions.
+- [ ] **Document the release secrets** in CONTRIBUTING.md or a `RELEASING.md` so the next maintainer knows what to rotate when.
+
 ## 🟡 Package hygiene
 
 - [ ] **Expose or remove undocumented `tooling/` subdirs**: `oxc/`, `tsdown/`, `vellite/`, `rolldown/`, `playwright/`, `nextjs/`, `vite/`. They exist on disk but aren't in `exports` or the README.
