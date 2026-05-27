@@ -1,23 +1,9 @@
+echo "🔍 Pre-commit checks..."
 
+echo "🧹 biome check..."
+pnpm run check || { echo "❌ Lint/format failed. Run 'pnpm check:fix' to autofix."; exit 1; }
 
-echo "🔍 Running pre-commit checks..."
-# npx lint-staged
+echo "🔎 typecheck..."
+pnpm run typecheck || { echo "❌ Typecheck failed."; exit 1; }
 
-echo "🧹 Running lint (pnpm run check)..."
-pnpm run check
-CHECK_STATUS=$?
-
-if [ $CHECK_STATUS -ne 0 ]; then
-  echo "❌ Linting failed!"
-  exit 1
-else
-  echo "✅ Linting passed!"
-fi
-
-# If you later enable lint-staged
-# echo "🎯 Running lint-staged..."
-# npx lint-staged
-
-echo "🎉 Pre-commit checks passed successfully!"
-
-pnpm exec biome format --config-path=tooling/biome/biome.json src scripts
+echo "✅ Pre-commit passed"

@@ -1,7 +1,12 @@
+echo "🚀 Pre-push: mirroring CI gates locally..."
 
-# pnpm run typecheck
-# pnpm run lint
-# pnpm run test
+echo "🔎 typecheck..."
+pnpm run typecheck || { echo "❌ Typecheck failed."; exit 1; }
 
-# pnpm run typecheck
-# pnpm run lint
+echo "🧪 test..."
+pnpm test --run || { echo "❌ Tests failed."; exit 1; }
+
+echo "🏗️  build..."
+pnpm run build-cli || { echo "❌ Build failed."; exit 1; }
+
+echo "✅ Pre-push passed — pushing to remote"
