@@ -103,8 +103,8 @@ importers:
         specifier: ^0.25.11
         version: 0.25.11
       esbuild-node-externals:
-        specifier: ^1.18.0
-        version: 1.18.0(esbuild@0.25.11)
+        specifier: ^1.22.0
+        version: 1.22.0(esbuild@0.25.11)
       eslint:
         specifier: 9.38.0
         version: 9.38.0(jiti@2.7.0)
@@ -2392,6 +2392,10 @@ packages:
   emojilib@2.4.0:
     resolution: {integrity: sha512-5U0rVMU5Y2n2+ykNLQqMoqklN9ICBT/KsvC1Gz6vqHbz2AXXGkG+Pm5rMWk/8Vjrr/mY9985Hi8DYzn1F09Nyw==}
 
+  empathic@2.0.1:
+    resolution: {integrity: sha512-YGRs8knHhKHVShLkFET/rWAU8kmHbOV5LwN938RHI0pljAJ1Gf6SzXsSmRaEzcXTtOOmVqJ5+WtQPL5uigY50Q==}
+    engines: {node: '>=14'}
+
   env-ci@11.1.1:
     resolution: {integrity: sha512-mT3ks8F0kwpo7SYNds6nWj0PaRh+qJxIeBVBXAKTN9hphAzZv7s0QAZQbqnB1fAv/r4pJUGE15BV9UrS31FP2w==}
     engines: {node: ^18.17 || >=20.6.1}
@@ -2450,11 +2454,11 @@ packages:
     resolution: {integrity: sha512-w+5mJ3GuFL+NjVtJlvydShqE1eN3h3PbI7/5LAsYJP/2qtuMXjfL2LpHSRqo4b4eSF5K/DH1JXKUAHSB2UW50g==}
     engines: {node: '>= 0.4'}
 
-  esbuild-node-externals@1.18.0:
-    resolution: {integrity: sha512-suFVX3SzZlXrGIS9Yqx+ZaHL4w1p0e/j7dQbOM9zk8SfFpnAGnDplHUKXIf9kcPEAfZRL66JuYeVSVlsSEQ5Eg==}
+  esbuild-node-externals@1.22.0:
+    resolution: {integrity: sha512-5MOqbBYAjGayiA6JPCDJ+QOvW1Xl6M9LlQbYMgwbE0DE/pv6NyXKzPzQhksU6lY1ZB8MWMn6Ov6IGooMAZnTyQ==}
     engines: {node: '>=12'}
     peerDependencies:
-      esbuild: 0.12 - 0.25
+      esbuild: 0.12 - 0.28
 
   esbuild@0.25.11:
     resolution: {integrity: sha512-KohQwyzrKTQmhXDW1PjCv3Tyspn9n5GcY2RTDqeORIdIJY8yKIF7sTSopFmn/wpMPW4rdPXI0UE5LJLuq3bx0Q==}
@@ -7747,6 +7751,8 @@ snapshots:
 
   emojilib@2.4.0: {}
 
+  empathic@2.0.1: {}
+
   env-ci@11.1.1:
     dependencies:
       execa: 8.0.1
@@ -7922,10 +7928,10 @@ snapshots:
       is-date-object: 1.1.0
       is-symbol: 1.1.1
 
-  esbuild-node-externals@1.18.0(esbuild@0.25.11):
+  esbuild-node-externals@1.22.0(esbuild@0.25.11):
     dependencies:
+      empathic: 2.0.1
       esbuild: 0.25.11
-      find-up: 5.0.0
 
   esbuild@0.25.11:
     optionalDependencies:
