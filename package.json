@@ -1,6 +1,6 @@
 {
 	"name": "@rtorcato/js-tooling",
-	"version": "1.1.0",
+	"version": "2.0.0",
 	"description": "JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.",
 	"type": "module",
 	"keywords": [
@@ -177,47 +177,129 @@
 		"vitest": ">=3.0.0"
 	},
 	"peerDependenciesMeta": {
-		"@biomejs/biome": { "optional": true },
-		"@commitlint/cli": { "optional": true },
-		"@commitlint/config-conventional": { "optional": true },
-		"@next/eslint-plugin-next": { "optional": true },
-		"@playwright/test": { "optional": true },
-		"@semantic-release/changelog": { "optional": true },
-		"@semantic-release/commit-analyzer": { "optional": true },
-		"@semantic-release/exec": { "optional": true },
-		"@semantic-release/git": { "optional": true },
-		"@semantic-release/github": { "optional": true },
-		"@semantic-release/npm": { "optional": true },
-		"@semantic-release/release-notes-generator": { "optional": true },
-		"@total-typescript/ts-reset": { "optional": true },
-		"@typescript-eslint/eslint-plugin": { "optional": true },
-		"@typescript-eslint/parser": { "optional": true },
-		"@vitejs/plugin-react": { "optional": true },
-		"commitizen": { "optional": true },
-		"conventional-changelog-conventionalcommits": { "optional": true },
-		"cz-conventional-changelog": { "optional": true },
-		"esbuild": { "optional": true },
-		"esbuild-node-externals": { "optional": true },
-		"eslint": { "optional": true },
-		"eslint-config-airbnb": { "optional": true },
-		"eslint-config-prettier": { "optional": true },
-		"eslint-config-turbo": { "optional": true },
-		"eslint-plugin-import": { "optional": true },
-		"eslint-plugin-jest": { "optional": true },
-		"eslint-plugin-jsx-a11y": { "optional": true },
-		"eslint-plugin-react": { "optional": true },
-		"eslint-plugin-react-hooks": { "optional": true },
-		"eslint-plugin-vitest": { "optional": true },
-		"husky": { "optional": true },
-		"lint-staged": { "optional": true },
-		"prettier": { "optional": true },
-		"prettier-plugin-tailwindcss": { "optional": true },
-		"semantic-release": { "optional": true },
-		"ts-jest": { "optional": true },
-		"tsup": { "optional": true },
-		"typescript": { "optional": true },
-		"typescript-eslint": { "optional": true },
-		"vitest": { "optional": true }
+		"@biomejs/biome": {
+			"optional": true
+		},
+		"@commitlint/cli": {
+			"optional": true
+		},
+		"@commitlint/config-conventional": {
+			"optional": true
+		},
+		"@next/eslint-plugin-next": {
+			"optional": true
+		},
+		"@playwright/test": {
+			"optional": true
+		},
+		"@semantic-release/changelog": {
+			"optional": true
+		},
+		"@semantic-release/commit-analyzer": {
+			"optional": true
+		},
+		"@semantic-release/exec": {
+			"optional": true
+		},
+		"@semantic-release/git": {
+			"optional": true
+		},
+		"@semantic-release/github": {
+			"optional": true
+		},
+		"@semantic-release/npm": {
+			"optional": true
+		},
+		"@semantic-release/release-notes-generator": {
+			"optional": true
+		},
+		"@total-typescript/ts-reset": {
+			"optional": true
+		},
+		"@typescript-eslint/eslint-plugin": {
+			"optional": true
+		},
+		"@typescript-eslint/parser": {
+			"optional": true
+		},
+		"@vitejs/plugin-react": {
+			"optional": true
+		},
+		"commitizen": {
+			"optional": true
+		},
+		"conventional-changelog-conventionalcommits": {
+			"optional": true
+		},
+		"cz-conventional-changelog": {
+			"optional": true
+		},
+		"esbuild": {
+			"optional": true
+		},
+		"esbuild-node-externals": {
+			"optional": true
+		},
+		"eslint": {
+			"optional": true
+		},
+		"eslint-config-airbnb": {
+			"optional": true
+		},
+		"eslint-config-prettier": {
+			"optional": true
+		},
+		"eslint-config-turbo": {
+			"optional": true
+		},
+		"eslint-plugin-import": {
+			"optional": true
+		},
+		"eslint-plugin-jest": {
+			"optional": true
+		},
+		"eslint-plugin-jsx-a11y": {
+			"optional": true
+		},
+		"eslint-plugin-react": {
+			"optional": true
+		},
+		"eslint-plugin-react-hooks": {
+			"optional": true
+		},
+		"eslint-plugin-vitest": {
+			"optional": true
+		},
+		"husky": {
+			"optional": true
+		},
+		"lint-staged": {
+			"optional": true
+		},
+		"prettier": {
+			"optional": true
+		},
+		"prettier-plugin-tailwindcss": {
+			"optional": true
+		},
+		"semantic-release": {
+			"optional": true
+		},
+		"ts-jest": {
+			"optional": true
+		},
+		"tsup": {
+			"optional": true
+		},
+		"typescript": {
+			"optional": true
+		},
+		"typescript-eslint": {
+			"optional": true
+		},
+		"vitest": {
+			"optional": true
+		}
 	},
 	"lint-staged": {
 		"*.{js,ts,json,md}": [

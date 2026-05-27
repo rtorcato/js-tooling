@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/rtorcato/js-tooling/compare/v1.1.0...v2.0.0) (2026-05-27)
+
+
+* feat!: rewrite deps to peer-deps, fix CI + scripts ([c330ded](https://github.com/rtorcato/js-tooling/commit/c330dedc857da700d7e0b154cbde24e713fb59e6))
+
+
+### Bug Fixes
+
+* **ci:** pass commit msg via env, rename TODO ([5bc6b96](https://github.com/rtorcato/js-tooling/commit/5bc6b96c1233d21e5c63d26aef808a5c9c109757))
+
+
+### BREAKING CHANGES
+
+* 39 packages moved from dependencies to
+peerDependencies (optional). Consumers relying on transitive
+installs of e.g. vitest or @biomejs/biome via this package must
+add them to their own devDependencies.
+
 # [1.1.0](https://github.com/rtorcato/js-tooling/compare/v1.0.9...v1.1.0) (2025-10-24)
 
 
