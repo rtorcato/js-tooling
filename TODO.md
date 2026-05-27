@@ -15,39 +15,35 @@
 
 - [x] **Expose or remove undocumented `tooling/` subdirs**: removed `oxc/`, `tsdown/`, `vellite/`, `rolldown/`, `rollup/`, `playwright/`, `nextjs/`, `vite/` — all empty placeholders, not in `exports`.
 - [x] **Add `types` condition to `exports`** — `.d.mts` files written for every `.mjs` preset (eslint, prettier, vitest, commitlint, semantic-release, jest-presets, esbuild) and `exports` updated with conditional `types`/`import` map.
-- [ ] **Pick a primary lint stance** (Biome OR ESLint) and document it. Both are shipped as presets, but the README doesn't say "pick one".
+- [x] **Pick a primary lint stance** — documented in README "Linting & Formatting" section: use Biome for new projects, ESLint for projects that need specific plugins.
 - [x] **Fix dead build scripts**: removed broken `build-dev`/`build-prod` (referenced non-existent `build.mjs`); added a `build` alias to `build-cli`.
 - [x] **Pin `typescript-eslint`** — pinned to `^8.60.0` (was `"latest"`).
 
 ## 🟡 Documentation gaps
 
-- [ ] README: walk through what `setup` actually does (which configs it writes, prompts it asks).
-- [ ] README: document `init`, `copy <name>`, `list`, `commitmessage`, `helloworld` commands.
+- [x] README: walk through what `setup` actually does (which configs it writes, prompts it asks).
+- [x] README: document `init`, `copy <name>`, `list` commands (removed non-existent `commitmessage`/`helloworld`).
 - [ ] README: add CLI screenshot or asciinema cast.
-- [ ] README: link to CHANGELOG + a "What's new" section per minor version.
+- [x] README: link to CHANGELOG + a "What's new" section per minor version.
 - [x] Fill in `tests/README.md` — covers layout, run commands, and the tmp-dir fixture pattern.
-- [ ] Add badges: bundle size, monthly downloads, code coverage.
-- [ ] One-paragraph "Why this exists" — what does this give me that turborepo's defaults or `@total-typescript/tsconfig` don't?
+- [ ] Add badges: bundle size, code coverage.
+- [x] Add badge: monthly npm downloads.
+- [x] One-paragraph "Why this exists" — what does this give me that turborepo's defaults or `@total-typescript/tsconfig` don't?
 
 ## 🟢 Testing gaps
 
-- [~] Add unit tests for each generator under `src/cli/generators/` using a tmp-dir fixture pattern. Covered so far: `tsconfig`, `linting`, `testing`, `git` (18 tests via `tests/helpers/tmp-dir.ts`). Remaining: `package-json`, `readme`, `build`, `github-actions`.
-- [ ] Add an e2e smoke test that spawns the CLI in a scratch dir and asserts produced files.
+- [x] Add unit tests for each generator under `src/cli/generators/` using a tmp-dir fixture pattern. All 8 generators covered: `tsconfig`, `linting`, `testing`, `git`, `package-json`, `readme`, `build`, `github-actions` (63 tests).
+- [x] Add e2e smoke tests that spawn the CLI binary and assert output/files: `--version`, `list`, `ls`, `copy biome`, `copy tsconfig`, `copy <unknown>`, `doctor --json`, unknown command (8 tests in `tests/cli/e2e.test.ts`).
 - [x] Add a coverage threshold in `vitest.config.mjs` — set to 25% statements/lines, 40% functions, 17% branches (current floor). Switched provider to v8. Ratchet up as more generators get tested.
 
 ## 🟢 Nice-to-haves
 
-- [ ] `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/`, `CODEOWNERS`, `SECURITY.md`, `FUNDING.yml`.
+- [x] `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/bug_report.md`, `.github/ISSUE_TEMPLATE/feature_request.md`, `.github/CODEOWNERS`, `SECURITY.md` added.
+- [ ] `FUNDING.yml` — add once a funding platform is set up.
 - [x] Dependabot config added — weekly npm + github-actions updates, grouped (eslint, semantic-release, types).
 - [x] CI matrix testing across Node 22 + 24 — test job runs on both versions; install is fresh per matrix instance.
 - [x] **`npx js-tooling doctor`** subcommand — diagnoses an existing project against the presets, reports `ok`/`drift`/`missing`/`not configured` per check (TypeScript, Biome, ESLint, Prettier, Vitest, Commitlint, package.json), exits non-zero on drift, supports `--json`. Covered by 6 unit tests.
-- [ ] Knip to surface unused deps/exports.
+- [x] **Knip** — added `pnpm knip` script, surfaced and fixed unlisted deps (`@eslint/js`, `@commitlint/types`, `@ianvs/prettier-plugin-sort-imports`, `jest`), removed stale `@types/inquirer`, exits clean.
 - [ ] Unified build tool — currently `build.mjs` (esbuild) + `tsc`. Pick `tsup` or `rolldown` (both already shipped as presets) and dogfood it.
 - [ ] `docs/` site via GitHub Pages — README is one long scroll.
 - [ ] Preset-level versioning — let consumers lock to `typescript/base@1` while `typescript/base@2` ships.
-
-## Suggested order of attack
-
-1. ~~**`tooling/` audit**~~ — done; empty placeholder dirs removed.
-2. **Generator tests** — in progress; 4 of 8 generators covered. Finish: `package-json`, `readme`, `build`, `github-actions`.
-3. ~~**`doctor` subcommand**~~ — MVP shipped; check coverage can grow (e.g., husky hooks, GitHub Actions workflow).

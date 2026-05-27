@@ -1,10 +1,21 @@
 #!/usr/bin/env node
 
+import path from 'node:path'
 import chalk from 'chalk'
 import { Command } from 'commander'
+import fs from 'fs-extra'
 import packageJson from '../../package.json' with { type: 'json' }
 import { doctorCommand } from './commands/doctor.js'
 import { setupProject } from './commands/setup.js'
+
+async function isSelfRepo(dir: string): Promise<boolean> {
+	try {
+		const pkg = await fs.readJson(path.join(dir, 'package.json'))
+		return pkg.name === '@rtorcato/js-tooling'
+	} catch {
+		return false
+	}
+}
 
 const program = new Command()
 
@@ -45,7 +56,7 @@ program
 				console.log(`  ${chalk.green('●')} ${chalk.bold(key)}: ${chalk.gray(desc)}`)
 			})
 			console.log()
-			return
+			process.exit(1)
 		}
 
 		const { source, target, desc } = availableConfigs[config as keyof typeof availableConfigs]
@@ -111,6 +122,24 @@ program
 	.option('-d, --directory <path>', 'Target directory to diagnose', process.cwd())
 	.option('--json', 'Emit machine-readable JSON output')
 	.action(doctorCommand)
+
+program.hook('preAction', async (_, actionCommand) => {
+	const name = actionCommand.name()
+	if (name === 'setup' || name === 'doctor') {
+		const dir = (actionCommand.opts().directory as string | undefined) ?? process.cwd()
+		if (await isSelfRepo(dir)) {
+			console.log(
+				chalk.yellow(
+					'\n⚠️  This command cannot be run inside the @rtorcato/js-tooling repo itself.\n'
+				)
+			)
+			console.log(
+				chalk.gray('   setup and doctor are for consumer projects, not for the tooling repo.\n')
+			)
+			process.exit(0)
+		}
+	}
+})
 
 // Handle unknown commands
 program.on('command:*', () => {
