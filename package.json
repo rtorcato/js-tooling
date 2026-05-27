@@ -20,8 +20,7 @@
 		"url": "https://github.com/rtorcato/js-tooling/issues"
 	},
 	"scripts": {
-		"build-dev": "rimraf ./dist && cross-env NODE_ENV=development node build.mjs && pnpm build-cli",
-		"build-prod": "rimraf ./dist && cross-env NODE_ENV=production node build.mjs && pnpm build-cli",
+		"build": "pnpm build-cli",
 		"build-cli": "rimraf ./dist/cli && tsc --project src/cli/tsconfig.json",
 		"prepublishOnly": "./scripts/fix-bins.sh",
 		"==================== Common ====================": "",
@@ -39,31 +38,56 @@
 	},
 	"files": [
 		"dist/cli/**/*.js",
-		"tooling/*",
 		"tooling/commitlint/commitlint.mjs",
+		"tooling/commitlint/commitlint.d.mts",
 		"tooling/esbuild/index.mjs",
+		"tooling/esbuild/index.d.mts",
 		"tooling/eslint/*.mjs",
+		"tooling/eslint/*.d.mts",
+		"tooling/eslint/types.d.ts",
 		"tooling/jest-presets/**",
 		"tooling/prettier/index.mjs",
+		"tooling/prettier/index.d.mts",
 		"tooling/typescript/*.json",
 		"tooling/typescript/reset.d.ts",
 		"tooling/vitest/vitest.config.mjs",
+		"tooling/vitest/vitest.config.d.mts",
 		"tooling/tsup/index.ts",
 		"tooling/biome/biome.json",
 		"tooling/biome/biome.jsonc",
 		"tooling/semantic-release/*.mjs",
+		"tooling/semantic-release/*.d.mts",
 		"README.md"
 	],
 	"exports": {
 		"./commitlint/config": {
+			"types": "./tooling/commitlint/commitlint.d.mts",
 			"import": "./tooling/commitlint/commitlint.mjs"
 		},
-		"./esbuild": "./tooling/esbuild/index.mjs",
-		"./eslint/base": "./tooling/eslint/base.mjs",
-		"./eslint/nextjs": "./tooling/eslint/nextjs.mjs",
-		"./jest-presets/browser/jest-preset": "./tooling/jest-presets/browser/jest-preset.mjs",
-		"./jest-presets/node/jest-preset": "./tooling/jest-presets/node/jest-preset.mjs",
-		"./prettier": "./tooling/prettier/index.mjs",
+		"./esbuild": {
+			"types": "./tooling/esbuild/index.d.mts",
+			"import": "./tooling/esbuild/index.mjs"
+		},
+		"./eslint/base": {
+			"types": "./tooling/eslint/base.d.mts",
+			"import": "./tooling/eslint/base.mjs"
+		},
+		"./eslint/nextjs": {
+			"types": "./tooling/eslint/nextjs.d.mts",
+			"import": "./tooling/eslint/nextjs.mjs"
+		},
+		"./jest-presets/browser/jest-preset": {
+			"types": "./tooling/jest-presets/browser/jest-preset.d.mts",
+			"import": "./tooling/jest-presets/browser/jest-preset.mjs"
+		},
+		"./jest-presets/node/jest-preset": {
+			"types": "./tooling/jest-presets/node/jest-preset.d.mts",
+			"import": "./tooling/jest-presets/node/jest-preset.mjs"
+		},
+		"./prettier": {
+			"types": "./tooling/prettier/index.d.mts",
+			"import": "./tooling/prettier/index.mjs"
+		},
 		"./typescript/base": "./tooling/typescript/tsconfig.base.json",
 		"./typescript/next": "./tooling/typescript/tsconfig.next.json",
 		"./typescript/express": "./tooling/typescript/tsconfig.express.json",
@@ -71,12 +95,24 @@
 		"./typescript/react": "./tooling/typescript/tsconfig.react.json",
 		"./typescript/test": "./tooling/typescript/tsconfig.test.json",
 		"./typescript/reset": "./tooling/typescript/reset.d.ts",
-		"./vitest/config": "./tooling/vitest/vitest.config.mjs",
+		"./vitest/config": {
+			"types": "./tooling/vitest/vitest.config.d.mts",
+			"import": "./tooling/vitest/vitest.config.mjs"
+		},
 		"./tsup": "./tooling/tsup/index.ts",
 		"./biome": "./tooling/biome/biome.json",
-		"./semantic-release": "./tooling/semantic-release/index.mjs",
-		"./semantic-release/github": "./tooling/semantic-release/github.mjs",
-		"./semantic-release/docker": "./tooling/semantic-release/docker.mjs"
+		"./semantic-release": {
+			"types": "./tooling/semantic-release/index.d.mts",
+			"import": "./tooling/semantic-release/index.mjs"
+		},
+		"./semantic-release/github": {
+			"types": "./tooling/semantic-release/github.d.mts",
+			"import": "./tooling/semantic-release/github.mjs"
+		},
+		"./semantic-release/docker": {
+			"types": "./tooling/semantic-release/docker.d.mts",
+			"import": "./tooling/semantic-release/docker.mjs"
+		}
 	},
 	"dependencies": {
 		"chalk": "^5.6.2",
@@ -104,6 +140,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.46.2",
 		"@typescript-eslint/parser": "^8.46.2",
 		"@vitejs/plugin-react": "^5.1.0",
+		"@vitest/coverage-v8": "^4.0.3",
 		"commitizen": "^4.3.1",
 		"conventional-changelog-conventionalcommits": "^9.1.0",
 		"cross-env": "^10.1.0",
@@ -130,7 +167,7 @@
 		"ts-jest": "^29.4.5",
 		"tsup": "8.5.0",
 		"typescript": "^5.9.3",
-		"typescript-eslint": "latest",
+		"typescript-eslint": "^8.60.0",
 		"vitest": "4.0.3"
 	},
 	"peerDependencies": {
