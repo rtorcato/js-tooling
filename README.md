@@ -67,12 +67,27 @@ npx @rtorcato/js-tooling copy tsconfig
 # List all available configurations
 npx @rtorcato/js-tooling list
 
+# Diagnose drift between your project and our presets
+npx @rtorcato/js-tooling doctor
+
 # Run commit message helper
 npx @rtorcato/js-tooling commitmessage
 
 # Hello world example
 npx @rtorcato/js-tooling helloworld
 ```
+
+### Doctor
+
+`doctor` audits an existing project against the presets and reports drift:
+
+```bash
+npx @rtorcato/js-tooling doctor              # current dir
+npx @rtorcato/js-tooling doctor -d ./app     # specific dir
+npx @rtorcato/js-tooling doctor --json       # machine-readable output
+```
+
+For each tracked config (TypeScript, Biome, ESLint, Prettier, Vitest, Commitlint, `package.json`) it reports `ok`, `drift`, `missing`, or `not configured`, and exits non-zero on `drift` or `missing` — handy as a CI check.
 
 ## Configuration Usage
 

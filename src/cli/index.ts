@@ -3,6 +3,7 @@
 import chalk from 'chalk'
 import { Command } from 'commander'
 import packageJson from '../../package.json' with { type: 'json' }
+import { doctorCommand } from './commands/doctor.js'
 import { setupProject } from './commands/setup.js'
 
 const program = new Command()
@@ -103,6 +104,13 @@ program
 
 		console.log(chalk.dim('\n💡 Run "js-tooling setup" to configure your project\n'))
 	})
+
+program
+	.command('doctor')
+	.description('🩺 Diagnose project alignment with @rtorcato/js-tooling presets')
+	.option('-d, --directory <path>', 'Target directory to diagnose', process.cwd())
+	.option('--json', 'Emit machine-readable JSON output')
+	.action(doctorCommand)
 
 // Handle unknown commands
 program.on('command:*', () => {
