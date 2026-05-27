@@ -53,9 +53,12 @@
 		"tooling/typescript/reset.d.ts",
 		"tooling/vitest/vitest.config.mjs",
 		"tooling/vitest/vitest.config.d.mts",
+		"tooling/vitest/vitest.config.react.mjs",
+		"tooling/vitest/vitest.config.react.d.mts",
+		"tooling/vitest/vitest.setup.mjs",
+		"tooling/vitest/vitest.setup.d.mts",
 		"tooling/tsup/index.ts",
 		"tooling/biome/biome.json",
-		"tooling/biome/biome.jsonc",
 		"tooling/semantic-release/*.mjs",
 		"tooling/semantic-release/*.d.mts",
 		"README.md"
@@ -99,6 +102,14 @@
 		"./vitest/config": {
 			"types": "./tooling/vitest/vitest.config.d.mts",
 			"import": "./tooling/vitest/vitest.config.mjs"
+		},
+		"./vitest/react": {
+			"types": "./tooling/vitest/vitest.config.react.d.mts",
+			"import": "./tooling/vitest/vitest.config.react.mjs"
+		},
+		"./vitest/setup": {
+			"types": "./tooling/vitest/vitest.setup.d.mts",
+			"import": "./tooling/vitest/vitest.setup.mjs"
 		},
 		"./tsup": "./tooling/tsup/index.ts",
 		"./biome": "./tooling/biome/biome.json",
