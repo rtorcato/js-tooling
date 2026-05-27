@@ -1,3 +1,11 @@
+## [2.1.1](https://github.com/rtorcato/js-tooling/compare/v2.1.0...v2.1.1) (2026-05-27)
+
+
+### Bug Fixes
+
+* **deps:** widen esbuild peer range for vite 8 ([f87c88b](https://github.com/rtorcato/js-tooling/commit/f87c88bae2852092aecf65f869e448b386cb276d))
+* export vitest/react and vitest/setup, drop phantom biome.jsonc, add missing doc pages ([f7ae710](https://github.com/rtorcato/js-tooling/commit/f7ae71041fd1aaa5715cf99866ba1fa8768eb8ab))
+
 # [2.1.0](https://github.com/rtorcato/js-tooling/compare/v2.0.0...v2.1.0) (2026-05-27)
 
 

@@ -1,6 +1,6 @@
 {
 	"name": "@rtorcato/js-tooling",
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"description": "JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.",
 	"type": "module",
 	"keywords": [
@@ -371,8 +371,15 @@
 		}
 	},
 	"knip": {
-		"entry": ["src/cli/index.ts", "src/cli/commands/doctor.ts", "tooling/**/*.{mjs,ts}"],
-		"project": ["src/**/*.ts", "tooling/**/*.{mjs,ts}"],
+		"entry": [
+			"src/cli/index.ts",
+			"src/cli/commands/doctor.ts",
+			"tooling/**/*.{mjs,ts}"
+		],
+		"project": [
+			"src/**/*.ts",
+			"tooling/**/*.{mjs,ts}"
+		],
 		"ignoreDependencies": [
 			"cross-env",
 			"@playwright/test",
