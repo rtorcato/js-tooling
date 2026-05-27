@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/rtorcato/js-tooling/compare/v2.1.1...v2.1.2) (2026-05-27)
+
+
+### Bug Fixes
+
+* **deps:** trim unused peer dependencies ([c8b3bc8](https://github.com/rtorcato/js-tooling/commit/c8b3bc8eabe4c46896fa94c3a7008354964544de))
+
 ## [2.1.1](https://github.com/rtorcato/js-tooling/compare/v2.1.0...v2.1.1) (2026-05-27)
 
 
