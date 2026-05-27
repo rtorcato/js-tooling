@@ -140,35 +140,35 @@ jobs:
             echo "Skipping commitlint for non-push events"
           fi
 
-  # Type checking (when enabled)
-  # typecheck:
-  #   runs-on: ubuntu-latest
-  #   needs: [dependencies, check-skip]
-  #   if: needs.check-skip.outputs.should-skip != 'true'
-  #   steps:
-  #     - name: 📦 Checkout repository
-  #       uses: actions/checkout@v4
+  # Type checking
+  typecheck:
+    runs-on: ubuntu-latest
+    needs: [dependencies, check-skip]
+    if: needs.check-skip.outputs.should-skip != 'true'
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
 
-  #     - name: 📦 Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '20'
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-  #     - name: 📦 Setup pnpm
-  #       uses: pnpm/action-setup@v4
-  #       with:
-  #         version: latest
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
 
-  #     - name: 📦 Restore dependencies cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: |
-  #           ~/.pnpm-store
-  #           node_modules
-  #         key: ${{ needs.dependencies.outputs.cache-key }}
+      - name: 📦 Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+          key: ${{ needs.dependencies.outputs.cache-key }}
 
-  #     - name: 🔍 Type check
-  #       run: pnpm typecheck
+      - name: 🔍 Type check
+        run: pnpm typecheck
 
   # Variable validation
   varcheck:
@@ -197,81 +197,81 @@ jobs:
             echo "✅ NPM_TOKEN is available"
           fi
 
-  # Testing (when enabled)
-  # test:
-  #   runs-on: ubuntu-latest
-  #   needs: [dependencies, check-skip]
-  #   if: needs.check-skip.outputs.should-skip != 'true'
-  #   steps:
-  #     - name: 📦 Checkout repository
-  #       uses: actions/checkout@v4
+  # Testing
+  test:
+    runs-on: ubuntu-latest
+    needs: [dependencies, check-skip]
+    if: needs.check-skip.outputs.should-skip != 'true'
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
 
-  #     - name: 📦 Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '20'
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-  #     - name: 📦 Setup pnpm
-  #       uses: pnpm/action-setup@v4
-  #       with:
-  #         version: latest
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
 
-  #     - name: 📦 Restore dependencies cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: |
-  #           ~/.pnpm-store
-  #           node_modules
-  #         key: ${{ needs.dependencies.outputs.cache-key }}
+      - name: 📦 Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+          key: ${{ needs.dependencies.outputs.cache-key }}
 
-  #     - name: 🧪 Run tests
-  #       run: pnpm test
+      - name: 🧪 Run tests
+        run: pnpm test --run
 
-  # Build (when enabled)
-  # build:
-  #   runs-on: ubuntu-latest
-  #   needs: [dependencies, check-skip]
-  #   if: needs.check-skip.outputs.should-skip != 'true'
-  #   steps:
-  #     - name: 📦 Checkout repository
-  #       uses: actions/checkout@v4
+  # Build
+  build:
+    runs-on: ubuntu-latest
+    needs: [dependencies, check-skip]
+    if: needs.check-skip.outputs.should-skip != 'true'
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
 
-  #     - name: 📦 Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '20'
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-  #     - name: 📦 Setup pnpm
-  #       uses: pnpm/action-setup@v4
-  #       with:
-  #         version: latest
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
 
-  #     - name: 📦 Restore dependencies cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: |
-  #           ~/.pnpm-store
-  #           node_modules
-  #         key: ${{ needs.dependencies.outputs.cache-key }}
+      - name: 📦 Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+          key: ${{ needs.dependencies.outputs.cache-key }}
 
-  #     - name: 🏗️ Build project
-  #       run: pnpm build-prod
+      - name: 🏗️ Build project
+        run: pnpm build-cli
 
-  #     - name: 📦 Upload build artifacts
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: build-artifacts
-  #         path: |
-  #           dist/
-  #           package.json
-  #           README.md
-  #           pnpm-lock.yaml
-  #         retention-days: 7
+      - name: 📦 Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            package.json
+            README.md
+            pnpm-lock.yaml
+          retention-days: 7
 
   # Release and publish
   release:
     runs-on: ubuntu-latest
-    needs: [dependencies, lint, commitlint, varcheck, check-skip]
+    needs: [dependencies, lint, typecheck, test, build, commitlint, varcheck, check-skip]
     if: needs.check-skip.outputs.should-skip != 'true' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
