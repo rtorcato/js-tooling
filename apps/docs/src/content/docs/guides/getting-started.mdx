@@ -26,6 +26,39 @@ import { Tabs, TabItem } from '@astrojs/starlight/components'
   </TabItem>
 </Tabs>
 
+## What it looks like
+
+```ansi title="Terminal"
+$ npx @rtorcato/js-tooling setup
+
+🛠️  Welcome to JS Tooling Setup!
+
+Setting up tooling in: /home/user/my-lib
+
+? 📦 What is your project name? my-lib
+? 🏗️  What type of project are you building? 📚 Library/Package
+? 📘 Do you want to use TypeScript? Yes
+? ⚙️  Which TypeScript configuration? 🔧 Base (General purpose)
+? 🔍 Which linting/formatting tool? ⚡ Biome (Fast, all-in-one)
+? 🧪 Which testing framework? ⚡ Vitest (Fast, Vite-powered)
+? 🪝 Set up Git hooks (Husky + lint-staged)? Yes
+? 📝 Set up conventional commit linting? Yes
+? 🚀 Set up semantic release for automated versioning? Yes
+? 📦 Which bundler/build tool? 📦 tsup (TypeScript packages)
+
+📝 Generating configuration files...
+
+✅ Setup completed successfully!
+
+📋 Next Steps:
+
+  1. 🔧 Customize your tsconfig.json as needed
+  2. 🔍 Run linting with: pnpm biome check .
+  3. 🧪 Run tests with: pnpm vitest
+  4. 🪝 Commit your changes to test the git hooks
+  5. 📖 Check the generated README.md for more details
+```
+
 ## Setup wizard
 
 Running `setup` (or its alias `init`) launches an interactive wizard:
