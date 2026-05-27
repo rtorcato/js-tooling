@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/rtorcato/js-tooling/compare/v2.1.2...v2.2.0) (2026-05-27)
+
+
+### Features
+
+* **doctor:** add Node version check ([731be36](https://github.com/rtorcato/js-tooling/commit/731be36d8c10e8cde734b58f69fb6ce4a0d25a80))
+
 ## [2.1.2](https://github.com/rtorcato/js-tooling/compare/v2.1.1...v2.1.2) (2026-05-27)
 
 
