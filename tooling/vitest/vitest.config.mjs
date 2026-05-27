@@ -9,8 +9,15 @@ export default defineConfig({
 		globals: true,
 		environment: 'node',
 		coverage: {
-			provider: 'istanbul', // or 'v8'
+			provider: 'v8',
 			reporter: ['text', 'json', 'html'],
+			include: ['src/cli/generators/**/*.ts'],
+			thresholds: {
+				statements: 25,
+				lines: 25,
+				functions: 40,
+				branches: 17,
+			},
 		},
 	},
 	resolve: {

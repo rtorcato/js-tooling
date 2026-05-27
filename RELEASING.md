@@ -1,0 +1,77 @@
+# Releasing
+
+This package publishes to npm via [semantic-release](https://semantic-release.gitbook.io/) on every push to `main` whose commits warrant a release. The CI workflow lives in `.github/workflows/ci.yml` (`release` job).
+
+## Release trigger
+
+Releases are driven by **conventional commit** messages on `main`:
+
+| Commit prefix | Release type |
+| --- | --- |
+| `fix:` | patch (e.g. `2.0.1`) |
+| `feat:` | minor (e.g. `2.1.0`) |
+| `feat!:` / footer `BREAKING CHANGE:` | major (e.g. `3.0.0`) |
+| `chore:`, `docs:`, `test:`, `ci:`, `refactor:`, `style:` | no release |
+
+If no release-worthy commits exist since the last tag, semantic-release exits without publishing — that's expected, not a failure.
+
+## Required secrets
+
+Configured at **Settings → Secrets and variables → Actions**.
+
+| Secret | Purpose | How to rotate |
+| --- | --- | --- |
+| `NPM_TOKEN` | npm authentication for `npm publish` | See "Rotating NPM_TOKEN" below |
+| `GITHUB_TOKEN` | Tagging, GitHub Releases, PR comments | Auto-provided by Actions; no action needed |
+
+The `release` job also requests `id-token: write` so OIDC can be used if the package is configured as a Trusted Publisher (see below) — otherwise it falls back to `NPM_TOKEN`.
+
+## Rotating NPM_TOKEN
+
+The token is an npm **Automation** token scoped to the `@rtorcato` namespace.
+
+1. Go to https://www.npmjs.com/settings/rtorcato/tokens.
+2. Click **Generate New Token → Automation**.
+3. Scope: limit to packages matching `@rtorcato/*` if available; otherwise full publish access.
+4. Copy the token (`npm_...`).
+5. In GitHub, edit `Settings → Secrets and variables → Actions → NPM_TOKEN` and paste the new value.
+6. Revoke the previous token from the npmjs.com tokens page.
+7. Re-run the most recent failed `release` job (Actions → failed run → **Re-run all jobs**) to verify.
+
+A 401 `EINVALIDNPMTOKEN` in the `release` job means the token is invalid, expired, or revoked.
+
+## Trusted Publisher (OIDC) — recommended
+
+OIDC eliminates the long-lived `NPM_TOKEN`. To set it up:
+
+1. On npmjs.com, open the package page for `@rtorcato/js-tooling` → **Settings → Trusted Publishers**.
+2. Add a publisher with:
+   - Provider: **GitHub Actions**
+   - Repository: `rtorcato/js-tooling`
+   - Workflow filename: `ci.yml`
+   - Environment: *(leave blank unless one is configured)*
+3. The `release` job already has `permissions: id-token: write`, which is all OIDC requires from CI.
+4. Once configured, remove `NPM_TOKEN` from the workflow env and delete the secret from GitHub.
+
+The current `release` job tries OIDC first and falls back to `NPM_TOKEN` if no trusted publisher is registered — a `404 package not found` during OIDC token exchange means the trusted publisher hasn't been registered yet, and the workflow then uses `NPM_TOKEN`.
+
+Docs: https://docs.npmjs.com/trusted-publishers.
+
+## Re-running a failed release
+
+If the `release` job failed but the underlying commits still warrant a release (e.g. a `feat:` or `fix:` is still in the log since the last tag):
+
+1. Fix the root cause (rotate the token, add the trusted publisher, etc.).
+2. Actions → failed workflow run → **Re-run all jobs**.
+
+A re-run is safe: semantic-release is idempotent — it checks tags before publishing and will skip if the version already exists on npm.
+
+## Local dry-run
+
+To preview what semantic-release will do without publishing:
+
+```bash
+pnpm exec semantic-release --dry-run --no-ci
+```
+
+Requires `GITHUB_TOKEN` and `NPM_TOKEN` in the environment if you want full simulation, but the dry-run mode will still report the next version based on commits without them.

@@ -198,11 +198,16 @@ jobs:
             echo "✅ NPM_TOKEN is available"
           fi
 
-  # Testing
+  # Testing — run on every supported Node major
   test:
     runs-on: ubuntu-latest
-    needs: [dependencies, check-skip]
+    needs: [check-skip]
     if: needs.check-skip.outputs.should-skip != 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["22", "24"]
+    name: test (node ${{ matrix.node-version }})
     steps:
       - name: 📦 Checkout repository
         uses: actions/checkout@v6
@@ -210,20 +215,15 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: ${{ matrix.node-version }}
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v6
         with:
           version: latest
 
-      - name: 📦 Restore dependencies cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.pnpm-store
-            node_modules
-          key: ${{ needs.dependencies.outputs.cache-key }}
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: 🧪 Run tests
         run: pnpm test --run
