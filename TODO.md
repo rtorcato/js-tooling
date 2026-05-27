@@ -4,6 +4,10 @@
 
 - [ ] **Set up npm Trusted Publishers (OIDC)** — eliminate the long-lived `NPM_TOKEN`. npm needs a trusted publisher config for this package before OIDC works. Docs: https://docs.npmjs.com/trusted-publishers
 
+## Doctor improvements
+
+- [ ] **Lock file** — `setup` writes a `.js-tooling.json` recording what was chosen (linting tool, testing framework, bundler, etc.). `doctor` reads it to know what to expect for that project, so intentional choices (e.g. Jest over Vitest) aren't reported as `not configured`. New tools added to `setup` get a slot in the schema. Scales cleanly as the backlog tools are added.
+
 ## Bugs & gaps (wizard offers it but it's broken or missing a preset)
 
 - [ ] **Fix Playwright generator** — `src/cli/generators/testing.ts` uses `devices` without importing it from `@playwright/test`. Also add a proper `tooling/playwright/` preset so the generated config isn't a hardcoded inline string.
