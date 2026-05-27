@@ -1,3 +1,11 @@
+# [2.1.0](https://github.com/rtorcato/js-tooling/compare/v2.0.0...v2.1.0) (2026-05-27)
+
+
+### Features
+
+* add types condition to preset exports ([1d3c4dd](https://github.com/rtorcato/js-tooling/commit/1d3c4dd8e2929e61dc2e3f9f10a786570f807559))
+* **cli:** add doctor subcommand ([a71c63e](https://github.com/rtorcato/js-tooling/commit/a71c63ec1ec668cb85390477ffdb604b7209cb8d))
+
 # [2.0.0](https://github.com/rtorcato/js-tooling/compare/v1.1.0...v2.0.0) (2026-05-27)
 
 
