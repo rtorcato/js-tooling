@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { runDoctor, summarize } from '../../../src/cli/commands/doctor.js'
+import { evaluateNodeVersion, runDoctor, summarize } from '../../../src/cli/commands/doctor.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
@@ -90,5 +90,41 @@ describe('doctor', () => {
 		const results = await runDoctor(dir)
 		const summary = summarize(results)
 		expect(summary.missing + summary.drift).toBeGreaterThan(0)
+	})
+})
+
+describe('evaluateNodeVersion', () => {
+	it('reports missing when Node major is below the minimum', () => {
+		const result = evaluateNodeVersion('v20.10.0')
+		expect(result.status).toBe('missing')
+		expect(result.hint).toMatch(/nodejs\.org/)
+	})
+
+	it('reports drift on Node 22 below the LTS patch', () => {
+		const result = evaluateNodeVersion('v22.10.0')
+		expect(result.status).toBe('drift')
+		expect(result.hint).toMatch(/22\.22\.2/)
+	})
+
+	it('reports drift on Node 24 below the LTS patch', () => {
+		const result = evaluateNodeVersion('v24.14.1')
+		expect(result.status).toBe('drift')
+		expect(result.hint).toMatch(/24\.15\.0/)
+	})
+
+	it('reports ok on Node 22.22.2 and 24.15.0+', () => {
+		expect(evaluateNodeVersion('v22.22.2').status).toBe('ok')
+		expect(evaluateNodeVersion('v24.15.0').status).toBe('ok')
+		expect(evaluateNodeVersion('v24.20.0').status).toBe('ok')
+	})
+
+	it('reports ok on Node 26+ without LTS patch requirements', () => {
+		expect(evaluateNodeVersion('v26.0.0').status).toBe('ok')
+		expect(evaluateNodeVersion('v28.5.1').status).toBe('ok')
+	})
+
+	it('tolerates pre-release suffixes', () => {
+		const result = evaluateNodeVersion('v22.22.2-rc.1')
+		expect(result.status).toBe('ok')
 	})
 })

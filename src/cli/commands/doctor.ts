@@ -18,6 +18,51 @@ export interface CheckResult {
 
 const PACKAGE = '@rtorcato/js-tooling'
 
+const NODE_MIN_MAJOR = 22
+const NODE_LTS_REQUIREMENTS: Record<number, { minor: number; patch: number }> = {
+	22: { minor: 22, patch: 2 },
+	24: { minor: 15, patch: 0 },
+}
+
+function parseNodeVersion(version: string): [number, number, number] {
+	const clean = version.replace(/^v/, '').split('-')[0] ?? ''
+	const [maj, min, pat] = clean.split('.').map((n) => Number.parseInt(n, 10) || 0)
+	return [maj ?? 0, min ?? 0, pat ?? 0]
+}
+
+export function evaluateNodeVersion(version: string): CheckResult {
+	const [major, minor, patch] = parseNodeVersion(version)
+	const display = `v${major}.${minor}.${patch}`
+
+	if (major < NODE_MIN_MAJOR) {
+		return {
+			check: 'Node',
+			status: 'missing',
+			detail: `${display} is below required Node ${NODE_MIN_MAJOR}+`,
+			hint: `Install Node ${NODE_MIN_MAJOR} LTS or newer (https://nodejs.org)`,
+		}
+	}
+
+	const lts = NODE_LTS_REQUIREMENTS[major]
+	if (lts) {
+		const meets = minor > lts.minor || (minor === lts.minor && patch >= lts.patch)
+		if (!meets) {
+			return {
+				check: 'Node',
+				status: 'drift',
+				detail: `${display} — npm may emit EBADENGINE warnings from transitive deps`,
+				hint: `Upgrade to Node ${major}.${lts.minor}.${lts.patch}+ (or 26+) to silence transitive engine warnings`,
+			}
+		}
+	}
+
+	return {
+		check: 'Node',
+		status: 'ok',
+		detail: display,
+	}
+}
+
 interface FileCheck {
 	check: string
 	candidates: string[]
@@ -136,6 +181,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	const targetDir = path.resolve(dir)
 	const results: CheckResult[] = []
 
+	results.push(evaluateNodeVersion(process.version))
 	results.push(await checkPackageJson(targetDir))
 	for (const spec of FILE_CHECKS) {
 		results.push(await checkFile(targetDir, spec))
