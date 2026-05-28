@@ -18,9 +18,9 @@ import { CardGrid, Card } from '@astrojs/starlight/components'
 
 ## Why this exists
 
-Most tooling libraries give you one piece — just TypeScript configs, or just an ESLint preset. **js-tooling** covers the entire lifecycle: TypeScript, Biome/ESLint, Vitest/Jest, Commitlint, Husky, Semantic Release, and GitHub Actions CI, all wired together and validated against each other.
+Most tooling libraries give you one piece — just TypeScript configs, or just an ESLint preset. **js-tooling** covers the entire lifecycle: TypeScript, Biome/ESLint, Vitest/Jest, Commitlint, Husky, Semantic Release, GitHub Actions CI, and supply-chain security (Dependabot + CodeQL) — all wired together and validated against each other.
 
-The interactive `setup` wizard scaffolds all of it in one shot for a new project, and `doctor` checks an existing project for drift.
+The interactive `setup` wizard scaffolds all of it in one shot for a new project, `doctor` checks an existing project for drift, and `fix` applies the missing pieces incrementally without overwriting your work.
 
 ## What's included
 
@@ -40,8 +40,11 @@ The interactive `setup` wizard scaffolds all of it in one shot for a new project
   <Card title="Semantic Release" icon="star">
     Automated versioning, changelog, and npm publishing pipelines.
   </Card>
+  <Card title="Supply-chain security" icon="seti:lock">
+    Dependabot for weekly dep updates and CodeQL for security scanning, scaffolded as opt-in workflows.
+  </Card>
   <Card title="CLI" icon="puzzle">
-    `setup` wizard, `doctor` drift checker, and `copy` command for individual files.
+    `setup` wizard for new projects, `doctor` drift checker, `fix` for incremental upgrades, and `copy` for individual files.
   </Card>
 </CardGrid>
 
