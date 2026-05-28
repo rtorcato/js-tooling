@@ -95,7 +95,7 @@ export default defineConfig({
 	await fs.writeFile(viteConfigPath, viteConfig)
 }
 
-async function generateSemanticReleaseConfig(targetDir: string) {
+export async function generateSemanticReleaseConfig(targetDir: string) {
 	const releaseConfigPath = path.join(targetDir, 'release.config.mjs')
 
 	const releaseConfig = `export { default } from '@rtorcato/js-tooling/semantic-release/github'

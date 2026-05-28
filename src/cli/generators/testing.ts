@@ -12,7 +12,7 @@ export async function generateTestingConfigs(config: ProjectConfig, targetDir: s
 	}
 }
 
-async function generateVitestConfig(config: ProjectConfig, targetDir: string) {
+export async function generateVitestConfig(config: ProjectConfig, targetDir: string) {
 	const vitestConfigPath = path.join(targetDir, 'vitest.config.ts')
 
 	const vitestConfig = `import { defineConfig } from 'vitest/config'

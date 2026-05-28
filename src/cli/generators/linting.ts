@@ -19,7 +19,7 @@ export async function generateLintingConfigs(config: ProjectConfig, targetDir: s
 	}
 }
 
-async function generateBiomeConfig(targetDir: string) {
+export async function generateBiomeConfig(targetDir: string) {
 	const biomeConfigPath = path.join(targetDir, 'biome.jsonc')
 
 	const biomeConfig = {
@@ -34,7 +34,7 @@ async function generateBiomeConfig(targetDir: string) {
 	await fs.writeJson(biomeConfigPath, biomeConfig, { spaces: 2 })
 }
 
-async function generateESLintConfig(config: ProjectConfig, targetDir: string) {
+export async function generateESLintConfig(config: ProjectConfig, targetDir: string) {
 	const eslintConfigPath = path.join(targetDir, 'eslint.config.mjs')
 
 	const configType = config.linting.eslintConfig || 'base'
@@ -47,7 +47,7 @@ export default config
 	await fs.writeFile(eslintConfigPath, eslintConfig)
 }
 
-async function generatePrettierConfig(targetDir: string) {
+export async function generatePrettierConfig(targetDir: string) {
 	const prettierConfigPath = path.join(targetDir, 'prettier.config.mjs')
 
 	const prettierConfig = `export { default } from '@rtorcato/js-tooling/prettier'

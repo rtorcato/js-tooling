@@ -15,7 +15,7 @@ export async function generateGitConfigs(config: ProjectConfig, targetDir: strin
 	await generateGitignore(config, targetDir)
 }
 
-async function generateHuskyConfig(config: ProjectConfig, targetDir: string) {
+export async function generateHuskyConfig(config: ProjectConfig, targetDir: string) {
 	const huskyDir = path.join(targetDir, '.husky')
 	await fs.ensureDir(huskyDir)
 
@@ -63,7 +63,7 @@ npx --no -- commitlint --edit $1
 	await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 })
 }
 
-async function generateCommitlintConfig(targetDir: string) {
+export async function generateCommitlintConfig(targetDir: string) {
 	const commitlintConfigPath = path.join(targetDir, 'commitlint.config.mjs')
 
 	const commitlintConfig = `export { default } from '@rtorcato/js-tooling/commitlint/config'
