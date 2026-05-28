@@ -4,11 +4,15 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 
 ## Recently shipped (v2.x)
 
-- `fix` command — incremental scaffolder application with `--yes` / `--dry-run`; drift never auto-overwrites
+- `fix` command — incremental scaffolder application with `--yes` / `--dry-run` / `--json`; drift never auto-overwrites
+- `Fixer.riskLevel` so safe-merge fixers (`engines`, `husky`, `package-json`) get friendly prompts instead of the alarming "overwrite" wording
 - Doctor checks for Node, `engines.node`, `.editorconfig`, `.nvmrc`, Husky + `lint-staged`, semantic-release, knip, GitHub Actions, GitLab CI, Dependabot, CodeQL
 - Doctor "Next steps:" footer naming the exact `fix` command per finding
 - `.editorconfig` / `.nvmrc` / `engines.node` / `knip.json` baseline always scaffolded by `setup`
 - Setup "Include security automation?" prompt that scaffolds Dependabot + CodeQL workflows
+- Setup post-run footer points at `fix <target>` for every capability the user opted out of
+- Playwright preset shipped (`./playwright`); generator no longer emits a broken inline config that referenced `devices` without importing it
+- Vite preset shipped (`./vite`); generator stubs re-export it (React apps layer the plugin via `mergeConfig`)
 - Generators export their internal scaffolders so `fix` reuses them without duplication
 - `copyPreset` utility shared by the `copy` command and the `biome` / `tsconfig` fixers
 
@@ -30,14 +34,8 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 - [ ] **Renovate config (`renovate.json`)** as an alternative to Dependabot.
 - [ ] **`.github/CODEOWNERS` scaffolder**.
 
-## Bugs & gaps (wizard offers it but it's broken or missing a preset)
-
-- [ ] **Fix Playwright generator** — `src/cli/generators/testing.ts` uses `devices` without importing it from `@playwright/test`. Also add a proper `tooling/playwright/` preset so the generated config isn't a hardcoded inline string.
-- [ ] **Add Vite preset** — wizard offers Vite for `web-app`/`react-app` projects but `src/cli/generators/build.ts` just inlines a hardcoded config string. Add `tooling/vite/vite.config.mjs` and wire the generator to copy it.
-
 ## Cleanup
 
-- [ ] Audit `tooling/` for undocumented subdirectories not in the `exports` map (oxc, tsdown, vellite, rolldown, etc.).
 - [ ] Pin `typescript-eslint` (currently `"latest"`).
 - [ ] Fill in empty `tests/README.md`.
 
