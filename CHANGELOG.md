@@ -1,3 +1,12 @@
+## [2.5.1](https://github.com/rtorcato/js-tooling/compare/v2.5.0...v2.5.1) (2026-05-28)
+
+
+### Bug Fixes
+
+* **fix:** safe-merge wording for safe fixers ([5cb2fdc](https://github.com/rtorcato/js-tooling/commit/5cb2fdcff9d8cd65b339fc6c55c70e18859a745d))
+* **playwright:** ship preset, stop inlining config ([1c09050](https://github.com/rtorcato/js-tooling/commit/1c090507f8e806d7909b0db005a211c1c26b74c0))
+* **vite:** ship preset, stop inlining config ([7da4e77](https://github.com/rtorcato/js-tooling/commit/7da4e774a4431177bce0a0210890f46311cb5a96))
+
 # [2.5.0](https://github.com/rtorcato/js-tooling/compare/v2.4.0...v2.5.0) (2026-05-28)
 
 
