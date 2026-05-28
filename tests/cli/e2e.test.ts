@@ -34,6 +34,17 @@ describe.skipIf(!fs.existsSync(CLI))('CLI smoke tests (requires pnpm build)', ()
 		expect(stdout).toContain('TypeScript')
 	})
 
+	it('list --json emits a parseable catalog with fixTarget per tool', () => {
+		const { status, stdout } = cli(['list', '--json'])
+		expect(status).toBe(0)
+		const payload = JSON.parse(stdout)
+		expect(Array.isArray(payload.tools)).toBe(true)
+		expect(payload.tools.length).toBeGreaterThan(10)
+		const biome = payload.tools.find((t: { name: string }) => t.name === 'Biome')
+		expect(biome.fixTarget).toBe('biome')
+		expect(biome.exports).toContain('@rtorcato/js-tooling/biome')
+	})
+
 	it('copy biome writes biome.json to target dir', () => {
 		const dir = newTmpDir()
 		const { status, stdout } = cli(['copy', 'biome'], dir)
