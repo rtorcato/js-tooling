@@ -146,6 +146,100 @@ describe('fix targeted', () => {
 	})
 })
 
+describe('fix --json', () => {
+	it('emits a JSON payload with applied actions and exits without prompts', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand('dependabot', { directory: dir, json: true })
+			expect(promptMock).not.toHaveBeenCalled()
+			expect(await fs.pathExists(join(dir, '.github', 'dependabot.yml'))).toBe(true)
+			const lastJson = logSpy.mock.calls.at(-1)?.[0] as string
+			const parsed = JSON.parse(lastJson)
+			expect(parsed.target).toBe('dependabot')
+			expect(parsed.directory).toBe(dir)
+			expect(parsed.actions).toHaveLength(1)
+			expect(parsed.actions[0]).toMatchObject({
+				target: 'dependabot',
+				check: 'Dependabot',
+				status: 'applied',
+				filesWritten: ['.github/dependabot.yml'],
+			})
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('emits a JSON error payload on unknown target', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {
+			throw new Error('exit')
+		}) as never)
+		try {
+			await expect(
+				fixCommand('not-a-target', { directory: dir, json: true })
+			).rejects.toThrow('exit')
+			const payload = JSON.parse(logSpy.mock.calls.at(-1)?.[0] as string)
+			expect(payload.error).toBe('unknown-target')
+			expect(payload.target).toBe('not-a-target')
+			expect(Array.isArray(payload.available)).toBe(true)
+		} finally {
+			logSpy.mockRestore()
+			exitSpy.mockRestore()
+		}
+	})
+
+	it('reports dry-run status without writing in JSON mode', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand('dependabot', { directory: dir, json: true, dryRun: true })
+			expect(await fs.pathExists(join(dir, '.github', 'dependabot.yml'))).toBe(false)
+			const payload = JSON.parse(logSpy.mock.calls.at(-1)?.[0] as string)
+			expect(payload.actions[0].status).toBe('dry-run')
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('walk-all in JSON mode records every fixable check', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand(undefined, { directory: dir, json: true })
+			const payload = JSON.parse(logSpy.mock.calls.at(-1)?.[0] as string)
+			expect(payload.target).toBeNull()
+			expect(payload.actions.length).toBeGreaterThan(5)
+			// At least one applied + at least one unsupported (GitLab CI has no fixer)
+			const statuses = new Set(payload.actions.map((a: { status: string }) => a.status))
+			expect(statuses.has('applied')).toBe(true)
+			expect(statuses.has('unsupported')).toBe(true)
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('reports already-ok for a check that passes', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github'))
+		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand('dependabot', { directory: dir, json: true })
+			const payload = JSON.parse(logSpy.mock.calls.at(-1)?.[0] as string)
+			expect(payload.actions[0].status).toBe('already-ok')
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+})
+
 describe('fix walk-all', () => {
 	it('applies all missing items when --yes', async () => {
 		const dir = newTmpDir()

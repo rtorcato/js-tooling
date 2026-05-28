@@ -23,6 +23,23 @@ export interface FixOptions {
 	directory?: string
 	yes?: boolean
 	dryRun?: boolean
+	json?: boolean
+}
+
+export type FixActionStatus = 'applied' | 'dry-run' | 'skipped' | 'already-ok' | 'unsupported'
+
+export interface FixActionRecord {
+	target: string | null
+	check: string
+	status: FixActionStatus
+	doctorStatus: CheckResult['status']
+	filesWritten: string[]
+}
+
+export interface FixJsonResult {
+	directory: string
+	target: string | null
+	actions: FixActionRecord[]
 }
 
 type Pkg = Record<string, unknown> | null
@@ -309,17 +326,20 @@ async function applyFixer(
 	result: CheckResult,
 	targetDir: string,
 	pkg: Pkg,
-	dryRun: boolean
-): Promise<{ applied: boolean; written: string[] }> {
+	dryRun: boolean,
+	silent: boolean
+): Promise<{ filesWritten: string[]; dryRun: boolean }> {
 	if (dryRun) {
-		console.log(chalk.cyan(`  [dry-run] would write: ${fixer.outputs.join(', ')}`))
-		return { applied: true, written: [] }
+		if (!silent) {
+			console.log(chalk.cyan(`  [dry-run] would write: ${fixer.outputs.join(', ')}`))
+		}
+		return { filesWritten: [], dryRun: true }
 	}
 	const { filesWritten } = await fixer.run({ targetDir, pkg, result })
-	if (filesWritten.length > 0) {
+	if (!silent && filesWritten.length > 0) {
 		console.log(chalk.green(`  ✅ wrote ${filesWritten.join(', ')}`))
 	}
-	return { applied: true, written: filesWritten }
+	return { filesWritten, dryRun: false }
 }
 
 async function confirmApply(
@@ -338,17 +358,51 @@ async function confirmApply(
 	return confirm === true
 }
 
+function recordFor(
+	target: string | null,
+	check: string,
+	doctorStatus: CheckResult['status'],
+	status: FixActionStatus,
+	filesWritten: string[]
+): FixActionRecord {
+	return { target, check, status, doctorStatus, filesWritten }
+}
+
 export async function fixCommand(target: string | undefined, options: FixOptions = {}) {
 	const targetDir = path.resolve(options.directory ?? process.cwd())
-	const assumeYes = options.yes === true
 	const dryRun = options.dryRun === true
+	const json = options.json === true
+	// JSON mode implies --yes so prompts don't corrupt the output stream.
+	const assumeYes = options.yes === true || json
+	const silent = json
 
 	const pkg = await readPackageJson(targetDir)
 	const results = await runDoctor(targetDir)
+	const actions: FixActionRecord[] = []
+
+	const emitJson = (resolvedTarget: string | null) => {
+		const payload: FixJsonResult = { directory: targetDir, target: resolvedTarget, actions }
+		console.log(JSON.stringify(payload, null, 2))
+	}
 
 	if (target) {
 		const fixer = findFixer(target)
 		if (!fixer) {
+			if (json) {
+				console.log(
+					JSON.stringify(
+						{
+							directory: targetDir,
+							error: 'unknown-target',
+							target,
+							available: FIXERS.map((f) => f.target),
+						},
+						null,
+						2
+					)
+				)
+				process.exit(1)
+			}
 			console.error(chalk.red(`\n❌ Unknown fix target: ${target}\n`))
 			logTargets()
 			console.log()
@@ -358,55 +412,88 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 			results.find((r) => fixer.appliesTo.includes(r.check)) ??
 			({ check: fixer.appliesTo[0] ?? fixer.target, status: 'missing', detail: '' } as CheckResult)
 		if (result.status === 'ok') {
+			actions.push(recordFor(fixer.target, result.check, 'ok', 'already-ok', []))
+			if (json) return emitJson(fixer.target)
 			console.log(chalk.green(`\n✅ ${result.check} is already configured\n`))
 			return
 		}
-		console.log(
-			chalk.cyan(`\n🔧 ${fixer.target} — ${chalk.bold(result.check)} is ${result.status}\n`)
-		)
+		if (!silent) {
+			console.log(
+				chalk.cyan(`\n🔧 ${fixer.target} — ${chalk.bold(result.check)} is ${result.status}\n`)
+			)
+		}
 		const ok = await confirmApply(fixer, result, assumeYes)
 		if (!ok) {
+			actions.push(recordFor(fixer.target, result.check, result.status, 'skipped', []))
+			if (json) return emitJson(fixer.target)
 			console.log(chalk.gray('   skipped\n'))
 			return
 		}
-		await applyFixer(fixer, result, targetDir, pkg, dryRun)
+		const outcome = await applyFixer(fixer, result, targetDir, pkg, dryRun, silent)
+		actions.push(
+			recordFor(
+				fixer.target,
+				result.check,
+				result.status,
+				outcome.dryRun ? 'dry-run' : 'applied',
+				outcome.filesWritten
+			)
+		)
+		if (json) return emitJson(fixer.target)
 		console.log()
 		return
 	}
 
-	// No target — walk all non-ok results
 	const fixable = results.filter((r) => r.status !== 'ok')
 	if (fixable.length === 0) {
+		if (json) return emitJson(null)
 		console.log(chalk.green('\n✅ All checks pass — nothing to fix\n'))
 		return
 	}
 
-	console.log(chalk.cyan(`\n🔧 ${fixable.length} item(s) to address\n`))
+	if (!silent) {
+		console.log(chalk.cyan(`\n🔧 ${fixable.length} item(s) to address\n`))
+	}
 
-	let applied = 0
-	let skipped = 0
-	let unsupported = 0
+	let appliedCount = 0
+	let skippedCount = 0
+	let unsupportedCount = 0
 
 	for (const result of fixable) {
 		const fixer = findFixerForCheck(result.check)
 		if (!fixer) {
-			console.log(chalk.gray(`  — ${result.check}: no fixer registered`))
-			unsupported++
+			actions.push(recordFor(null, result.check, result.status, 'unsupported', []))
+			if (!silent) console.log(chalk.gray(`  — ${result.check}: no fixer registered`))
+			unsupportedCount++
 			continue
 		}
-		console.log(`  ${chalk.bold(result.check)} (${result.status}) → ${fixer.target}`)
+		if (!silent) {
+			console.log(`  ${chalk.bold(result.check)} (${result.status}) → ${fixer.target}`)
+		}
 		const ok = await confirmApply(fixer, result, assumeYes)
 		if (!ok) {
-			console.log(chalk.gray('    skipped'))
-			skipped++
+			actions.push(recordFor(fixer.target, result.check, result.status, 'skipped', []))
+			if (!silent) console.log(chalk.gray('    skipped'))
+			skippedCount++
 			continue
 		}
-		await applyFixer(fixer, result, targetDir, pkg, dryRun)
-		applied++
+		const outcome = await applyFixer(fixer, result, targetDir, pkg, dryRun, silent)
+		actions.push(
+			recordFor(
+				fixer.target,
+				result.check,
+				result.status,
+				outcome.dryRun ? 'dry-run' : 'applied',
+				outcome.filesWritten
+			)
+		)
+		appliedCount++
 	}
+
+	if (json) return emitJson(null)
 
 	console.log()
 	console.log(
-		`  Summary: ${chalk.green(`${applied} applied`)}, ${chalk.gray(`${skipped} skipped`)}, ${chalk.yellow(`${unsupported} unsupported`)}\n`
+		`  Summary: ${chalk.green(`${appliedCount} applied`)}, ${chalk.gray(`${skippedCount} skipped`)}, ${chalk.yellow(`${unsupportedCount} unsupported`)}\n`
 	)
 }
