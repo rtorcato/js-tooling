@@ -1,6 +1,6 @@
+import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
-import path from 'node:path'
 
 export interface DoctorOptions {
 	directory?: string
@@ -102,6 +102,7 @@ const FILE_CHECKS: FileCheck[] = [
 		expected: `imports "${PACKAGE}/prettier"`,
 		matcher: /@rtorcato\/js-tooling\/prettier/,
 		optional: true,
+		hint: `Re-export from "${PACKAGE}/prettier" in prettier.config.mjs`,
 	},
 	{
 		check: 'Vitest',
@@ -148,9 +149,20 @@ async function checkFile(dir: string, spec: FileCheck): Promise<CheckResult> {
 	}
 }
 
-async function checkPackageJson(dir: string): Promise<CheckResult> {
+type Pkg = Record<string, unknown>
+
+async function readPackageJson(dir: string): Promise<Pkg | null> {
 	const filepath = path.join(dir, 'package.json')
-	if (!(await fs.pathExists(filepath))) {
+	if (!(await fs.pathExists(filepath))) return null
+	try {
+		return (await fs.readJson(filepath)) as Pkg
+	} catch {
+		return null
+	}
+}
+
+function checkPackageJson(pkg: Pkg | null): CheckResult {
+	if (!pkg) {
 		return {
 			check: 'package.json',
 			status: 'missing',
@@ -158,8 +170,10 @@ async function checkPackageJson(dir: string): Promise<CheckResult> {
 		}
 	}
 
-	const pkg = await fs.readJson(filepath)
-	const deps = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) }
+	const deps = {
+		...((pkg.dependencies as Record<string, string>) ?? {}),
+		...((pkg.devDependencies as Record<string, string>) ?? {}),
+	}
 
 	if (deps[PACKAGE]) {
 		return {
@@ -177,15 +191,303 @@ async function checkPackageJson(dir: string): Promise<CheckResult> {
 	}
 }
 
+function checkEnginesNode(pkg: Pkg | null): CheckResult {
+	if (!pkg) {
+		return {
+			check: 'engines.node',
+			status: 'missing',
+			detail: 'no package.json',
+		}
+	}
+	const engines = (pkg.engines as Record<string, string> | undefined) ?? {}
+	if (!engines.node) {
+		return {
+			check: 'engines.node',
+			status: 'drift',
+			detail: 'engines.node not set in package.json',
+			hint: `Add \`"engines": { "node": ">=${NODE_MIN_MAJOR}" }\` to package.json`,
+		}
+	}
+	return {
+		check: 'engines.node',
+		status: 'ok',
+		detail: `engines.node = ${engines.node}`,
+	}
+}
+
+async function checkEditorConfig(dir: string): Promise<CheckResult> {
+	const exists = await fs.pathExists(path.join(dir, '.editorconfig'))
+	return {
+		check: 'EditorConfig',
+		status: exists ? 'ok' : 'optional-missing',
+		detail: exists ? '.editorconfig found' : 'no .editorconfig',
+		hint: exists ? undefined : 'Add an .editorconfig for cross-editor formatting consistency',
+	}
+}
+
+async function checkNodeVersionPin(dir: string): Promise<CheckResult> {
+	for (const candidate of ['.nvmrc', '.node-version']) {
+		if (await fs.pathExists(path.join(dir, candidate))) {
+			return {
+				check: 'Node version pin',
+				status: 'ok',
+				detail: `${candidate} found`,
+			}
+		}
+	}
+	return {
+		check: 'Node version pin',
+		status: 'optional-missing',
+		detail: 'no .nvmrc / .node-version',
+		hint: 'Add .nvmrc to pin Node version per repo (e.g. `echo 22 > .nvmrc`)',
+	}
+}
+
+async function checkHusky(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const huskyDir = await fs.pathExists(path.join(dir, '.husky'))
+	const scripts = (pkg?.scripts as Record<string, string> | undefined) ?? {}
+	const prepareScript = scripts.prepare ?? ''
+	const hasHookScript = /\bhusky\b/.test(prepareScript)
+
+	if (huskyDir && hasHookScript) {
+		return {
+			check: 'Husky',
+			status: 'ok',
+			detail: '.husky/ directory and prepare script configured',
+		}
+	}
+	if (huskyDir || hasHookScript) {
+		return {
+			check: 'Husky',
+			status: 'drift',
+			detail: huskyDir
+				? '.husky/ exists but no `prepare: husky` script'
+				: '`prepare: husky` set but no .husky/ directory',
+			hint: 'Run `pnpm exec husky init` to scaffold both halves',
+		}
+	}
+	return {
+		check: 'Husky',
+		status: 'optional-missing',
+		detail: 'husky not configured',
+		hint: 'Run `pnpm add -D husky && pnpm exec husky init` to enable git hooks',
+	}
+}
+
+const LINT_STAGED_FILES = [
+	'.lintstagedrc',
+	'.lintstagedrc.json',
+	'.lintstagedrc.yaml',
+	'.lintstagedrc.yml',
+	'.lintstagedrc.js',
+	'.lintstagedrc.cjs',
+	'.lintstagedrc.mjs',
+	'lint-staged.config.js',
+	'lint-staged.config.cjs',
+	'lint-staged.config.mjs',
+]
+
+async function checkLintStaged(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const inPkg = pkg ? 'lint-staged' in pkg : false
+	let inFile: string | null = null
+	for (const candidate of LINT_STAGED_FILES) {
+		if (await fs.pathExists(path.join(dir, candidate))) {
+			inFile = candidate
+			break
+		}
+	}
+
+	if (inPkg || inFile) {
+		return {
+			check: 'lint-staged',
+			status: 'ok',
+			detail: inPkg ? '`lint-staged` field in package.json' : `${inFile} found`,
+		}
+	}
+	return {
+		check: 'lint-staged',
+		status: 'optional-missing',
+		detail: 'lint-staged not configured',
+		hint: 'Add a `lint-staged` field to package.json and wire it into the husky pre-commit hook',
+	}
+}
+
+const KNIP_FILES = [
+	'knip.json',
+	'knip.jsonc',
+	'knip.ts',
+	'knip.config.ts',
+	'knip.config.js',
+	'knip.config.mjs',
+]
+
+async function checkKnip(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const inPkg = pkg ? 'knip' in pkg : false
+	let inFile: string | null = null
+	for (const candidate of KNIP_FILES) {
+		if (await fs.pathExists(path.join(dir, candidate))) {
+			inFile = candidate
+			break
+		}
+	}
+
+	if (inPkg || inFile) {
+		return {
+			check: 'knip',
+			status: 'ok',
+			detail: inPkg ? '`knip` field in package.json' : `${inFile} found`,
+		}
+	}
+	return {
+		check: 'knip',
+		status: 'optional-missing',
+		detail: 'knip not configured',
+		hint: 'Add `knip` to detect unused files, deps, and exports',
+	}
+}
+
+const SEMANTIC_RELEASE_FILES = [
+	'.releaserc',
+	'.releaserc.json',
+	'.releaserc.yaml',
+	'.releaserc.yml',
+	'.releaserc.js',
+	'.releaserc.cjs',
+	'release.config.js',
+	'release.config.cjs',
+	'release.config.mjs',
+]
+
+async function checkSemanticRelease(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const isPrivate = pkg?.private === true
+	const inPkg = pkg ? 'release' in pkg : false
+
+	let configFile: string | null = null
+	let configContent: string | null = null
+	for (const candidate of SEMANTIC_RELEASE_FILES) {
+		const filepath = path.join(dir, candidate)
+		if (await fs.pathExists(filepath)) {
+			configFile = candidate
+			try {
+				configContent = await fs.readFile(filepath, 'utf-8')
+			} catch {
+				configContent = ''
+			}
+			break
+		}
+	}
+
+	if (!inPkg && !configFile) {
+		return {
+			check: 'semantic-release',
+			status: isPrivate ? 'optional-missing' : 'drift',
+			detail: isPrivate
+				? 'semantic-release not configured (package is private)'
+				: 'semantic-release not configured',
+			hint: isPrivate
+				? undefined
+				: `Extend "${PACKAGE}/semantic-release" or "${PACKAGE}/semantic-release/github" in a release config`,
+		}
+	}
+
+	const presetRegex = /@rtorcato\/js-tooling\/semantic-release/
+	const pkgReleaseStr = inPkg ? JSON.stringify(pkg?.release ?? '') : ''
+	const usesPreset =
+		(configContent && presetRegex.test(configContent)) || presetRegex.test(pkgReleaseStr)
+
+	if (usesPreset) {
+		return {
+			check: 'semantic-release',
+			status: 'ok',
+			detail: configFile
+				? `${configFile} extends ${PACKAGE}/semantic-release`
+				: `release field extends ${PACKAGE}/semantic-release`,
+		}
+	}
+
+	return {
+		check: 'semantic-release',
+		status: 'drift',
+		detail: configFile
+			? `${configFile} does not extend ${PACKAGE}/semantic-release`
+			: '`release` field does not extend our preset',
+		hint: `Extend "${PACKAGE}/semantic-release" or "${PACKAGE}/semantic-release/github"`,
+	}
+}
+
+async function checkGitHubActions(dir: string): Promise<CheckResult> {
+	const workflowsDir = path.join(dir, '.github', 'workflows')
+	if (!(await fs.pathExists(workflowsDir))) {
+		return {
+			check: 'GitHub Actions',
+			status: 'optional-missing',
+			detail: 'no .github/workflows/',
+			hint: 'Run `npx @rtorcato/js-tooling setup` to scaffold a CI workflow',
+		}
+	}
+
+	try {
+		const files = await fs.readdir(workflowsDir)
+		const workflows = files.filter((f) => f.endsWith('.yml') || f.endsWith('.yaml'))
+		if (workflows.length === 0) {
+			return {
+				check: 'GitHub Actions',
+				status: 'optional-missing',
+				detail: '.github/workflows/ is empty',
+				hint: 'Add a workflow file (e.g. ci.yml) under .github/workflows/',
+			}
+		}
+		return {
+			check: 'GitHub Actions',
+			status: 'ok',
+			detail: `${workflows.length} workflow${workflows.length === 1 ? '' : 's'} in .github/workflows/`,
+		}
+	} catch {
+		return {
+			check: 'GitHub Actions',
+			status: 'optional-missing',
+			detail: 'unable to read .github/workflows/',
+		}
+	}
+}
+
+async function checkGitLabCI(dir: string): Promise<CheckResult> {
+	for (const candidate of ['.gitlab-ci.yml', '.gitlab-ci.yaml']) {
+		if (await fs.pathExists(path.join(dir, candidate))) {
+			return {
+				check: 'GitLab CI',
+				status: 'ok',
+				detail: `${candidate} found`,
+			}
+		}
+	}
+	return {
+		check: 'GitLab CI',
+		status: 'optional-missing',
+		detail: 'no .gitlab-ci.yml',
+		hint: 'Add a .gitlab-ci.yml if this repo is hosted on GitLab',
+	}
+}
+
 export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	const targetDir = path.resolve(dir)
+	const pkg = await readPackageJson(targetDir)
 	const results: CheckResult[] = []
 
 	results.push(evaluateNodeVersion(process.version))
-	results.push(await checkPackageJson(targetDir))
+	results.push(checkPackageJson(pkg))
+	results.push(checkEnginesNode(pkg))
+	results.push(await checkEditorConfig(targetDir))
+	results.push(await checkNodeVersionPin(targetDir))
 	for (const spec of FILE_CHECKS) {
 		results.push(await checkFile(targetDir, spec))
 	}
+	results.push(await checkHusky(targetDir, pkg))
+	results.push(await checkLintStaged(targetDir, pkg))
+	results.push(await checkSemanticRelease(targetDir, pkg))
+	results.push(await checkKnip(targetDir, pkg))
+	results.push(await checkGitHubActions(targetDir))
+	results.push(await checkGitLabCI(targetDir))
 
 	return results
 }
@@ -235,7 +537,7 @@ export async function doctorCommand(options: DoctorOptions = {}) {
 		for (const r of results) {
 			console.log(`  ${STATUS_ICONS[r.status]} ${chalk.bold(r.check)} — ${statusLabel(r.status)}`)
 			console.log(`     ${chalk.gray(r.detail)}`)
-			if (r.hint && (r.status === 'drift' || r.status === 'missing')) {
+			if (r.hint && r.status !== 'ok') {
 				console.log(`     ${chalk.dim('hint:')} ${chalk.dim(r.hint)}`)
 			}
 		}

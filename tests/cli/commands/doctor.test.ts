@@ -128,3 +128,128 @@ describe('evaluateNodeVersion', () => {
 		expect(result.status).toBe('ok')
 	})
 })
+
+describe('doctor extended checks', () => {
+	it('reports drift when engines.node is missing', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const results = await runDoctor(dir)
+		const engines = results.find((r) => r.check === 'engines.node')
+		expect(engines?.status).toBe('drift')
+		expect(engines?.hint).toMatch(/engines/)
+	})
+
+	it('reports ok when engines.node is set', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			engines: { node: '>=22' },
+		})
+		const results = await runDoctor(dir)
+		const engines = results.find((r) => r.check === 'engines.node')
+		expect(engines?.status).toBe('ok')
+	})
+
+	it('detects .editorconfig and .nvmrc presence', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeFile(join(dir, '.editorconfig'), 'root = true\n')
+		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'EditorConfig')?.status).toBe('ok')
+		expect(results.find((r) => r.check === 'Node version pin')?.status).toBe('ok')
+	})
+
+	it('reports husky drift when .husky/ exists without prepare script', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.husky'))
+		const results = await runDoctor(dir)
+		const husky = results.find((r) => r.check === 'Husky')
+		expect(husky?.status).toBe('drift')
+	})
+
+	it('reports husky ok when both .husky/ and prepare script exist', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			scripts: { prepare: 'husky' },
+		})
+		await fs.ensureDir(join(dir, '.husky'))
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Husky')?.status).toBe('ok')
+	})
+
+	it('detects lint-staged in package.json', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			'lint-staged': { '*.ts': 'biome check' },
+		})
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'lint-staged')?.status).toBe('ok')
+	})
+
+	it('detects knip config field', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			knip: { entry: ['src/index.ts'] },
+		})
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'knip')?.status).toBe('ok')
+	})
+
+	it('skips semantic-release on private packages', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			private: true,
+		})
+		const results = await runDoctor(dir)
+		const sr = results.find((r) => r.check === 'semantic-release')
+		expect(sr?.status).toBe('optional-missing')
+	})
+
+	it('flags semantic-release drift on publishable packages without config', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const results = await runDoctor(dir)
+		const sr = results.find((r) => r.check === 'semantic-release')
+		expect(sr?.status).toBe('drift')
+		expect(sr?.hint).toMatch(/semantic-release/)
+	})
+
+	it('reports semantic-release ok when release config extends our preset', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeFile(
+			join(dir, 'release.config.mjs'),
+			"export { default } from '@rtorcato/js-tooling/semantic-release/github'\n"
+		)
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'semantic-release')?.status).toBe('ok')
+	})
+
+	it('detects GitHub Actions workflows', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(join(dir, '.github', 'workflows', 'ci.yml'), 'name: ci\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'GitHub Actions')?.status).toBe('ok')
+	})
+
+	it('detects GitLab CI configuration', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeFile(join(dir, '.gitlab-ci.yml'), 'stages: []\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'GitLab CI')?.status).toBe('ok')
+	})
+})
