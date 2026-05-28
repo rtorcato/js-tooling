@@ -271,8 +271,46 @@ function showNextSteps(config: ProjectConfig, _targetDir: string) {
 		console.log(`  ${index + 1}. ${step}`)
 	})
 
+	const skipped = collectSkippedFixSuggestions(config)
+	if (skipped.length > 0) {
+		console.log(chalk.bold('\n💡 Want to add something you skipped?\n'))
+		for (const s of skipped) {
+			console.log(`  ${chalk.gray('-')} ${s}`)
+		}
+	}
+
 	console.log(
-		chalk.dim('\n💡 All configuration files have been generated in your project directory.')
+		chalk.dim('\n📁 All configuration files have been generated in your project directory.')
 	)
 	console.log(chalk.dim('   You can modify them to suit your specific needs.\n'))
+}
+
+function collectSkippedFixSuggestions(config: ProjectConfig): string[] {
+	const suggestions: string[] = []
+	if (!config.gitHooks) {
+		suggestions.push('Run `npx @rtorcato/js-tooling fix husky` to add git hooks later')
+	}
+	if (!config.commitLint) {
+		suggestions.push(
+			'Run `npx @rtorcato/js-tooling fix commitlint` to add conventional-commit linting'
+		)
+	}
+	if (!config.semanticRelease && config.projectType === 'library') {
+		suggestions.push(
+			'Run `npx @rtorcato/js-tooling fix semantic-release` to add automated releases'
+		)
+	}
+	if (!config.securityAutomation) {
+		suggestions.push(
+			'Run `npx @rtorcato/js-tooling fix dependabot` and `fix codeql` for security automation'
+		)
+	}
+	if (config.linting.tool === 'none') {
+		suggestions.push('Run `npx @rtorcato/js-tooling fix biome` or `fix eslint` to add linting')
+	}
+	if (config.testing.framework === 'none') {
+		suggestions.push('Run `npx @rtorcato/js-tooling fix vitest` to add a test runner')
+	}
+	suggestions.push('Run `npx @rtorcato/js-tooling doctor` any time to audit drift')
+	return suggestions
 }
