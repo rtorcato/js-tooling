@@ -6,6 +6,7 @@ import { generateBuildConfigs } from './build.js'
 import { generateGitConfigs } from './git.js'
 import { generateGitHubActions } from './github-actions.js'
 import { generateLintingConfigs } from './linting.js'
+import { generateMiscBaseline } from './misc.js'
 import { generatePackageJson } from './package-json.js'
 import { generateReadme } from './readme.js'
 import { generateTestingConfigs } from './testing.js'
@@ -15,8 +16,12 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export async function generateConfigs(config: ProjectConfig, targetDir: string) {
-	// Generate package.json
+	// Generate package.json (must run before generateMiscBaseline,
+	// which sets engines.node on the resulting file)
 	await generatePackageJson(config, targetDir)
+
+	// Universal baseline: .editorconfig, .nvmrc, engines.node, knip.json
+	await generateMiscBaseline(targetDir)
 
 	// Generate TypeScript configuration
 	if (config.typescript.enabled) {
