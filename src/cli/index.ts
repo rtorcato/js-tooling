@@ -7,6 +7,7 @@ import fs from 'fs-extra'
 import packageJson from '../../package.json' with { type: 'json' }
 import { doctorCommand } from './commands/doctor.js'
 import { setupProject } from './commands/setup.js'
+import { copyPreset, PRESETS, type PresetName } from './utils/copy-preset.js'
 
 async function isSelfRepo(dir: string): Promise<boolean> {
 	try {
@@ -36,46 +37,21 @@ program
 	.command('copy <config>')
 	.description('📋 Copy a specific configuration file to current directory')
 	.action(async (config: string) => {
-		const availableConfigs = {
-			biome: {
-				source: 'tooling/biome/biome.json',
-				target: 'biome.json',
-				desc: 'Biome formatter and linter configuration',
-			},
-			tsconfig: {
-				source: 'tooling/typescript/tsconfig.base.json',
-				target: 'tsconfig.json',
-				desc: 'TypeScript base configuration',
-			},
-		}
-
-		if (!availableConfigs[config as keyof typeof availableConfigs]) {
+		if (!(config in PRESETS)) {
 			console.error(chalk.red(`\n❌ Unknown configuration: ${config}`))
 			console.log(chalk.gray('Available configurations:'))
-			Object.entries(availableConfigs).forEach(([key, { desc }]) => {
+			for (const [key, { desc }] of Object.entries(PRESETS)) {
 				console.log(`  ${chalk.green('●')} ${chalk.bold(key)}: ${chalk.gray(desc)}`)
-			})
+			}
 			console.log()
 			process.exit(1)
 		}
 
-		const { source, target, desc } = availableConfigs[config as keyof typeof availableConfigs]
-
 		try {
-			const fs = (await import('fs-extra')).default
-			const path = (await import('node:path')).default
-
-			// Get the package installation path - CLI is in dist/cli/index.js, need to go up 3 levels
-			const cliFile = new URL(import.meta.url).pathname
-			const packagePath = path.dirname(path.dirname(path.dirname(cliFile)))
-			const sourcePath = path.join(packagePath, source)
-			const targetPath = path.join(process.cwd(), target)
-
-			await fs.copy(sourcePath, targetPath)
-
-			console.log(chalk.green(`\n✅ Copied ${desc}`))
-			console.log(chalk.gray(`   From: ${source}`))
-			console.log(chalk.gray(`   To:   ${target}\n`))
+			const result = await copyPreset(config as PresetName)
+			console.log(chalk.green(`\n✅ Copied ${result.desc}`))
+			console.log(chalk.gray(`   From: ${result.source}`))
+			console.log(chalk.gray(`   To:   ${result.target}\n`))
 		} catch (error) {
 			console.error(chalk.red(`\n❌ Error copying configuration: ${error}\n`))
 		}
