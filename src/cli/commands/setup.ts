@@ -1,9 +1,17 @@
+import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
-import path from 'node:path'
 import { generateConfigs } from '../generators/index.js'
 import { installDependencies } from '../utils/install.js'
+import {
+	buildPresetConfig,
+	computeFileList,
+	CONFIG_SCHEMA,
+	PRESET_NAMES,
+	type PresetName,
+	validateProjectConfig,
+} from './setup-presets.js'
 
 export interface ProjectConfig {
 	projectName: string
@@ -30,18 +38,69 @@ export interface ProjectConfig {
 	bundler: 'tsup' | 'esbuild' | 'vite' | 'none'
 }
 
-export async function setupProject(options: { directory: string; skipInstall?: boolean }) {
-	const targetDir = path.resolve(options.directory)
+export interface SetupOptions {
+	directory: string
+	skipInstall?: boolean
+	config?: string
+	preset?: string
+	dryRun?: boolean
+	configSchema?: boolean
+}
 
-	console.log(chalk.cyan('\n🛠️  Welcome to JS Tooling Setup!\n'))
-	console.log(chalk.gray(`Setting up tooling in: ${targetDir}\n`))
+async function resolveConfig(options: SetupOptions): Promise<ProjectConfig> {
+	if (options.config && options.preset) {
+		console.warn(chalk.yellow('⚠️  Both --config and --preset given; --config wins.\n'))
+	}
+	if (options.config) {
+		const configPath = path.resolve(options.config)
+		if (!(await fs.pathExists(configPath))) {
+			throw new Error(`Config file not found: ${configPath}`)
+		}
+		const raw = await fs.readJson(configPath)
+		const { valid, errors } = validateProjectConfig(raw)
+		if (!valid) {
+			throw new Error(`Invalid config:\n  - ${errors.join('\n  - ')}`)
+		}
+		return raw as ProjectConfig
+	}
+	if (options.preset) {
+		if (!(PRESET_NAMES as readonly string[]).includes(options.preset)) {
+			throw new Error(`Unknown preset: ${options.preset}. Available: ${PRESET_NAMES.join(', ')}`)
+		}
+		const projectName = path.basename(path.resolve(options.directory))
+		return buildPresetConfig(options.preset as PresetName, projectName)
+	}
+	return promptForConfig()
+}
+
+export async function setupProject(options: SetupOptions) {
+	if (options.configSchema) {
+		console.log(JSON.stringify(CONFIG_SCHEMA, null, 2))
+		return
+	}
+
+	const targetDir = path.resolve(options.directory)
+	const interactive = !options.config && !options.preset
+	const dryRun = options.dryRun === true
+
+	if (interactive && !dryRun) {
+		console.log(chalk.cyan('\n🛠️  Welcome to JS Tooling Setup!\n'))
+		console.log(chalk.gray(`Setting up tooling in: ${targetDir}\n`))
+	}
 
 	try {
-		// Check if directory exists and is writable
 		await fs.ensureDir(targetDir)
+		const config = await resolveConfig(options)
 
-		const config = await promptForConfig()
+		if (dryRun) {
+			const files = computeFileList(config)
+			console.log(JSON.stringify({ directory: targetDir, config, files }, null, 2))
+			return
+		}
 
+		if (!interactive) {
+			console.log(chalk.cyan(`\n🛠️  Scaffolding ${config.projectType} in ${targetDir}\n`))
+		}
 		console.log(chalk.cyan('\n📝 Generating configuration files...\n'))
 
 		await generateConfigs(config, targetDir)
@@ -52,8 +111,6 @@ export async function setupProject(options: { directory: string; skipInstall?: b
 		}
 
 		console.log(chalk.green('\n✅ Setup completed successfully!\n'))
-
-		// Show next steps
 		showNextSteps(config, targetDir)
 	} catch (error) {
 		console.error(chalk.red('\n❌ Setup failed:'), error)
