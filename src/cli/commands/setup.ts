@@ -26,6 +26,7 @@ export interface ProjectConfig {
 	gitHooks: boolean
 	commitLint: boolean
 	semanticRelease: boolean
+	securityAutomation: boolean
 	bundler: 'tsup' | 'esbuild' | 'vite' | 'none'
 }
 
@@ -184,6 +185,12 @@ async function promptForConfig(): Promise<ProjectConfig> {
 			when: (answers: any) => answers.projectType === 'library',
 		},
 		{
+			type: 'confirm',
+			name: 'securityAutomation',
+			message: '🛡️  Include security automation (Dependabot + CodeQL)?',
+			default: true,
+		},
+		{
 			type: 'list',
 			name: 'bundler',
 			message: '📦 Which bundler/build tool?',
@@ -230,6 +237,7 @@ async function promptForConfig(): Promise<ProjectConfig> {
 		gitHooks: answers.gitHooks || false,
 		commitLint: answers.commitLint || false,
 		semanticRelease: answers.semanticRelease || false,
+		securityAutomation: answers.securityAutomation ?? false,
 		bundler: answers.bundler || 'none',
 	}
 }

@@ -64,6 +64,7 @@ function inferProjectConfig(pkg: Pkg): ProjectConfig {
 		gitHooks: true,
 		commitLint: true,
 		semanticRelease: pkg?.private !== true,
+		securityAutomation: true,
 		bundler: 'tsup',
 	}
 }

@@ -1,7 +1,12 @@
 import fs from 'fs-extra'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { evaluateNodeVersion, runDoctor, summarize } from '../../../src/cli/commands/doctor.js'
+import {
+	evaluateNodeVersion,
+	nextStepSuggestions,
+	runDoctor,
+	summarize,
+} from '../../../src/cli/commands/doctor.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
@@ -303,5 +308,63 @@ describe('doctor security checks', () => {
 		const codeql = results.find((r) => r.check === 'CodeQL')
 		expect(codeql?.status).toBe('optional-missing')
 		expect(codeql?.hint).toMatch(/fix codeql/)
+	})
+})
+
+describe('nextStepSuggestions', () => {
+	it('returns empty when there is nothing to fix', () => {
+		expect(nextStepSuggestions([{ check: 'Biome', status: 'ok', detail: '' }])).toEqual([])
+	})
+
+	it('emits fix commands for drift, missing, and optional-missing', () => {
+		const suggestions = nextStepSuggestions([
+			{ check: 'Biome', status: 'drift', detail: '' },
+			{ check: 'ESLint', status: 'optional-missing', detail: '' },
+			{ check: 'TypeScript', status: 'missing', detail: '' },
+		])
+		expect(suggestions).toContain(
+			'Run `npx @rtorcato/js-tooling fix biome` to align Biome'
+		)
+		expect(suggestions).toContain(
+			'Run `npx @rtorcato/js-tooling fix eslint` to scaffold ESLint'
+		)
+		expect(suggestions).toContain(
+			'Run `npx @rtorcato/js-tooling fix tsconfig` to scaffold TypeScript'
+		)
+	})
+
+	it('appends a closing line that points at the no-target fix walk', () => {
+		const suggestions = nextStepSuggestions([
+			{ check: 'EditorConfig', status: 'optional-missing', detail: '' },
+		])
+		expect(suggestions.at(-1)).toMatch(/walk all findings/)
+	})
+
+	it('caps specific suggestions at 8 and emits an overflow line', () => {
+		const checks = [
+			'Biome',
+			'ESLint',
+			'Prettier',
+			'Vitest',
+			'Commitlint',
+			'Husky',
+			'knip',
+			'EditorConfig',
+			'Node version pin',
+			'engines.node',
+		]
+		const suggestions = nextStepSuggestions(
+			checks.map((c) => ({ check: c, status: 'optional-missing' as const, detail: '' }))
+		)
+		// 8 specific + 1 overflow
+		expect(suggestions).toHaveLength(9)
+		expect(suggestions.at(-1)).toMatch(/and \d+ more/)
+	})
+
+	it('skips checks with no registered fix target', () => {
+		const suggestions = nextStepSuggestions([
+			{ check: 'GitLab CI', status: 'optional-missing', detail: '' },
+		])
+		expect(suggestions).toEqual([])
 	})
 })

@@ -9,6 +9,7 @@ import { generateLintingConfigs } from './linting.js'
 import { generateMiscBaseline } from './misc.js'
 import { generatePackageJson } from './package-json.js'
 import { generateReadme } from './readme.js'
+import { generateSecurityConfigs } from './security.js'
 import { generateTestingConfigs } from './testing.js'
 import { generateTSConfig } from './tsconfig.js'
 
@@ -45,6 +46,11 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 
 	// Generate GitHub Actions workflow
 	await generateGitHubActions(config, targetDir)
+
+	// Generate security automation (Dependabot + CodeQL)
+	if (config.securityAutomation) {
+		await generateSecurityConfigs(targetDir)
+	}
 
 	// Generate build configurations
 	if (config.bundler !== 'none') {

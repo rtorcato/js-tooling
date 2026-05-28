@@ -1,6 +1,7 @@
 import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
+import { getFixTargetForCheck } from './fix-targets.js'
 
 export interface DoctorOptions {
 	directory?: string
@@ -575,6 +576,34 @@ function statusLabel(status: CheckStatus): string {
 	}
 }
 
+const MAX_NEXT_STEP_SUGGESTIONS = 8
+
+export function nextStepSuggestions(results: CheckResult[]): string[] {
+	const fixable = results.filter(
+		(r) => r.status === 'drift' || r.status === 'missing' || r.status === 'optional-missing'
+	)
+	const lines: string[] = []
+	let overflow = 0
+	for (const r of fixable) {
+		const target = getFixTargetForCheck(r.check)
+		if (!target) continue
+		if (lines.length >= MAX_NEXT_STEP_SUGGESTIONS) {
+			overflow++
+			continue
+		}
+		const verb = r.status === 'drift' ? 'align' : 'scaffold'
+		lines.push(`Run \`npx @rtorcato/js-tooling fix ${target}\` to ${verb} ${r.check}`)
+	}
+	if (overflow > 0) {
+		lines.push(
+			`...and ${overflow} more — run \`npx @rtorcato/js-tooling fix\` to walk all findings`
+		)
+	} else if (lines.length > 0) {
+		lines.push('Run `npx @rtorcato/js-tooling fix` to walk all findings interactively')
+	}
+	return lines
+}
+
 export function summarize(results: CheckResult[]): {
 	ok: number
 	drift: number
@@ -609,6 +638,14 @@ export async function doctorCommand(options: DoctorOptions = {}) {
 		console.log(
 			`  Summary: ${chalk.green(`${summary.ok} ok`)}, ${chalk.yellow(`${summary.drift} drift`)}, ${chalk.red(`${summary.missing} missing`)}, ${chalk.gray(`${summary.optionalMissing} not configured`)}\n`
 		)
+		const suggestions = nextStepSuggestions(results)
+		if (suggestions.length > 0) {
+			console.log(chalk.bold('  Next steps:'))
+			for (const s of suggestions) {
+				console.log(`    ${chalk.gray('-')} ${s}`)
+			}
+			console.log()
+		}
 	}
 
 	const summary = summarize(results)
