@@ -1,3 +1,12 @@
+# [2.5.0](https://github.com/rtorcato/js-tooling/compare/v2.4.0...v2.5.0) (2026-05-28)
+
+
+### Features
+
+* **cli:** expand list output + wire fix --json ([9481c3a](https://github.com/rtorcato/js-tooling/commit/9481c3aaea5b712f20b7c4d0526420cea3bcc2c4))
+* **fix:** add --json flag for CI / scripting ([a653305](https://github.com/rtorcato/js-tooling/commit/a65330574ad79c2a4b4adad2d2080041df904df4))
+* **setup:** suggest fix for skipped tooling ([ddf3b9a](https://github.com/rtorcato/js-tooling/commit/ddf3b9a88bb513da9a93b2949f77330dae2adcd0))
+
 # [2.4.0](https://github.com/rtorcato/js-tooling/compare/v2.3.0...v2.4.0) (2026-05-28)
 
 
