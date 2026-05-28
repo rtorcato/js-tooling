@@ -6,6 +6,7 @@ import { Command } from 'commander'
 import fs from 'fs-extra'
 import packageJson from '../../package.json' with { type: 'json' }
 import { doctorCommand } from './commands/doctor.js'
+import { fixCommand } from './commands/fix.js'
 import { setupProject } from './commands/setup.js'
 import { copyPreset, PRESETS, type PresetName } from './utils/copy-preset.js'
 
@@ -99,9 +100,23 @@ program
 	.option('--json', 'Emit machine-readable JSON output')
 	.action(doctorCommand)
 
+program
+	.command('fix [target]')
+	.description('🔧 Apply scaffolders for items doctor flagged')
+	.option('-d, --directory <path>', 'Target directory', process.cwd())
+	.option('--yes', 'Assume yes to all prompts (including drift overwrites)')
+	.option('--dry-run', 'Print what would change without writing files')
+	.action((target: string | undefined, options) =>
+		fixCommand(target, {
+			directory: options.directory,
+			yes: options.yes,
+			dryRun: options.dryRun,
+		})
+	)
+
 program.hook('preAction', async (_, actionCommand) => {
 	const name = actionCommand.name()
-	if (name === 'setup' || name === 'doctor') {
+	if (name === 'setup' || name === 'doctor' || name === 'fix') {
 		const dir = (actionCommand.opts().directory as string | undefined) ?? process.cwd()
 		if (await isSelfRepo(dir)) {
 			console.log(
