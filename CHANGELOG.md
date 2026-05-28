@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/rtorcato/js-tooling/compare/v2.2.0...v2.3.0) (2026-05-28)
+
+
+### Features
+
+* **doctor:** add 9 new project checks ([e6d46c5](https://github.com/rtorcato/js-tooling/commit/e6d46c56e72c0336fe2ba2acad37b33627087503))
+
 # [2.2.0](https://github.com/rtorcato/js-tooling/compare/v2.1.2...v2.2.0) (2026-05-27)
 
 
