@@ -253,3 +253,55 @@ describe('doctor extended checks', () => {
 		expect(results.find((r) => r.check === 'GitLab CI')?.status).toBe('ok')
 	})
 })
+
+describe('doctor security checks', () => {
+	it('reports Dependabot optional-missing on empty repo', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const results = await runDoctor(dir)
+		const dep = results.find((r) => r.check === 'Dependabot')
+		expect(dep?.status).toBe('optional-missing')
+		expect(dep?.hint).toMatch(/fix dependabot/)
+	})
+
+	it('reports Dependabot ok when .github/dependabot.yml exists', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github'))
+		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Dependabot')?.status).toBe('ok')
+	})
+
+	it('reports CodeQL ok when .github/workflows/codeql.yml exists', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(join(dir, '.github', 'workflows', 'codeql.yml'), 'name: CodeQL\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'CodeQL')?.status).toBe('ok')
+	})
+
+	it('detects CodeQL via codeql-action reference in any workflow', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'security.yml'),
+			'name: Security\nuses: github/codeql-action/init@v3\n'
+		)
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'CodeQL')?.status).toBe('ok')
+	})
+
+	it('reports CodeQL optional-missing when no workflows reference it', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(join(dir, '.github', 'workflows', 'ci.yml'), 'name: CI\n')
+		const results = await runDoctor(dir)
+		const codeql = results.find((r) => r.check === 'CodeQL')
+		expect(codeql?.status).toBe('optional-missing')
+		expect(codeql?.hint).toMatch(/fix codeql/)
+	})
+})

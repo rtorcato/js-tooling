@@ -451,6 +451,67 @@ async function checkGitHubActions(dir: string): Promise<CheckResult> {
 	}
 }
 
+async function checkDependabot(dir: string): Promise<CheckResult> {
+	for (const candidate of ['.github/dependabot.yml', '.github/dependabot.yaml']) {
+		if (await fs.pathExists(path.join(dir, candidate))) {
+			return {
+				check: 'Dependabot',
+				status: 'ok',
+				detail: `${candidate} found`,
+			}
+		}
+	}
+	return {
+		check: 'Dependabot',
+		status: 'optional-missing',
+		detail: 'no .github/dependabot.yml',
+		hint: 'Run `npx @rtorcato/js-tooling fix dependabot` to scaffold weekly dep updates',
+	}
+}
+
+async function checkCodeQL(dir: string): Promise<CheckResult> {
+	const workflowsDir = path.join(dir, '.github', 'workflows')
+	if (!(await fs.pathExists(workflowsDir))) {
+		return {
+			check: 'CodeQL',
+			status: 'optional-missing',
+			detail: 'no .github/workflows/',
+			hint: 'Run `npx @rtorcato/js-tooling fix codeql` to scaffold CodeQL security scanning',
+		}
+	}
+	for (const candidate of ['codeql.yml', 'codeql.yaml']) {
+		if (await fs.pathExists(path.join(workflowsDir, candidate))) {
+			return {
+				check: 'CodeQL',
+				status: 'ok',
+				detail: `.github/workflows/${candidate} found`,
+			}
+		}
+	}
+	try {
+		const files = await fs.readdir(workflowsDir)
+		for (const f of files) {
+			if (!(f.endsWith('.yml') || f.endsWith('.yaml'))) continue
+			const content = await fs.readFile(path.join(workflowsDir, f), 'utf-8')
+			if (/github\/codeql-action/.test(content)) {
+				return {
+					check: 'CodeQL',
+					status: 'ok',
+					detail: `codeql-action referenced in ${f}`,
+				}
+			}
+		}
+	} catch {
+		// fall through to optional-missing
+	}
+	return {
+		check: 'CodeQL',
+		status: 'optional-missing',
+		detail: 'no codeql workflow found',
+		hint: 'Run `npx @rtorcato/js-tooling fix codeql` to scaffold CodeQL security scanning',
+	}
+}
+
 async function checkGitLabCI(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.gitlab-ci.yml', '.gitlab-ci.yaml']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -487,6 +548,8 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkSemanticRelease(targetDir, pkg))
 	results.push(await checkKnip(targetDir, pkg))
 	results.push(await checkGitHubActions(targetDir))
+	results.push(await checkDependabot(targetDir))
+	results.push(await checkCodeQL(targetDir))
 	results.push(await checkGitLabCI(targetDir))
 
 	return results
