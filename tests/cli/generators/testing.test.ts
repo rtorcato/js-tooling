@@ -55,13 +55,23 @@ describe('generateTestingConfigs', () => {
 		expect(jestConfig).toContain('@rtorcato/js-tooling/jest-presets/browser/jest-preset')
 	})
 
-	it('writes a playwright config', async () => {
+	it('writes a playwright config that re-exports our preset', async () => {
 		const dir = newTmpDir()
 		await generateTestingConfigs(baseConfig({ testing: { framework: 'playwright' } }), dir)
 
 		const playwrightConfig = await fs.readFile(join(dir, 'playwright.config.ts'), 'utf-8')
-		expect(playwrightConfig).toContain("from '@playwright/test'")
-		expect(playwrightConfig).toContain("testDir: './tests/e2e'")
+		expect(playwrightConfig).toContain("from '@rtorcato/js-tooling/playwright'")
+	})
+
+	it('the shipped playwright preset references defineConfig and devices', async () => {
+		const presetPath = join(
+			process.cwd(),
+			'tooling/playwright/playwright.config.mjs'
+		)
+		const preset = await fs.readFile(presetPath, 'utf-8')
+		expect(preset).toMatch(/from '@playwright\/test'/)
+		expect(preset).toMatch(/\bdefineConfig\b/)
+		expect(preset).toMatch(/\bdevices\b/)
 	})
 
 	it('writes nothing when framework is none', async () => {

@@ -47,6 +47,8 @@
 		"tooling/eslint/*.d.mts",
 		"tooling/eslint/types.d.ts",
 		"tooling/jest-presets/**",
+		"tooling/playwright/playwright.config.mjs",
+		"tooling/playwright/playwright.config.d.mts",
 		"tooling/prettier/index.mjs",
 		"tooling/prettier/index.d.mts",
 		"tooling/typescript/*.json",
@@ -87,6 +89,10 @@
 		"./jest-presets/node/jest-preset": {
 			"types": "./tooling/jest-presets/node/jest-preset.d.mts",
 			"import": "./tooling/jest-presets/node/jest-preset.mjs"
+		},
+		"./playwright": {
+			"types": "./tooling/playwright/playwright.config.d.mts",
+			"import": "./tooling/playwright/playwright.config.mjs"
 		},
 		"./prettier": {
 			"types": "./tooling/prettier/index.d.mts",
