@@ -1,3 +1,13 @@
+# [2.4.0](https://github.com/rtorcato/js-tooling/compare/v2.3.0...v2.4.0) (2026-05-28)
+
+
+### Features
+
+* **cli:** add fix command ([35f4b2d](https://github.com/rtorcato/js-tooling/commit/35f4b2d8863306b01659fb959f48de3703d12e0c))
+* **doctor:** add Dependabot and CodeQL checks ([6905fea](https://github.com/rtorcato/js-tooling/commit/6905feac48eb847b444fc566bacdbb136d090e31))
+* **doctor:** add fix-suggestion footer ([ec6321a](https://github.com/rtorcato/js-tooling/commit/ec6321a1156ef260ed53198e8806d7b9e61a78d1))
+* **generators:** add security + misc scaffolders ([3e8f299](https://github.com/rtorcato/js-tooling/commit/3e8f29977e1369ab63bd0e732a5668b5bec40748))
+
 # [2.3.0](https://github.com/rtorcato/js-tooling/compare/v2.2.0...v2.3.0) (2026-05-28)
 
 
