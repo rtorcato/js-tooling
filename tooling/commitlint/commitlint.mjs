@@ -20,8 +20,9 @@ export default {
 				"test",
 			],
 		],
-		// Enforce length limits (strict)
-		"header-max-length": [2, "always", 50],
+		// Enforce length limits: 72 chars matches the conventional-commits
+		// recommendation and git's default email format
+		"header-max-length": [2, "always", 72],
 		"body-max-line-length": [2, "always", 72],
 		"footer-max-line-length": [2, "always", 72],
 		// Enforce case rules (allow common patterns)
