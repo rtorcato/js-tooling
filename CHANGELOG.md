@@ -1,3 +1,11 @@
+# [2.6.0](https://github.com/rtorcato/js-tooling/compare/v2.5.1...v2.6.0) (2026-05-28)
+
+
+### Features
+
+* **cli:** add list --json with exports and fixTarget ([bc27a19](https://github.com/rtorcato/js-tooling/commit/bc27a191a20409f129f2b41daed7a3c994668735))
+* **setup:** support non-interactive scaffolding via flags ([78b1738](https://github.com/rtorcato/js-tooling/commit/78b17387331dc801b29c669de9e3520ec030a3e2))
+
 ## [2.5.1](https://github.com/rtorcato/js-tooling/compare/v2.5.0...v2.5.1) (2026-05-28)
 
 
