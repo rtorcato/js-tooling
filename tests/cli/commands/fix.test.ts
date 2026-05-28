@@ -135,6 +135,42 @@ describe('fix targeted', () => {
 		await fixCommand('biome', { directory: dir })
 	})
 
+	it('fix engines uses safe-merge wording (no overwrite warning)', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		promptMock.mockImplementationOnce(async (questions: unknown) => {
+			const q = Array.isArray(questions) ? questions[0] : questions
+			expect(q.default).toBe(true)
+			expect(q.message).not.toMatch(/overwrite/i)
+			expect(q.message).toMatch(/preserved/i)
+			return { confirm: false }
+		})
+		await fixCommand('engines', { directory: dir })
+	})
+
+	it('fix husky uses safe-merge wording', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		promptMock.mockImplementationOnce(async (questions: unknown) => {
+			const q = Array.isArray(questions) ? questions[0] : questions
+			expect(q.default).toBe(true)
+			expect(q.message).not.toMatch(/overwrite/i)
+			return { confirm: false }
+		})
+		await fixCommand('husky', { directory: dir })
+	})
+
+	it('fix package-json uses safe-merge wording', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), { name: 'demo', version: '0.0.0' })
+		promptMock.mockImplementationOnce(async (questions: unknown) => {
+			const q = Array.isArray(questions) ? questions[0] : questions
+			expect(q.message).not.toMatch(/overwrite/i)
+			return { confirm: false }
+		})
+		await fixCommand('package-json', { directory: dir })
+	})
+
 	it('returns early when check is already ok', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

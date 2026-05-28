@@ -50,11 +50,19 @@ export interface FixerContext {
 	result: CheckResult
 }
 
+export type FixRiskLevel = 'destructive' | 'safe-merge' | 'safe-add'
+
 export interface Fixer {
 	target: string
 	description: string
 	appliesTo: string[]
 	outputs: string[]
+	/**
+	 * - destructive (default): overwrites the target file
+	 * - safe-merge: modifies an existing file without replacing user values
+	 * - safe-add: only writes when the target file doesn't yet exist
+	 */
+	riskLevel?: FixRiskLevel
 	canFixDrift?: boolean
 	run(ctx: FixerContext): Promise<{ filesWritten: string[] }>
 }
@@ -171,9 +179,10 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'husky',
-		description: 'Set up Husky + lint-staged (deep-merges existing lint-staged field)',
+		description: 'Set up Husky + lint-staged',
 		appliesTo: ['Husky', 'lint-staged'],
 		outputs: ['.husky/pre-commit', 'package.json (lint-staged field)'],
+		riskLevel: 'safe-merge',
 		canFixDrift: true,
 		async run({ targetDir, pkg }) {
 			const pkgPath = path.join(targetDir, 'package.json')
@@ -256,9 +265,10 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'engines',
-		description: 'Add engines.node to package.json (never overwrites)',
+		description: 'Add engines.node to package.json',
 		appliesTo: ['engines.node'],
 		outputs: ['package.json (engines.node field)'],
+		riskLevel: 'safe-merge',
 		canFixDrift: true,
 		async run({ targetDir }) {
 			const result = await ensureEnginesNode(targetDir)
@@ -281,6 +291,7 @@ const FIXERS: Fixer[] = [
 		description: 'Add @rtorcato/js-tooling to devDependencies',
 		appliesTo: ['package.json'],
 		outputs: ['package.json (devDependencies)'],
+		riskLevel: 'safe-merge',
 		canFixDrift: true,
 		async run({ targetDir, pkg }) {
 			const pkgPath = path.join(targetDir, 'package.json')
@@ -342,18 +353,36 @@ async function applyFixer(
 	return { filesWritten, dryRun: false }
 }
 
+function promptMessageFor(
+	fixer: Fixer,
+	result: CheckResult
+): { message: string; default: boolean } {
+	const risk: FixRiskLevel = fixer.riskLevel ?? 'destructive'
+	if (risk === 'safe-merge') {
+		return { message: `${fixer.description} (existing fields preserved)?`, default: true }
+	}
+	if (risk === 'safe-add') {
+		return { message: `${fixer.description}?`, default: true }
+	}
+	// destructive
+	if (result.status === 'drift') {
+		return {
+			message: `⚠️  ${fixer.description} — overwrite existing file? user customizations will be lost`,
+			default: false,
+		}
+	}
+	return { message: `Apply ${fixer.description}?`, default: true }
+}
+
 async function confirmApply(
 	fixer: Fixer,
 	result: CheckResult,
 	assumeYes: boolean
 ): Promise<boolean> {
 	if (assumeYes) return true
-	const isDrift = result.status === 'drift'
-	const message = isDrift
-		? `⚠️  ${fixer.description} — overwrite existing file? user customizations will be lost`
-		: `Apply ${fixer.description}?`
+	const { message, default: defaultValue } = promptMessageFor(fixer, result)
 	const { confirm } = await inquirer.prompt([
-		{ type: 'confirm', name: 'confirm', message, default: !isDrift },
+		{ type: 'confirm', name: 'confirm', message, default: defaultValue },
 	])
 	return confirm === true
 }
