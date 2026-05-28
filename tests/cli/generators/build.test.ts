@@ -45,22 +45,23 @@ describe('generateBuildConfigs', () => {
 		expect(await fs.pathExists(join(dir, 'tsup.config.ts'))).toBe(false)
 	})
 
-	it('writes vite.config.ts when bundler is vite', async () => {
+	it('writes vite.config.ts re-exporting the preset', async () => {
 		const dir = newTmpDir()
 		await generateBuildConfigs(baseConfig({ bundler: 'vite' }), dir)
 
 		const content = await fs.readFile(join(dir, 'vite.config.ts'), 'utf-8')
-		expect(content).toContain("from 'vite'")
-		expect(content).toContain('defineConfig')
+		expect(content).toContain("from '@rtorcato/js-tooling/vite'")
 		expect(await fs.pathExists(join(dir, 'tsup.config.ts'))).toBe(false)
 	})
 
-	it('includes react plugin in vite config for react-app project type', async () => {
+	it('layers react plugin on the vite preset for react-app project type', async () => {
 		const dir = newTmpDir()
 		await generateBuildConfigs(baseConfig({ bundler: 'vite', projectType: 'react-app' }), dir)
 
 		const content = await fs.readFile(join(dir, 'vite.config.ts'), 'utf-8')
+		expect(content).toContain("from '@rtorcato/js-tooling/vite'")
 		expect(content).toContain("from '@vitejs/plugin-react'")
+		expect(content).toContain('mergeConfig')
 		expect(content).toContain('react()')
 	})
 
@@ -70,6 +71,13 @@ describe('generateBuildConfigs', () => {
 
 		const content = await fs.readFile(join(dir, 'vite.config.ts'), 'utf-8')
 		expect(content).not.toContain('@vitejs/plugin-react')
+	})
+
+	it('the shipped vite preset uses defineConfig', async () => {
+		const presetPath = join(process.cwd(), 'tooling/vite/vite.config.mjs')
+		const preset = await fs.readFile(presetPath, 'utf-8')
+		expect(preset).toMatch(/from 'vite'/)
+		expect(preset).toMatch(/\bdefineConfig\b/)
 	})
 
 	it('writes release.config.mjs when semanticRelease is true', async () => {

@@ -53,6 +53,8 @@
 		"tooling/prettier/index.d.mts",
 		"tooling/typescript/*.json",
 		"tooling/typescript/reset.d.ts",
+		"tooling/vite/vite.config.mjs",
+		"tooling/vite/vite.config.d.mts",
 		"tooling/vitest/vitest.config.mjs",
 		"tooling/vitest/vitest.config.d.mts",
 		"tooling/vitest/vitest.config.react.mjs",
@@ -105,6 +107,10 @@
 		"./typescript/react": "./tooling/typescript/tsconfig.react.json",
 		"./typescript/test": "./tooling/typescript/tsconfig.test.json",
 		"./typescript/reset": "./tooling/typescript/reset.d.ts",
+		"./vite": {
+			"types": "./tooling/vite/vite.config.d.mts",
+			"import": "./tooling/vite/vite.config.mjs"
+		},
 		"./vitest/config": {
 			"types": "./tooling/vitest/vitest.config.d.mts",
 			"import": "./tooling/vitest/vitest.config.mjs"

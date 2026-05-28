@@ -61,35 +61,19 @@ console.log('Build completed!')
 	await fs.writeFile(esbuildConfigPath, esbuildConfig)
 }
 
-async function generateViteConfig(config: ProjectConfig, targetDir: string) {
+export async function generateViteConfig(config: ProjectConfig, targetDir: string) {
 	const viteConfigPath = path.join(targetDir, 'vite.config.ts')
 
-	let viteConfig = `import { defineConfig } from 'vite'
-`
+	// React apps need the plugin; we layer it on top of the shipped preset.
+	const viteConfig =
+		config.projectType === 'react-app'
+			? `import preset from '@rtorcato/js-tooling/vite'
+import react from '@vitejs/plugin-react'
+import { defineConfig, mergeConfig } from 'vite'
 
-	if (config.projectType === 'react-app') {
-		viteConfig += `import react from '@vitejs/plugin-react'
+export default mergeConfig(preset, defineConfig({ plugins: [react()] }))
 `
-	}
-
-	viteConfig += `
-export default defineConfig({
-  plugins: [${config.projectType === 'react-app' ? 'react()' : ''}],
-  resolve: {
-    alias: {
-      '@': '/src',
-      '~': '/src'
-    }
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true,
-  },
-  server: {
-    port: 3000,
-    open: true
-  }
-})
+			: `export { default } from '@rtorcato/js-tooling/vite'
 `
 
 	await fs.writeFile(viteConfigPath, viteConfig)
