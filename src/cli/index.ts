@@ -81,16 +81,23 @@ program
 			{ name: 'Playwright', desc: 'End-to-end testing configuration' },
 			{ name: 'Commitlint', desc: 'Conventional commit linting' },
 			{ name: 'Husky', desc: 'Git hooks for pre-commit validation' },
+			{ name: 'lint-staged', desc: 'Run linters on staged files (pairs with Husky)' },
 			{ name: 'Semantic Release', desc: 'Automated versioning and publishing' },
 			{ name: 'tsup', desc: 'TypeScript bundler configuration' },
 			{ name: 'esbuild', desc: 'Fast JavaScript bundler configuration' },
+			{ name: 'EditorConfig', desc: 'Cross-editor formatting consistency (.editorconfig)' },
+			{ name: '.nvmrc', desc: 'Pin Node version per repository' },
+			{ name: 'knip', desc: 'Find unused files, exports, and dependencies' },
+			{ name: 'Dependabot', desc: 'Weekly automated dependency updates' },
+			{ name: 'CodeQL', desc: 'GitHub security scanning workflow' },
 		]
 
 		configs.forEach(({ name, desc }) => {
 			console.log(`  ${chalk.green('●')} ${chalk.bold(name)}: ${chalk.gray(desc)}`)
 		})
 
-		console.log(chalk.dim('\n💡 Run "js-tooling setup" to configure your project\n'))
+		console.log(chalk.dim('\n💡 Run `js-tooling setup` for a new project'))
+		console.log(chalk.dim('   or `js-tooling fix` to apply missing pieces to an existing one\n'))
 	})
 
 program
@@ -106,11 +113,13 @@ program
 	.option('-d, --directory <path>', 'Target directory', process.cwd())
 	.option('--yes', 'Assume yes to all prompts (including drift overwrites)')
 	.option('--dry-run', 'Print what would change without writing files')
+	.option('--json', 'Emit machine-readable JSON output (implies --yes)')
 	.action((target: string | undefined, options) =>
 		fixCommand(target, {
 			directory: options.directory,
 			yes: options.yes,
 			dryRun: options.dryRun,
+			json: options.json,
 		})
 	)
 
