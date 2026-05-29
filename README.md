@@ -1,5 +1,7 @@
 # js-tooling
 
+![js-common banner](./banner.jpeg)
+
 JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.
 
 [![CI](https://github.com/rtorcato/js-tooling/actions/workflows/ci.yml/badge.svg)](https://github.com/rtorcato/js-tooling/actions/workflows/ci.yml)
