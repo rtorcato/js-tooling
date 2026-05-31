@@ -76,6 +76,11 @@ docs: update CLI usage examples in README
 chore: update dependencies to latest versions
 ```
 
+> **PR title length:** commitlint enforces a 72-char subject limit. GitHub's
+> squash-merge appends ` (#N)` to the title — keep PR titles ≤ 67 chars so
+> the merged commit doesn't trip the post-merge `commitlint` gate (which
+> would then skip the `release` job).
+
 ### Code Quality
 
 We use several tools to maintain code quality:
