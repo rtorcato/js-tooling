@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/rtorcato/js-tooling/compare/v2.6.0...v2.7.0) (2026-05-31)
+
+
+### Features
+
+* **vitest:** add jsdom-shims preset for Radix/cmdk/embla/Day Picker ([#13](https://github.com/rtorcato/js-tooling/issues/13)) ([af3d94c](https://github.com/rtorcato/js-tooling/commit/af3d94cad8e0ec72a182ada615058900f0506a06))
+
 # [2.6.0](https://github.com/rtorcato/js-tooling/compare/v2.5.1...v2.6.0) (2026-05-28)
 
 
