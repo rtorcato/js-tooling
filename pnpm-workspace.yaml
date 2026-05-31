@@ -7,3 +7,11 @@ allowBuilds:
 onlyBuiltDependencies:
   - esbuild
   - sharp
+
+# Whitelist packages from pnpm's 24h minimumReleaseAge supply-chain policy.
+# The default cutoff defends against typosquat-hijack attacks, but it also
+# blocks every install (including CI) when a low-risk transitive dep we
+# already pinned gets a fresh patch publish. Add entries here when a
+# specific package has been vetted and the wait isn't worth the friction.
+minimumReleaseAgeExclude:
+  - tinyglobby
