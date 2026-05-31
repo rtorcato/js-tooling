@@ -61,6 +61,8 @@
 		"tooling/vitest/vitest.config.react.d.mts",
 		"tooling/vitest/vitest.setup.mjs",
 		"tooling/vitest/vitest.setup.d.mts",
+		"tooling/vitest/jsdom-shims.mjs",
+		"tooling/vitest/jsdom-shims.d.mts",
 		"tooling/tsup/index.ts",
 		"tooling/biome/biome.json",
 		"tooling/semantic-release/*.mjs",
@@ -123,6 +125,10 @@
 			"types": "./tooling/vitest/vitest.setup.d.mts",
 			"import": "./tooling/vitest/vitest.setup.mjs"
 		},
+		"./vitest/jsdom-shims": {
+			"types": "./tooling/vitest/jsdom-shims.d.mts",
+			"import": "./tooling/vitest/jsdom-shims.mjs"
+		},
 		"./tsup": "./tooling/tsup/index.ts",
 		"./biome": "./tooling/biome/biome.json",
 		"./semantic-release": {
@@ -146,11 +152,11 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.0",
+		"@commitlint/cli": "^20.1.0",
+		"@commitlint/config-conventional": "^21.0.1",
 		"@commitlint/types": "^20.0.0",
 		"@eslint/js": "^9.38.0",
 		"@ianvs/prettier-plugin-sort-imports": "^4.4.2",
-		"@commitlint/cli": "^20.1.0",
-		"@commitlint/config-conventional": "^21.0.1",
 		"@next/eslint-plugin-next": "^16.0.0",
 		"@playwright/test": "^1.56.1",
 		"@semantic-release/changelog": "^6.0.3",
@@ -175,9 +181,11 @@
 		"eslint": "9.38.0",
 		"eslint-plugin-import": "^2.32.0",
 		"eslint-plugin-jest": "29.0.1",
-		"jest": "^29.7.0",
 		"husky": "^9.1.7",
 		"is-ci": "^4.1.0",
+		"jest": "^29.7.0",
+		"jsdom": "^26.1.0",
+		"knip": "^5.61.3",
 		"lint-staged": "^16.2.6",
 		"prettier": "^3.6.2",
 		"rimraf": "6.0.1",
@@ -186,8 +194,7 @@
 		"tsup": "8.5.1",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.60.0",
-		"vitest": "4.0.3",
-		"knip": "^5.61.3"
+		"vitest": "4.0.3"
 	},
 	"peerDependencies": {
 		"@biomejs/biome": "^2.0.0",
