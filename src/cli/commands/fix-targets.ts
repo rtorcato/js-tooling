@@ -13,6 +13,7 @@ export const FIX_TARGETS: Record<string, string> = {
 	'lint-staged': 'husky',
 	'semantic-release': 'semantic-release',
 	knip: 'knip',
+	'size-limit': 'size-limit',
 	'GitHub Actions': 'github-actions',
 	Dependabot: 'dependabot',
 	CodeQL: 'codeql',

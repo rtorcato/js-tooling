@@ -347,6 +347,39 @@ async function checkKnip(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	}
 }
 
+const SIZE_LIMIT_FILES = [
+	'.size-limit.json',
+	'.size-limit.js',
+	'.size-limit.cjs',
+	'.size-limit.mjs',
+	'.size-limit.ts',
+]
+
+async function checkSizeLimit(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const inPkg = pkg ? 'size-limit' in pkg : false
+	let inFile: string | null = null
+	for (const candidate of SIZE_LIMIT_FILES) {
+		if (await fs.pathExists(path.join(dir, candidate))) {
+			inFile = candidate
+			break
+		}
+	}
+
+	if (inPkg || inFile) {
+		return {
+			check: 'size-limit',
+			status: 'ok',
+			detail: inPkg ? '`size-limit` field in package.json' : `${inFile} found`,
+		}
+	}
+	return {
+		check: 'size-limit',
+		status: 'optional-missing',
+		detail: 'size-limit not configured',
+		hint: 'Add `size-limit` to enforce bundle-size budgets in CI for library projects',
+	}
+}
+
 const SEMANTIC_RELEASE_FILES = [
 	'.releaserc',
 	'.releaserc.json',
@@ -548,6 +581,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkLintStaged(targetDir, pkg))
 	results.push(await checkSemanticRelease(targetDir, pkg))
 	results.push(await checkKnip(targetDir, pkg))
+	results.push(await checkSizeLimit(targetDir, pkg))
 	results.push(await checkGitHubActions(targetDir))
 	results.push(await checkDependabot(targetDir))
 	results.push(await checkCodeQL(targetDir))

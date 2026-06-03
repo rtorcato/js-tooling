@@ -11,6 +11,7 @@ import {
 	generateEditorConfig,
 	generateKnipConfig,
 	generateNvmrc,
+	generateSizeLimitConfig,
 } from '../generators/misc.js'
 import { generateCodeQLWorkflow, generateDependabotConfig } from '../generators/security.js'
 import { generateVitestConfig } from '../generators/testing.js'
@@ -284,6 +285,18 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			await generateKnipConfig(targetDir)
 			return { filesWritten: ['knip.json'] }
+		},
+	},
+	{
+		target: 'size-limit',
+		description:
+			'Scaffold .size-limit.json with a default 10 kB budget (customize per-subpath for libraries)',
+		appliesTo: ['size-limit'],
+		outputs: ['.size-limit.json'],
+		canFixDrift: true,
+		async run({ targetDir }) {
+			await generateSizeLimitConfig(targetDir)
+			return { filesWritten: ['.size-limit.json'] }
 		},
 	},
 	{

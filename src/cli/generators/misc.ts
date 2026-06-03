@@ -27,6 +27,14 @@ const KNIP_CONFIG = {
 	project: ['src/**/*.ts'],
 }
 
+const SIZE_LIMIT_CONFIG = [
+	{
+		name: 'package (default entry)',
+		path: 'dist/index.js',
+		limit: '10 kB',
+	},
+]
+
 export async function generateEditorConfig(targetDir: string) {
 	await fs.writeFile(path.join(targetDir, '.editorconfig'), EDITORCONFIG_CONTENT)
 }
@@ -56,6 +64,10 @@ export async function ensureEnginesNode(
 
 export async function generateKnipConfig(targetDir: string) {
 	await fs.writeJson(path.join(targetDir, 'knip.json'), KNIP_CONFIG, { spaces: 2 })
+}
+
+export async function generateSizeLimitConfig(targetDir: string) {
+	await fs.writeJson(path.join(targetDir, '.size-limit.json'), SIZE_LIMIT_CONFIG, { spaces: 2 })
 }
 
 export async function generateMiscBaseline(targetDir: string) {
