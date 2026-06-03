@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/rtorcato/js-tooling/compare/v2.7.0...v2.8.0) (2026-06-03)
+
+
+### Features
+
+* **size-limit:** add bundle-size budget preset + doctor/fix support ([edb4f8c](https://github.com/rtorcato/js-tooling/commit/edb4f8c9199151069f1f8004797f0be4b08b9af2))
+
 # [2.7.0](https://github.com/rtorcato/js-tooling/compare/v2.6.0...v2.7.0) (2026-05-31)
 
 
