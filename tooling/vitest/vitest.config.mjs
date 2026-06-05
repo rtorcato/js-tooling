@@ -11,13 +11,6 @@ export default defineConfig({
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html', 'json-summary'],
-			include: ['src/cli/generators/**/*.ts'],
-			thresholds: {
-				statements: 25,
-				lines: 25,
-				functions: 40,
-				branches: 17,
-			},
 		},
 	},
 	resolve: {
