@@ -63,6 +63,10 @@
 		"tooling/vitest/vitest.setup.d.mts",
 		"tooling/vitest/jsdom-shims.mjs",
 		"tooling/vitest/jsdom-shims.d.mts",
+		"tooling/tests/exports-resolution.mjs",
+		"tooling/tests/exports-resolution.d.mts",
+		"tooling/tests/ssr-safety.mjs",
+		"tooling/tests/ssr-safety.d.mts",
 		"tooling/tsup/index.ts",
 		"tooling/biome/biome.json",
 		"tooling/semantic-release/*.mjs",
@@ -142,6 +146,14 @@
 		"./semantic-release/docker": {
 			"types": "./tooling/semantic-release/docker.d.mts",
 			"import": "./tooling/semantic-release/docker.mjs"
+		},
+		"./tests/exports-resolution": {
+			"types": "./tooling/tests/exports-resolution.d.mts",
+			"import": "./tooling/tests/exports-resolution.mjs"
+		},
+		"./tests/ssr-safety": {
+			"types": "./tooling/tests/ssr-safety.d.mts",
+			"import": "./tooling/tests/ssr-safety.mjs"
 		}
 	},
 	"dependencies": {
