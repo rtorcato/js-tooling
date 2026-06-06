@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/rtorcato/js-tooling/compare/v2.8.1...v2.9.0) (2026-06-06)
+
+
+### Features
+
+* **tests:** exports-resolution + ssr-safety helpers + style guide ([791da5f](https://github.com/rtorcato/js-tooling/commit/791da5f94f56f3fa1c704ba1ce056f946d252531)), closes [#40](https://github.com/rtorcato/js-tooling/issues/40) [#41](https://github.com/rtorcato/js-tooling/issues/41) [#44](https://github.com/rtorcato/js-tooling/issues/44)
+
 ## [2.8.1](https://github.com/rtorcato/js-tooling/compare/v2.8.0...v2.8.1) (2026-06-06)
 
 
