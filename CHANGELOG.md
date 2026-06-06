@@ -1,3 +1,10 @@
+## [2.8.1](https://github.com/rtorcato/js-tooling/compare/v2.8.0...v2.8.1) (2026-06-06)
+
+
+### Bug Fixes
+
+* **vitest:** drop js-tooling-specific paths from shared preset ([491eb40](https://github.com/rtorcato/js-tooling/commit/491eb40d524fd11ac1dc538ec8c485e259aedfe0))
+
 # [2.8.0](https://github.com/rtorcato/js-tooling/compare/v2.7.0...v2.8.0) (2026-06-03)
 
 
