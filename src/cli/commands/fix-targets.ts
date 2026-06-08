@@ -24,6 +24,7 @@ export const FIX_TARGETS: Record<string, string> = {
 	Dependabot: 'dependabot',
 	CodeQL: 'codeql',
 	CODEOWNERS: 'codeowners',
+	'GitLab CI': 'gitlab-ci',
 	lockfile: 'lockfile',
 	'.js-tooling.json': 'lockfile',
 }

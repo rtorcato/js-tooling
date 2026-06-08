@@ -9,6 +9,7 @@ import {
 	generatePrePushHook,
 } from '../generators/git.js'
 import { generateGitHubActions } from '../generators/github-actions.js'
+import { generateGitLabCI } from '../generators/gitlab-ci.js'
 import { generateESLintConfig, generatePrettierConfig } from '../generators/linting.js'
 import {
 	ensureEnginesNode,
@@ -317,6 +318,17 @@ const FIXERS: Fixer[] = [
 		canFixDrift: false,
 		async run({ targetDir }) {
 			const written = await generateCodeowners(targetDir)
+			return { filesWritten: [written] }
+		},
+	},
+	{
+		target: 'gitlab-ci',
+		description: 'Scaffold .gitlab-ci.yml (lint/typecheck/test/build mirrored from GitHub Actions)',
+		appliesTo: ['GitLab CI'],
+		outputs: ['.gitlab-ci.yml'],
+		canFixDrift: true,
+		async run({ targetDir, pkg }) {
+			const written = await generateGitLabCI(inferProjectConfig(pkg), targetDir)
 			return { filesWritten: [written] }
 		},
 	},

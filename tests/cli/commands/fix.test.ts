@@ -116,6 +116,15 @@ describe('fix targeted', () => {
 		expect(await fs.pathExists(join(dir, '.editorconfig'))).toBe(true)
 	})
 
+	it('fix gitlab-ci --yes writes .gitlab-ci.yml with expected stages', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('gitlab-ci', { directory: dir, yes: true })
+		const yaml = await fs.readFile(join(dir, '.gitlab-ci.yml'), 'utf-8')
+		expect(yaml).toMatch(/^lint:$/m)
+		expect(yaml).toMatch(/^test:$/m)
+	})
+
 	it('fix codeowners --yes writes .github/CODEOWNERS', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

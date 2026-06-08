@@ -731,7 +731,7 @@ async function checkGitLabCI(dir: string): Promise<CheckResult> {
 		check: 'GitLab CI',
 		status: 'optional-missing',
 		detail: 'no .gitlab-ci.yml',
-		hint: 'Add a .gitlab-ci.yml if this repo is hosted on GitLab',
+		hint: 'Run `npx @rtorcato/js-tooling fix gitlab-ci` to scaffold a starter GitLab pipeline',
 	}
 }
 

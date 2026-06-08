@@ -687,7 +687,7 @@ describe('nextStepSuggestions', () => {
 
 	it('skips checks with no registered fix target', () => {
 		const suggestions = nextStepSuggestions([
-			{ check: 'GitLab CI', status: 'optional-missing', detail: '' },
+			{ check: 'Node', status: 'drift', detail: '' },
 		])
 		expect(suggestions).toEqual([])
 	})

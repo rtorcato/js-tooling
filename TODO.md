@@ -4,6 +4,7 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 
 ## Recently shipped (v2.x)
 
+- `fix gitlab-ci` — scaffolds `.gitlab-ci.yml` with stages mirrored from the GitHub Actions generator
 - `fix --resync` — re-scaffold every file recorded in `.js-tooling.json` (with `--dry-run` / `--json` / confirm prompt)
 - `.js-tooling.json` lockfile — setup records tool choices; doctor stops flagging intentional opt-outs; `fix` auto-resyncs on overrides
 - `fix --list` (and `--list --json`) — print the registered fixer registry without running doctor
@@ -34,7 +35,6 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 
 ## Coverage gaps
 
-- [ ] **`.gitlab-ci.yml` fixer** — doctor checks it but no `fix gitlab-ci` exists yet.
 - [ ] **Renovate config (`renovate.json`)** as an alternative to Dependabot.
 
 ## Cleanup
