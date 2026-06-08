@@ -37,8 +37,6 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 
 - [ ] Fill in empty `tests/README.md`.
 
-## Future releases
-
 ### High value
 - [ ] **Oxlint** — Rust-based linter, 50–100× faster than ESLint. Good add alongside Biome for large codebases, or as a standalone. Export as `./oxlint`.
 - [ ] **Changesets** — Popular alternative to semantic-release, especially for monorepos. Add wizard option + `tooling/changesets/` preset.
@@ -47,19 +45,20 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 - [ ] **Bun** — Runtime + test runner + bundler. Add: TypeScript config variant for Bun, `bun test` compatible vitest-style preset, `bunfig.toml` template, and wizard support.
 - [ ] **publint** — Validates `package.json` + dist for common npm publishing mistakes. Good `doctor` check candidate too.
 - [ ] **Rolldown** — Rust-based next-gen bundler (Vite 6 uses it internally). Add as bundler option once stable API lands.
-- [ ] **`@rtorcato/repo-tooling` base package** — Extract language-agnostic concerns (GitHub Actions skeleton, Dependabot, CodeQL, Husky, commitlint, semantic-release-github, CODEOWNERS, LICENSE, SECURITY.md, CONTRIBUTING.md, branch protection) into a standalone package. `js-tooling`, plus future `swift-tooling` and `python-tooling`, all depend on it so every repo (TS, Swift/iOS, Python) shares the same release + repo-hygiene baseline without duplicating logic per ecosystem.
 
 ### Medium value
 - [ ] **Cypress** — Major E2E testing alternative alongside Playwright. Add `tooling/cypress/` preset + wizard option.
 - [ ] **Tailwind CSS** — Tailwind config preset (`prettier-plugin-tailwindcss` is already in peerDeps). Add `tooling/tailwind/tailwind.config.mjs`.
 - [ ] **PostCSS** — Natural companion to Tailwind. Add `tooling/postcss/postcss.config.mjs`.
-- [ ] **TypeDoc** — API docs generation for library projects. Config preset + CI step to publish alongside the Astro docs site.
+- [x] **TypeDoc** — API docs generation for library projects. Config preset + CI step to publish alongside the Astro docs site.
 - [ ] **Turborepo** — `turbo.json` preset for teams on pnpm workspaces.
 - [ ] **Nx** — Major Turborepo alternative with affected-build model and plugin ecosystem.
 - [ ] **GitHub Actions templates** — More workflow templates: Docker build+push, Next.js deploy to Vercel/Cloudflare, preview deployments.
 
 ### Lower priority
-- [x] **are-the-types-wrong** — Validates TypeScript exports are correct. Good `doctor` subcommand check.
-- [x] **Preset-level versioning** — Let consumers lock to `typescript/base@1` while `typescript/base@2` ships.
 
 
+
+## Future releases (do not implement)
+
+- [ ] **`@rtorcato/repo-tooling` base package** — Extract language-agnostic concerns (GitHub Actions skeleton, Dependabot, CodeQL, Husky, commitlint, semantic-release-github, CODEOWNERS, LICENSE, SECURITY.md, CONTRIBUTING.md, branch protection) into a standalone package. `js-tooling`, plus future `swift-tooling` and `python-tooling`, all depend on it so every repo (TS, Swift/iOS, Python) shares the same release + repo-hygiene baseline without duplicating logic per ecosystem.

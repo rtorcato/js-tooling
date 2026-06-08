@@ -28,6 +28,7 @@ import {
 } from '../generators/security.js'
 import { generateVitestConfig } from '../generators/testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/treeshake.js'
+import { generateTypedocConfig, generateTypedocWorkflow } from '../generators/typedoc.js'
 import { copyPreset } from '../utils/copy-preset.js'
 import {
 	type Lockfile,
@@ -448,6 +449,31 @@ const FIXERS: Fixer[] = [
 				)
 			)
 			return { filesWritten: written }
+		},
+	},
+	{
+		target: 'typedoc',
+		description:
+			'Scaffold typedoc.json extending the preset + .github/workflows/docs.yml (GitHub Pages)',
+		appliesTo: ['TypeDoc'],
+		outputs: ['typedoc.json', '.github/workflows/docs.yml'],
+		riskLevel: 'safe-add',
+		canFixDrift: true,
+		async run({ targetDir, pkg }) {
+			await generateTypedocConfig(pkg, targetDir)
+			const workflow = await generateTypedocWorkflow(targetDir)
+			const pkgPath = path.join(targetDir, 'package.json')
+			const filesWritten: string[] = ['typedoc.json', workflow]
+			if (await fs.pathExists(pkgPath)) {
+				const pkgData = (await fs.readJson(pkgPath)) as Record<string, unknown>
+				const scripts = (pkgData.scripts as Record<string, string> | undefined) ?? {}
+				if (!scripts.docs) {
+					pkgData.scripts = { ...scripts, docs: 'typedoc' }
+					await fs.writeJson(pkgPath, pkgData, { spaces: 2 })
+					filesWritten.push('package.json')
+				}
+			}
+			return { filesWritten }
 		},
 	},
 	{

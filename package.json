@@ -70,6 +70,7 @@
 		"tooling/tests/ssr-safety.d.mts",
 		"tooling/tsup/index.ts",
 		"tooling/biome/biome.json",
+		"tooling/typedoc/typedoc.json",
 		"tooling/semantic-release/*.mjs",
 		"tooling/semantic-release/*.d.mts",
 		"README.md"
@@ -142,6 +143,7 @@
 		},
 		"./tsup": "./tooling/tsup/index.ts",
 		"./biome": "./tooling/biome/biome.json",
+		"./typedoc": "./tooling/typedoc/typedoc.json",
 		"./semantic-release": {
 			"types": "./tooling/semantic-release/index.d.mts",
 			"import": "./tooling/semantic-release/index.mjs"

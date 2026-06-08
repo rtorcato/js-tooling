@@ -28,6 +28,7 @@ export const FIX_TARGETS: Record<string, string> = {
 	lockfile: 'lockfile',
 	'.js-tooling.json': 'lockfile',
 	'are-the-types-wrong': 'attw',
+	TypeDoc: 'typedoc',
 }
 
 export function getFixTargetForCheck(checkName: string): string | null {

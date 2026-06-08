@@ -661,6 +661,76 @@ async function checkCodeQL(dir: string): Promise<CheckResult> {
 	}
 }
 
+const TYPEDOC_CONFIGS = [
+	'typedoc.json',
+	'typedoc.config.js',
+	'typedoc.config.mjs',
+	'typedoc.config.cjs',
+	'typedoc.config.ts',
+]
+
+async function checkTypedoc(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	if (pkg?.private === true) {
+		return {
+			check: 'TypeDoc',
+			status: 'ok',
+			detail: 'not applicable (package is private)',
+		}
+	}
+
+	let configFile: string | null = null
+	let configContent: string | null = null
+	for (const candidate of TYPEDOC_CONFIGS) {
+		const fp = path.join(dir, candidate)
+		if (await fs.pathExists(fp)) {
+			configFile = candidate
+			try {
+				configContent = await fs.readFile(fp, 'utf-8')
+			} catch {
+				configContent = ''
+			}
+			break
+		}
+	}
+
+	const deps = {
+		...((pkg?.dependencies as Record<string, string> | undefined) ?? {}),
+		...((pkg?.devDependencies as Record<string, string> | undefined) ?? {}),
+	}
+	const hasDep = !!deps['typedoc']
+	const usesPreset = configContent ? /@rtorcato\/js-tooling\/typedoc/.test(configContent) : false
+
+	if (configFile && usesPreset) {
+		return {
+			check: 'TypeDoc',
+			status: 'ok',
+			detail: `${configFile} extends the preset`,
+		}
+	}
+	if (configFile && !usesPreset) {
+		return {
+			check: 'TypeDoc',
+			status: 'drift',
+			detail: `${configFile} found but does not extend @rtorcato/js-tooling/typedoc`,
+			hint: 'Add `"extends": ["@rtorcato/js-tooling/typedoc"]` to typedoc.json',
+		}
+	}
+	if (hasDep && !configFile) {
+		return {
+			check: 'TypeDoc',
+			status: 'drift',
+			detail: 'typedoc installed but no typedoc.json found',
+			hint: 'Run `npx @rtorcato/js-tooling fix typedoc` to scaffold typedoc.json',
+		}
+	}
+	return {
+		check: 'TypeDoc',
+		status: 'optional-missing',
+		detail: 'TypeDoc not configured',
+		hint: 'Run `npx @rtorcato/js-tooling fix typedoc` to scaffold API docs generation',
+	}
+}
+
 function isPublishableLibrary(pkg: Pkg | null): boolean {
 	if (!pkg || pkg.private === true) return false
 	return !!(pkg.exports || pkg.main || pkg.module || pkg.files)
@@ -826,6 +896,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkCodeQL(targetDir))
 	results.push(await checkGitLabCI(targetDir))
 	results.push(await checkCodeowners(targetDir))
+	results.push(await checkTypedoc(targetDir, pkg))
 	results.push(await checkAreTheTypesWrong(targetDir, pkg))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))
 

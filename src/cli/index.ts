@@ -162,6 +162,12 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		fixTarget: null,
 	},
 	{
+		name: 'TypeDoc',
+		description: 'API documentation generation for TypeScript library projects',
+		exports: ['@rtorcato/js-tooling/typedoc'],
+		fixTarget: 'typedoc',
+	},
+	{
 		name: 'esbuild',
 		description: 'Fast JavaScript bundler configuration',
 		exports: ['@rtorcato/js-tooling/esbuild'],
