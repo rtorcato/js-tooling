@@ -1,3 +1,10 @@
+# [2.10.0](https://github.com/rtorcato/js-tooling/compare/v2.9.0...v2.10.0) (2026-06-08)
+
+
+### Features
+
+* unified verify script + tree-shake check scaffold ([0ac91a2](https://github.com/rtorcato/js-tooling/commit/0ac91a25ba98302017b995f11a61ac83a951300e)), closes [#42](https://github.com/rtorcato/js-tooling/issues/42) [#42](https://github.com/rtorcato/js-tooling/issues/42) [#43](https://github.com/rtorcato/js-tooling/issues/43)
+
 # [2.9.0](https://github.com/rtorcato/js-tooling/compare/v2.8.1...v2.9.0) (2026-06-06)
 
 
