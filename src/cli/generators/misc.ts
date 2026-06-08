@@ -35,6 +35,21 @@ const SIZE_LIMIT_CONFIG = [
 	},
 ]
 
+const CODEOWNERS_CONTENT = `# .github/CODEOWNERS
+# Each line is a file pattern followed by one or more owners.
+# Owners can be GitHub usernames (@user) or team names (@org/team).
+# Order matters — the last matching pattern wins.
+# See https://docs.github.com/articles/about-code-owners/
+#
+# Examples:
+#   *              @your-username
+#   /src/api/      @backend-team
+#   /docs/         @docs-team @your-username
+#   *.md           @docs-team
+
+* @TODO-owner
+`
+
 export async function generateEditorConfig(targetDir: string) {
 	await fs.writeFile(path.join(targetDir, '.editorconfig'), EDITORCONFIG_CONTENT)
 }
@@ -68,6 +83,13 @@ export async function generateKnipConfig(targetDir: string) {
 
 export async function generateSizeLimitConfig(targetDir: string) {
 	await fs.writeJson(path.join(targetDir, '.size-limit.json'), SIZE_LIMIT_CONFIG, { spaces: 2 })
+}
+
+export async function generateCodeowners(targetDir: string): Promise<string> {
+	const filepath = path.join(targetDir, '.github', 'CODEOWNERS')
+	await fs.ensureDir(path.dirname(filepath))
+	await fs.writeFile(filepath, CODEOWNERS_CONTENT)
+	return '.github/CODEOWNERS'
 }
 
 export async function generateMiscBaseline(targetDir: string) {

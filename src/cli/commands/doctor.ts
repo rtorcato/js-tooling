@@ -699,6 +699,24 @@ function checkLockfile(lock: Lockfile | null): CheckResult {
 	}
 }
 
+async function checkCodeowners(dir: string): Promise<CheckResult> {
+	for (const candidate of ['CODEOWNERS', '.github/CODEOWNERS', 'docs/CODEOWNERS']) {
+		if (await fs.pathExists(path.join(dir, candidate))) {
+			return {
+				check: 'CODEOWNERS',
+				status: 'ok',
+				detail: `${candidate} found`,
+			}
+		}
+	}
+	return {
+		check: 'CODEOWNERS',
+		status: 'optional-missing',
+		detail: 'no CODEOWNERS file',
+		hint: 'Run `npx @rtorcato/js-tooling fix codeowners` to scaffold .github/CODEOWNERS',
+	}
+}
+
 async function checkGitLabCI(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.gitlab-ci.yml', '.gitlab-ci.yaml']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -743,6 +761,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkDependabot(targetDir))
 	results.push(await checkCodeQL(targetDir))
 	results.push(await checkGitLabCI(targetDir))
+	results.push(await checkCodeowners(targetDir))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))
 
 	// Lockfile-driven demotion: if the lock records an intentional opt-out for a

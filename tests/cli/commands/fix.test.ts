@@ -2,7 +2,7 @@ import { join } from 'node:path'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fixCommand, getFixers } from '../../../src/cli/commands/fix.js'
+import { fixCommand, getFixers, listFixers } from '../../../src/cli/commands/fix.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 vi.mock('inquirer', () => ({
@@ -33,6 +33,52 @@ describe('fix registry', () => {
 		for (const f of fixers) {
 			expect(f.target).toMatch(/^[a-z-]+$/)
 			expect(f.outputs.length).toBeGreaterThan(0)
+		}
+	})
+
+	it('listFixers returns a flat summary of every registered target', () => {
+		const summary = listFixers()
+		expect(summary.length).toBe(getFixers().length)
+		const targets = summary.map((f) => f.target)
+		expect(targets).toContain('biome')
+		expect(targets).toContain('lockfile')
+		expect(targets).toContain('codeowners')
+		for (const f of summary) {
+			expect(['destructive', 'safe-merge', 'safe-add']).toContain(f.riskLevel)
+			expect(typeof f.canFixDrift).toBe('boolean')
+		}
+	})
+})
+
+describe('fix --list', () => {
+	it('emits a json payload listing every fixer when --list --json', async () => {
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand(undefined, { list: true, json: true, directory: '/tmp' })
+			const lastJson = logSpy.mock.calls.at(-1)?.[0] as string
+			const payload = JSON.parse(lastJson)
+			expect(Array.isArray(payload.targets)).toBe(true)
+			expect(payload.targets.length).toBeGreaterThan(10)
+			expect(payload.targets.find((t: { target: string }) => t.target === 'codeowners')).toBeTruthy()
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('--list does not run doctor or read package.json', async () => {
+		// Pass a directory that does not exist — --list should not care.
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand(undefined, {
+				list: true,
+				json: true,
+				directory: '/does/not/exist/anywhere',
+			})
+			const lastJson = logSpy.mock.calls.at(-1)?.[0] as string
+			const payload = JSON.parse(lastJson)
+			expect(payload.targets).toBeDefined()
+		} finally {
+			logSpy.mockRestore()
 		}
 	})
 })
@@ -68,6 +114,15 @@ describe('fix targeted', () => {
 		await seedPackageJson(dir)
 		await fixCommand('editorconfig', { directory: dir, yes: true })
 		expect(await fs.pathExists(join(dir, '.editorconfig'))).toBe(true)
+	})
+
+	it('fix codeowners --yes writes .github/CODEOWNERS', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('codeowners', { directory: dir, yes: true })
+		const contents = await fs.readFile(join(dir, '.github', 'CODEOWNERS'), 'utf-8')
+		expect(contents).toContain('Each line is a file pattern followed by one or more owners')
+		expect(contents).toMatch(/^\*/m)
 	})
 
 	it('fix nvmrc --yes writes .nvmrc', async () => {

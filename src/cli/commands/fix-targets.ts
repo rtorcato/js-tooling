@@ -23,6 +23,7 @@ export const FIX_TARGETS: Record<string, string> = {
 	'GitHub Actions': 'github-actions',
 	Dependabot: 'dependabot',
 	CodeQL: 'codeql',
+	CODEOWNERS: 'codeowners',
 	lockfile: 'lockfile',
 	'.js-tooling.json': 'lockfile',
 }

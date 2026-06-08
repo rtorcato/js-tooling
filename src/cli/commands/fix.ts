@@ -12,6 +12,7 @@ import { generateGitHubActions } from '../generators/github-actions.js'
 import { generateESLintConfig, generatePrettierConfig } from '../generators/linting.js'
 import {
 	ensureEnginesNode,
+	generateCodeowners,
 	generateEditorConfig,
 	generateKnipConfig,
 	generateNvmrc,
@@ -39,6 +40,7 @@ export interface FixOptions {
 	yes?: boolean
 	dryRun?: boolean
 	json?: boolean
+	list?: boolean
 }
 
 export type FixActionStatus = 'applied' | 'dry-run' | 'skipped' | 'already-ok' | 'unsupported'
@@ -304,6 +306,18 @@ const FIXERS: Fixer[] = [
 		},
 	},
 	{
+		target: 'codeowners',
+		description: 'Scaffold .github/CODEOWNERS with commented examples',
+		appliesTo: ['CODEOWNERS'],
+		outputs: ['.github/CODEOWNERS'],
+		riskLevel: 'safe-add',
+		canFixDrift: false,
+		async run({ targetDir }) {
+			const written = await generateCodeowners(targetDir)
+			return { filesWritten: [written] }
+		},
+	},
+	{
 		target: 'editorconfig',
 		description: 'Scaffold .editorconfig (UTF-8, LF, tab indent)',
 		appliesTo: ['EditorConfig'],
@@ -469,6 +483,26 @@ function logTargets() {
 	}
 }
 
+export interface FixerSummary {
+	target: string
+	description: string
+	appliesTo: string[]
+	outputs: string[]
+	riskLevel: FixRiskLevel
+	canFixDrift: boolean
+}
+
+export function listFixers(): FixerSummary[] {
+	return FIXERS.map((f) => ({
+		target: f.target,
+		description: f.description,
+		appliesTo: f.appliesTo,
+		outputs: f.outputs,
+		riskLevel: f.riskLevel ?? 'destructive',
+		canFixDrift: f.canFixDrift ?? false,
+	}))
+}
+
 async function applyFixer(
 	fixer: Fixer,
 	result: CheckResult,
@@ -555,6 +589,24 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 	// JSON mode implies --yes so prompts don't corrupt the output stream.
 	const assumeYes = options.yes === true || json
 	const silent = json
+
+	if (options.list) {
+		const summary = listFixers()
+		if (json) {
+			console.log(JSON.stringify({ targets: summary }, null, 2))
+			return
+		}
+		console.log(chalk.cyan('\n🔧 Registered fix targets:\n'))
+		for (const f of summary) {
+			console.log(`  ${chalk.green('●')} ${chalk.bold(f.target)}`)
+			console.log(`     ${chalk.gray(f.description)}`)
+			console.log(
+				`     ${chalk.dim(`risk=${f.riskLevel}, drift=${f.canFixDrift ? 'yes' : 'no'}, outputs=${f.outputs.join(', ')}`)}`
+			)
+		}
+		console.log()
+		return
+	}
 
 	const pkg = await readPackageJson(targetDir)
 	const lock = await readLockfile(targetDir)

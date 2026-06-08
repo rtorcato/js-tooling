@@ -478,6 +478,34 @@ describe('doctor security checks', () => {
 	})
 })
 
+describe('doctor CODEOWNERS', () => {
+	it('reports optional-missing when no CODEOWNERS exists', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const results = await runDoctor(dir)
+		const co = results.find((r) => r.check === 'CODEOWNERS')
+		expect(co?.status).toBe('optional-missing')
+		expect(co?.hint).toMatch(/fix codeowners/)
+	})
+
+	it('reports ok when CODEOWNERS lives at .github/CODEOWNERS', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github'))
+		await fs.writeFile(join(dir, '.github', 'CODEOWNERS'), '* @owner\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'CODEOWNERS')?.status).toBe('ok')
+	})
+
+	it('reports ok when CODEOWNERS lives at repo root', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeFile(join(dir, 'CODEOWNERS'), '* @owner\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'CODEOWNERS')?.status).toBe('ok')
+	})
+})
+
 describe('doctor + lockfile', () => {
 	async function writeLock(
 		dir: string,

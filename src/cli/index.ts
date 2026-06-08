@@ -238,18 +238,22 @@ program
 	.option('--yes', 'Assume yes to all prompts (including drift overwrites)')
 	.option('--dry-run', 'Print what would change without writing files')
 	.option('--json', 'Emit machine-readable JSON output (implies --yes)')
+	.option('--list', 'List all registered fix targets and exit')
 	.action((target: string | undefined, options) =>
 		fixCommand(target, {
 			directory: options.directory,
 			yes: options.yes,
 			dryRun: options.dryRun,
 			json: options.json,
+			list: options.list,
 		})
 	)
 
 program.hook('preAction', async (_, actionCommand) => {
 	const name = actionCommand.name()
 	if (name === 'setup' || name === 'doctor' || name === 'fix') {
+		// `fix --list` is read-only and safe to run anywhere, including this repo.
+		if (name === 'fix' && actionCommand.opts().list) return
 		const dir = (actionCommand.opts().directory as string | undefined) ?? process.cwd()
 		if (await isSelfRepo(dir)) {
 			console.log(
