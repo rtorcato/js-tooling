@@ -18,12 +18,20 @@ import {
 	generateSizeLimitConfig,
 } from '../generators/misc.js'
 import { composeVerifyScriptFromPkg } from '../generators/package-json.js'
-import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/treeshake.js'
 import { generateCodeQLWorkflow, generateDependabotConfig } from '../generators/security.js'
 import { generateVitestConfig } from '../generators/testing.js'
+import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/treeshake.js'
 import { copyPreset } from '../utils/copy-preset.js'
+import {
+	type Lockfile,
+	LOCKFILE_NAME,
+	readLockfile,
+	updateLockfileConfig,
+	writeLockfile,
+} from '../utils/lockfile.js'
 import type { CheckResult } from './doctor.js'
 import { runDoctor } from './doctor.js'
+import { declinedInLock, lockfilePatchForTarget } from './fix-targets.js'
 import type { ProjectConfig } from './setup.js'
 
 export interface FixOptions {
@@ -41,6 +49,7 @@ export interface FixActionRecord {
 	status: FixActionStatus
 	doctorStatus: CheckResult['status']
 	filesWritten: string[]
+	lockfileConflict?: boolean
 }
 
 export interface FixJsonResult {
@@ -55,6 +64,7 @@ export interface FixerContext {
 	targetDir: string
 	pkg: Pkg
 	result: CheckResult
+	lock: Lockfile | null
 }
 
 export type FixRiskLevel = 'destructive' | 'safe-merge' | 'safe-add'
@@ -420,6 +430,23 @@ const FIXERS: Fixer[] = [
 			return { filesWritten: ['package.json'] }
 		},
 	},
+	{
+		target: 'lockfile',
+		description: `Scaffold ${LOCKFILE_NAME} recording current tool choices`,
+		appliesTo: ['lockfile'],
+		outputs: [LOCKFILE_NAME],
+		riskLevel: 'safe-add',
+		canFixDrift: false,
+		async run({ targetDir, pkg }) {
+			if (!pkg) {
+				console.log(chalk.yellow('   no package.json found — skipping'))
+				return { filesWritten: [] }
+			}
+			const config = inferProjectConfig(pkg)
+			await writeLockfile(targetDir, config)
+			return { filesWritten: [LOCKFILE_NAME] }
+		},
+	},
 ]
 
 export function getFixers(): Fixer[] {
@@ -447,6 +474,7 @@ async function applyFixer(
 	result: CheckResult,
 	targetDir: string,
 	pkg: Pkg,
+	lock: Lockfile | null,
 	dryRun: boolean,
 	silent: boolean
 ): Promise<{ filesWritten: string[]; dryRun: boolean }> {
@@ -456,9 +484,19 @@ async function applyFixer(
 		}
 		return { filesWritten: [], dryRun: true }
 	}
-	const { filesWritten } = await fixer.run({ targetDir, pkg, result })
+	const { filesWritten } = await fixer.run({ targetDir, pkg, result, lock })
 	if (!silent && filesWritten.length > 0) {
 		console.log(chalk.green(`  ✅ wrote ${filesWritten.join(', ')}`))
+	}
+	// Auto-resync the lockfile when a fix changes a recorded choice.
+	if (lock && fixer.target !== 'lockfile') {
+		const patch = lockfilePatchForTarget(fixer.target, lock)
+		if (patch) {
+			const ok = await updateLockfileConfig(targetDir, patch)
+			if (ok && !silent) {
+				console.log(chalk.dim(`     ↻ ${LOCKFILE_NAME} updated to reflect the new choice`))
+			}
+		}
 	}
 	return { filesWritten, dryRun: false }
 }
@@ -502,9 +540,12 @@ function recordFor(
 	check: string,
 	doctorStatus: CheckResult['status'],
 	status: FixActionStatus,
-	filesWritten: string[]
+	filesWritten: string[],
+	lockfileConflict = false
 ): FixActionRecord {
-	return { target, check, status, doctorStatus, filesWritten }
+	const base: FixActionRecord = { target, check, status, doctorStatus, filesWritten }
+	if (lockfileConflict) base.lockfileConflict = true
+	return base
 }
 
 export async function fixCommand(target: string | undefined, options: FixOptions = {}) {
@@ -516,8 +557,22 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 	const silent = json
 
 	const pkg = await readPackageJson(targetDir)
+	const lock = await readLockfile(targetDir)
 	const results = await runDoctor(targetDir)
 	const actions: FixActionRecord[] = []
+
+	const noteLockConflict = (check: string): boolean => {
+		if (!lock) return false
+		const conflict = declinedInLock(lock, check)
+		if (conflict && !silent) {
+			console.log(
+				chalk.yellow(
+					`  ⚠ ${LOCKFILE_NAME} says this tool was declined — applying anyway will update the lockfile to reflect the new choice.`
+				)
+			)
+		}
+		return conflict
+	}
 
 	const emitJson = (resolvedTarget: string | null) => {
 		const payload: FixJsonResult = { directory: targetDir, target: resolvedTarget, actions }
@@ -550,7 +605,13 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 		const result =
 			results.find((r) => fixer.appliesTo.includes(r.check)) ??
 			({ check: fixer.appliesTo[0] ?? fixer.target, status: 'missing', detail: '' } as CheckResult)
-		if (result.status === 'ok') {
+		// A check that's `ok` because the lockfile records an opt-out should still be
+		// fixable when the user explicitly targets it — treat it as optional-missing
+		// so the override + lockfile resync paths run.
+		const lockfileDemoted = lock !== null && declinedInLock(lock, result.check)
+		const effectiveResult: CheckResult =
+			result.status === 'ok' && lockfileDemoted ? { ...result, status: 'optional-missing' } : result
+		if (effectiveResult.status === 'ok') {
 			actions.push(recordFor(fixer.target, result.check, 'ok', 'already-ok', []))
 			if (json) return emitJson(fixer.target)
 			console.log(chalk.green(`\n✅ ${result.check} is already configured\n`))
@@ -558,24 +619,30 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 		}
 		if (!silent) {
 			console.log(
-				chalk.cyan(`\n🔧 ${fixer.target} — ${chalk.bold(result.check)} is ${result.status}\n`)
+				chalk.cyan(
+					`\n🔧 ${fixer.target} — ${chalk.bold(result.check)} is ${effectiveResult.status}\n`
+				)
 			)
 		}
-		const ok = await confirmApply(fixer, result, assumeYes)
+		const conflict = noteLockConflict(result.check)
+		const ok = await confirmApply(fixer, effectiveResult, assumeYes)
 		if (!ok) {
-			actions.push(recordFor(fixer.target, result.check, result.status, 'skipped', []))
+			actions.push(
+				recordFor(fixer.target, result.check, effectiveResult.status, 'skipped', [], conflict)
+			)
 			if (json) return emitJson(fixer.target)
 			console.log(chalk.gray('   skipped\n'))
 			return
 		}
-		const outcome = await applyFixer(fixer, result, targetDir, pkg, dryRun, silent)
+		const outcome = await applyFixer(fixer, effectiveResult, targetDir, pkg, lock, dryRun, silent)
 		actions.push(
 			recordFor(
 				fixer.target,
 				result.check,
-				result.status,
+				effectiveResult.status,
 				outcome.dryRun ? 'dry-run' : 'applied',
-				outcome.filesWritten
+				outcome.filesWritten,
+				conflict
 			)
 		)
 		if (json) return emitJson(fixer.target)
@@ -609,21 +676,23 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 		if (!silent) {
 			console.log(`  ${chalk.bold(result.check)} (${result.status}) → ${fixer.target}`)
 		}
+		const conflict = noteLockConflict(result.check)
 		const ok = await confirmApply(fixer, result, assumeYes)
 		if (!ok) {
-			actions.push(recordFor(fixer.target, result.check, result.status, 'skipped', []))
+			actions.push(recordFor(fixer.target, result.check, result.status, 'skipped', [], conflict))
 			if (!silent) console.log(chalk.gray('    skipped'))
 			skippedCount++
 			continue
 		}
-		const outcome = await applyFixer(fixer, result, targetDir, pkg, dryRun, silent)
+		const outcome = await applyFixer(fixer, result, targetDir, pkg, lock, dryRun, silent)
 		actions.push(
 			recordFor(
 				fixer.target,
 				result.check,
 				result.status,
 				outcome.dryRun ? 'dry-run' : 'applied',
-				outcome.filesWritten
+				outcome.filesWritten,
+				conflict
 			)
 		)
 		appliedCount++

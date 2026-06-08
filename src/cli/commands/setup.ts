@@ -4,6 +4,7 @@ import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import { generateConfigs } from '../generators/index.js'
 import { installDependencies } from '../utils/install.js'
+import { LOCKFILE_NAME, writeLockfile } from '../utils/lockfile.js'
 import {
 	buildPresetConfig,
 	computeFileList,
@@ -105,6 +106,7 @@ export async function setupProject(options: SetupOptions) {
 		console.log(chalk.cyan('\n📝 Generating configuration files...\n'))
 
 		await generateConfigs(config, targetDir)
+		await writeLockfile(targetDir, config)
 
 		if (!options.skipInstall) {
 			console.log(chalk.cyan('\n📦 Installing dependencies...\n'))
@@ -331,6 +333,9 @@ function showNextSteps(config: ProjectConfig, _targetDir: string) {
 		steps.push('🪝 Commit your changes to test the git hooks')
 	}
 
+	steps.push(
+		`🔒 ${LOCKFILE_NAME} records your setup choices — doctor uses it to suppress intentional opt-outs`
+	)
 	steps.push('📖 Check the generated README.md for more details')
 
 	steps.forEach((step, index) => {

@@ -386,6 +386,103 @@ describe('fix --json', () => {
 	})
 })
 
+describe('fix + lockfile', () => {
+	async function writeLock(
+		dir: string,
+		configPatch: Record<string, unknown> = {}
+	): Promise<void> {
+		const config = {
+			projectName: 'demo',
+			projectType: 'library',
+			typescript: { enabled: true, config: 'base' },
+			linting: { tool: 'biome' },
+			formatting: { tool: 'biome' },
+			testing: { framework: 'vitest', environment: 'node' },
+			gitHooks: true,
+			commitLint: true,
+			semanticRelease: true,
+			securityAutomation: true,
+			bundler: 'tsup',
+			...configPatch,
+		}
+		await fs.writeJson(join(dir, '.js-tooling.json'), {
+			version: 1,
+			config,
+			writtenBy: '@rtorcato/js-tooling@test',
+			writtenAt: new Date().toISOString(),
+		})
+	}
+
+	it('fix lockfile --yes writes .js-tooling.json inferred from package.json', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('lockfile', { directory: dir, yes: true })
+		const lock = await fs.readJson(join(dir, '.js-tooling.json'))
+		expect(lock.version).toBe(1)
+		expect(lock.config.projectName).toBe('demo')
+		expect(lock.config.linting.tool).toBe('biome')
+	})
+
+	it('fix vitest --yes on a jest-locked project auto-resyncs the lockfile', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir, { testing: { framework: 'jest', environment: 'node' } })
+		await fixCommand('vitest', { directory: dir, yes: true })
+		const lock = await fs.readJson(join(dir, '.js-tooling.json'))
+		expect(lock.config.testing.framework).toBe('vitest')
+	})
+
+	it('fix biome --yes on an eslint-locked project flips the recorded linting choice', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir, {
+			linting: { tool: 'eslint', eslintConfig: 'base' },
+			formatting: { tool: 'prettier' },
+		})
+		await fixCommand('biome', { directory: dir, yes: true })
+		const lock = await fs.readJson(join(dir, '.js-tooling.json'))
+		expect(lock.config.linting.tool).toBe('biome')
+		expect(lock.config.formatting.tool).toBe('biome')
+	})
+
+	it('does not touch the lockfile when no lockfile exists', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('vitest', { directory: dir, yes: true })
+		expect(await fs.pathExists(join(dir, '.js-tooling.json'))).toBe(false)
+	})
+
+	it('emits lockfileConflict in JSON mode when overriding a declined choice', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir, { testing: { framework: 'jest', environment: 'node' } })
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand('vitest', { directory: dir, json: true })
+			const lastJson = logSpy.mock.calls.at(-1)?.[0] as string
+			const payload = JSON.parse(lastJson)
+			expect(payload.actions[0].lockfileConflict).toBe(true)
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('omits lockfileConflict when no conflict exists', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand('vitest', { directory: dir, json: true })
+			const lastJson = logSpy.mock.calls.at(-1)?.[0] as string
+			const payload = JSON.parse(lastJson)
+			expect(payload.actions[0].lockfileConflict).toBeUndefined()
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+})
+
 describe('fix walk-all', () => {
 	it('applies all missing items when --yes', async () => {
 		const dir = newTmpDir()

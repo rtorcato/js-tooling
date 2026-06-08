@@ -1,7 +1,8 @@
 import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
-import { getFixTargetForCheck } from './fix-targets.js'
+import { type Lockfile, LOCKFILE_VERSION, readLockfile } from '../utils/lockfile.js'
+import { declinedInLock, getFixTargetForCheck } from './fix-targets.js'
 
 export interface DoctorOptions {
 	directory?: string
@@ -674,6 +675,30 @@ async function checkTreeshakeSetup(dir: string, pkg: Pkg | null): Promise<CheckR
 	}
 }
 
+function checkLockfile(lock: Lockfile | null): CheckResult {
+	if (!lock) {
+		return {
+			check: 'lockfile',
+			status: 'optional-missing',
+			detail: 'no .js-tooling.json — doctor cannot tell intentional opt-outs from drift',
+			hint: 'Run `npx @rtorcato/js-tooling fix lockfile` to record current choices',
+		}
+	}
+	if (lock.version > LOCKFILE_VERSION) {
+		return {
+			check: 'lockfile',
+			status: 'drift',
+			detail: `.js-tooling.json version ${lock.version} is newer than this CLI supports (v${LOCKFILE_VERSION})`,
+			hint: 'Upgrade @rtorcato/js-tooling to a release that supports this lockfile version',
+		}
+	}
+	return {
+		check: 'lockfile',
+		status: 'ok',
+		detail: `.js-tooling.json v${lock.version} (written by ${lock.writtenBy})`,
+	}
+}
+
 async function checkGitLabCI(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.gitlab-ci.yml', '.gitlab-ci.yaml']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -695,10 +720,12 @@ async function checkGitLabCI(dir: string): Promise<CheckResult> {
 export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	const targetDir = path.resolve(dir)
 	const pkg = await readPackageJson(targetDir)
+	const lock = await readLockfile(targetDir)
 	const results: CheckResult[] = []
 
 	results.push(evaluateNodeVersion(process.version))
 	results.push(checkPackageJson(pkg))
+	results.push(checkLockfile(lock))
 	results.push(checkEnginesNode(pkg))
 	results.push(await checkEditorConfig(targetDir))
 	results.push(await checkNodeVersionPin(targetDir))
@@ -717,6 +744,20 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkCodeQL(targetDir))
 	results.push(await checkGitLabCI(targetDir))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))
+
+	// Lockfile-driven demotion: if the lock records an intentional opt-out for a
+	// check that's currently optional-missing, demote it to ok with a clear detail.
+	if (lock) {
+		return results.map((r) => {
+			if (r.status !== 'optional-missing') return r
+			if (!declinedInLock(lock, r.check)) return r
+			return {
+				check: r.check,
+				status: 'ok',
+				detail: 'intentionally declined (.js-tooling.json)',
+			}
+		})
+	}
 
 	return results
 }

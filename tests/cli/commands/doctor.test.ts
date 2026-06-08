@@ -478,6 +478,135 @@ describe('doctor security checks', () => {
 	})
 })
 
+describe('doctor + lockfile', () => {
+	async function writeLock(
+		dir: string,
+		configPatch: Record<string, unknown> = {}
+	): Promise<void> {
+		const config = {
+			projectName: 'demo',
+			projectType: 'library',
+			typescript: { enabled: true, config: 'base' },
+			linting: { tool: 'biome' },
+			formatting: { tool: 'biome' },
+			testing: { framework: 'vitest', environment: 'node' },
+			gitHooks: true,
+			commitLint: true,
+			semanticRelease: true,
+			securityAutomation: true,
+			bundler: 'tsup',
+			...configPatch,
+		}
+		await fs.writeJson(join(dir, '.js-tooling.json'), {
+			version: 1,
+			config,
+			writtenBy: '@rtorcato/js-tooling@test',
+			writtenAt: new Date().toISOString(),
+		})
+	}
+
+	it('reports the lockfile check ok when present', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir)
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'lockfile')?.status).toBe('ok')
+	})
+
+	it('reports the lockfile check optional-missing when absent', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const results = await runDoctor(dir)
+		const lock = results.find((r) => r.check === 'lockfile')
+		expect(lock?.status).toBe('optional-missing')
+		expect(lock?.hint).toMatch(/fix lockfile/)
+	})
+
+	it('reports lockfile drift when version is from a newer CLI', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeJson(join(dir, '.js-tooling.json'), {
+			version: 99,
+			config: {
+				projectName: 'demo',
+				projectType: 'library',
+				typescript: { enabled: true, config: 'base' },
+				linting: { tool: 'biome' },
+				formatting: { tool: 'biome' },
+				testing: { framework: 'vitest' },
+				gitHooks: true,
+				commitLint: true,
+				semanticRelease: true,
+				securityAutomation: true,
+				bundler: 'tsup',
+			},
+			writtenBy: 'future',
+			writtenAt: new Date().toISOString(),
+		})
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'lockfile')?.status).toBe('drift')
+	})
+
+	it('demotes Vitest to ok when the lock records testing.framework=jest', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir, { testing: { framework: 'jest', environment: 'node' } })
+		const results = await runDoctor(dir)
+		const vitest = results.find((r) => r.check === 'Vitest')
+		expect(vitest?.status).toBe('ok')
+		expect(vitest?.detail).toMatch(/intentionally declined/)
+	})
+
+	it('demotes Biome to ok when the lock records linting.tool=eslint', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir, {
+			linting: { tool: 'eslint', eslintConfig: 'base' },
+			formatting: { tool: 'prettier' },
+		})
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Biome')?.status).toBe('ok')
+	})
+
+	it('demotes Husky, lint-staged, and Husky pre-push when gitHooks=false in lock', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir, { gitHooks: false, commitLint: false })
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Husky')?.status).toBe('ok')
+		expect(results.find((r) => r.check === 'lint-staged')?.status).toBe('ok')
+		expect(results.find((r) => r.check === 'Husky pre-push')?.status).toBe('ok')
+		expect(results.find((r) => r.check === 'Commitlint')?.status).toBe('ok')
+	})
+
+	it('demotes Dependabot and CodeQL when securityAutomation=false in lock', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir, { securityAutomation: false })
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Dependabot')?.status).toBe('ok')
+		expect(results.find((r) => r.check === 'CodeQL')?.status).toBe('ok')
+	})
+
+	it('only ever demotes optional-missing to ok, never makes anything worse', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const before = await runDoctor(dir)
+		const beforeStatuses = new Map(before.map((r) => [r.check, r.status]))
+
+		await writeLock(dir)
+		const after = await runDoctor(dir)
+		for (const r of after) {
+			if (r.check === 'lockfile') continue
+			const previous = beforeStatuses.get(r.check)
+			if (previous === r.status) continue
+			// The only allowed transition is optional-missing → ok (lockfile-driven demotion).
+			expect(previous).toBe('optional-missing')
+			expect(r.status).toBe('ok')
+		}
+	})
+})
+
 describe('nextStepSuggestions', () => {
 	it('returns empty when there is nothing to fix', () => {
 		expect(nextStepSuggestions([{ check: 'Biome', status: 'ok', detail: '' }])).toEqual([])
