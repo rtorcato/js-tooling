@@ -82,4 +82,86 @@ describe.skipIf(!fs.existsSync(CLI))('CLI smoke tests (requires pnpm build)', ()
 		const { status } = cli(['notacommand'])
 		expect(status).toBe(1)
 	})
+
+	function seedPkg(dir: string, extra: Record<string, unknown> = {}) {
+		fs.writeJsonSync(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			...extra,
+		})
+	}
+
+	it('fix --list --json emits a parseable target catalog', () => {
+		const { status, stdout } = cli(['fix', '--list', '--json'])
+		expect(status).toBe(0)
+		const payload = JSON.parse(stdout)
+		expect(Array.isArray(payload.targets)).toBe(true)
+		expect(payload.targets.length).toBeGreaterThan(10)
+		const dependabot = payload.targets.find((t: { target: string }) => t.target === 'dependabot')
+		expect(dependabot).toBeTruthy()
+		expect(dependabot.outputs).toContain('.github/dependabot.yml')
+	})
+
+	it('fix dependabot --yes writes .github/dependabot.yml', () => {
+		const dir = newTmpDir()
+		seedPkg(dir)
+		const { status } = cli(['fix', 'dependabot', '-d', dir, '--yes'])
+		expect(status).toBe(0)
+		expect(fs.existsSync(join(dir, '.github', 'dependabot.yml'))).toBe(true)
+	})
+
+	it('fix dependabot --dry-run --yes does not write the file', () => {
+		const dir = newTmpDir()
+		seedPkg(dir)
+		const { status } = cli(['fix', 'dependabot', '-d', dir, '--yes', '--dry-run'])
+		expect(status).toBe(0)
+		expect(fs.existsSync(join(dir, '.github', 'dependabot.yml'))).toBe(false)
+	})
+
+	it('fix dependabot --yes --json emits an actions payload', () => {
+		const dir = newTmpDir()
+		seedPkg(dir)
+		const { status, stdout } = cli(['fix', 'dependabot', '-d', dir, '--yes', '--json'])
+		expect(status).toBe(0)
+		const payload = JSON.parse(stdout)
+		expect(payload.target).toBe('dependabot')
+		expect(Array.isArray(payload.actions)).toBe(true)
+		const applied = payload.actions.find((a: { status: string }) => a.status === 'applied')
+		expect(applied?.filesWritten).toContain('.github/dependabot.yml')
+	})
+
+	it('fix codeowners --yes writes .github/CODEOWNERS', () => {
+		const dir = newTmpDir()
+		seedPkg(dir)
+		const { status } = cli(['fix', 'codeowners', '-d', dir, '--yes'])
+		expect(status).toBe(0)
+		expect(fs.existsSync(join(dir, '.github', 'CODEOWNERS'))).toBe(true)
+	})
+
+	it('fix gitlab-ci --yes writes .gitlab-ci.yml', () => {
+		const dir = newTmpDir()
+		seedPkg(dir)
+		const { status } = cli(['fix', 'gitlab-ci', '-d', dir, '--yes'])
+		expect(status).toBe(0)
+		expect(fs.existsSync(join(dir, '.gitlab-ci.yml'))).toBe(true)
+	})
+
+	it('fix unknown-target --json exits non-zero with structured error', () => {
+		const dir = newTmpDir()
+		seedPkg(dir)
+		const { status, stdout } = cli(['fix', 'not-a-target', '-d', dir, '--yes', '--json'])
+		expect(status).not.toBe(0)
+		const payload = JSON.parse(stdout)
+		expect(payload.error).toBe('unknown-target')
+		expect(Array.isArray(payload.available)).toBe(true)
+	})
+
+	it('fix --resync --json without a lockfile exits non-zero', () => {
+		const dir = newTmpDir()
+		seedPkg(dir)
+		const { status, stdout } = cli(['fix', '-d', dir, '--resync', '--yes', '--json'])
+		expect(status).not.toBe(0)
+		const payload = JSON.parse(stdout)
+		expect(payload.error).toBe('no-lockfile')
+	})
 })

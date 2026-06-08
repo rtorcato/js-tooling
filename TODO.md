@@ -30,7 +30,6 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 
 ## Doctor / fix improvements
 
-- [ ] **E2E tests for `fix`** — current tests mock inquirer; an e2e test that spawns `dist/cli/index.js fix dependabot --yes` against a tmp dir would catch wire-up bugs the unit tests miss.
 - [ ] **Optional diff preview** in `fix` when about to overwrite drift (currently just warns).
 
 ## Coverage gaps
@@ -39,7 +38,6 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 
 ## Cleanup
 
-- [ ] Pin `typescript-eslint` (currently `"latest"`).
 - [ ] Fill in empty `tests/README.md`.
 
 ## Future releases
