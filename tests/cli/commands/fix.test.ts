@@ -171,6 +171,116 @@ describe('fix targeted', () => {
 		await fixCommand('package-json', { directory: dir })
 	})
 
+	it('fix verify --yes writes a verify script chaining the enabled tools', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			scripts: { typecheck: 'tsc --noEmit', check: 'biome check .' },
+			devDependencies: {
+				'@rtorcato/js-tooling': '^2.0.0',
+				'@biomejs/biome': '^2.0.0',
+				vitest: '^4.0.0',
+			},
+		})
+		await fixCommand('verify', { directory: dir, yes: true })
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm check && pnpm exec vitest run')
+		expect(pkg.scripts.typecheck).toBe('tsc --noEmit')
+	})
+
+	it('fix verify --yes is a no-op when fewer than two tools are detectable', async () => {
+		const dir = newTmpDir()
+		// no biome dep, no vitest dep, no typecheck script — only one signal at best
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fixCommand('verify', { directory: dir, yes: true })
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts?.verify).toBeUndefined()
+	})
+
+	it('fix husky --yes writes a pre-push hook when a verify script exists', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			scripts: { verify: 'pnpm typecheck && pnpm check' },
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fixCommand('husky', { directory: dir, yes: true })
+		const prePush = await fs.readFile(join(dir, '.husky', 'pre-push'), 'utf-8')
+		expect(prePush).toContain('pnpm verify')
+	})
+
+	it('fix treeshake-check --yes scaffolds apps/treeshake-check from pkg.exports', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: '@my-org/my-lib',
+			version: '0.0.0',
+			sideEffects: false,
+			exports: {
+				'.': './dist/index.js',
+				'./clipboard': './dist/clipboard/index.js',
+				'./geolocation': './dist/geolocation/index.js',
+			},
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fixCommand('treeshake-check', { directory: dir, yes: true })
+		expect(
+			await fs.pathExists(join(dir, 'apps', 'treeshake-check', 'check.mjs'))
+		).toBe(true)
+		const entry = await fs.readFile(
+			join(dir, 'apps', 'treeshake-check', 'src', 'entry.ts'),
+			'utf-8'
+		)
+		expect(entry).toContain("'@my-org/my-lib/clipboard'")
+	})
+
+	it('fix treeshake-check is a no-op when the package has fewer than two subpaths', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: '@my-org/my-lib',
+			version: '0.0.0',
+			exports: { '.': './dist/index.js' },
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fixCommand('treeshake-check', { directory: dir, yes: true })
+		expect(
+			await fs.pathExists(join(dir, 'apps', 'treeshake-check'))
+		).toBe(false)
+	})
+
+	it('fix verify --yes appends pnpm treeshake when apps/treeshake-check exists', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			scripts: { typecheck: 'tsc --noEmit', check: 'biome check .' },
+			devDependencies: {
+				'@rtorcato/js-tooling': '^2.0.0',
+				'@biomejs/biome': '^2.0.0',
+				vitest: '^4.0.0',
+			},
+		})
+		await fs.ensureDir(join(dir, 'apps', 'treeshake-check'))
+		await fs.writeFile(join(dir, 'apps', 'treeshake-check', 'check.mjs'), '// stub\n')
+		await fixCommand('verify', { directory: dir, yes: true })
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.verify).toContain('pnpm treeshake')
+		expect(pkg.scripts.treeshake).toBe('pnpm --filter=*treeshake-check run check')
+	})
+
+	it('fix husky --yes skips the pre-push hook when no verify script exists', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('husky', { directory: dir, yes: true })
+		expect(await fs.pathExists(join(dir, '.husky', 'pre-commit'))).toBe(true)
+		expect(await fs.pathExists(join(dir, '.husky', 'pre-push'))).toBe(false)
+	})
+
 	it('returns early when check is already ok', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

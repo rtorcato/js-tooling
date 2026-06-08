@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { ProjectConfig } from '../../../src/cli/commands/setup.js'
 import { generateGitConfigs } from '../../../src/cli/generators/git.js'
+import { generatePackageJson } from '../../../src/cli/generators/package-json.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
@@ -70,6 +71,35 @@ describe('generateGitConfigs', () => {
 		const pkg = await fs.readJson(join(dir, 'package.json'))
 		expect(pkg['lint-staged']['*.{js,ts,jsx,tsx}']).toContain('eslint --fix')
 		expect(pkg['lint-staged']['*.{json,md,yml,yaml}']).toContain('prettier --write')
+	})
+
+	it('writes a pre-push hook that runs pnpm verify when the verify chain is non-trivial', async () => {
+		const dir = newTmpDir()
+		const config = baseConfig({
+			typescript: { enabled: true, config: 'base' },
+			linting: { tool: 'biome' },
+			testing: { framework: 'vitest' },
+		})
+		// In the real setup flow, generatePackageJson runs first and writes the verify script.
+		await generatePackageJson(config, dir)
+		await generateGitConfigs(config, dir)
+
+		const prePush = await fs.readFile(join(dir, '.husky', 'pre-push'), 'utf-8')
+		expect(prePush).toContain('pnpm verify')
+		expect(prePush).toContain('Running pre-push verify')
+	})
+
+	it('skips pre-push when only one tool would be in the verify chain', async () => {
+		const dir = newTmpDir()
+		const config = baseConfig({
+			typescript: { enabled: true, config: 'base' },
+			linting: { tool: 'none' },
+			testing: { framework: 'none' },
+		})
+		await generatePackageJson(config, dir)
+		await generateGitConfigs(config, dir)
+
+		expect(await fs.pathExists(join(dir, '.husky', 'pre-push'))).toBe(false)
 	})
 
 	it('appends framework-specific entries to .gitignore', async () => {

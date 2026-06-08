@@ -2,6 +2,16 @@ import fs from 'fs-extra'
 import path from 'node:path'
 import type { ProjectConfig } from '../commands/setup.js'
 
+export const PRE_PUSH_HOOK_CONTENT = `echo "🔍 Running pre-push verify..."
+pnpm verify
+STATUS=$?
+if [ $STATUS -ne 0 ]; then
+  echo "❌ Verify failed — push aborted."
+  exit 1
+fi
+echo "✅ Verify passed — pushing."
+`
+
 export async function generateGitConfigs(config: ProjectConfig, targetDir: string) {
 	if (config.gitHooks) {
 		await generateHuskyConfig(config, targetDir)
@@ -28,6 +38,19 @@ npx lint-staged
 `
 	await fs.writeFile(preCommitPath, preCommitContent)
 	await fs.chmod(preCommitPath, 0o755)
+
+	// Pre-push hook — only when the package.json already has a `verify` script.
+	// In the setup flow, generatePackageJson runs before this and writes verify
+	// when 2+ tools are enabled. In the `fix husky` path, a pre-existing verify
+	// script is what unlocks the hook.
+	const pkgPath = path.join(targetDir, 'package.json')
+	if (await fs.pathExists(pkgPath)) {
+		const pkg = (await fs.readJson(pkgPath)) as Record<string, unknown>
+		const scripts = (pkg.scripts as Record<string, string> | undefined) ?? {}
+		if (scripts.verify) {
+			await generatePrePushHook(targetDir)
+		}
+	}
 
 	// Commit-msg hook (if commitlint is enabled)
 	if (config.commitLint) {
@@ -61,6 +84,14 @@ npx --no -- commitlint --edit $1
 	}
 
 	await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 })
+}
+
+export async function generatePrePushHook(targetDir: string) {
+	const huskyDir = path.join(targetDir, '.husky')
+	await fs.ensureDir(huskyDir)
+	const prePushPath = path.join(huskyDir, 'pre-push')
+	await fs.writeFile(prePushPath, PRE_PUSH_HOOK_CONTENT)
+	await fs.chmod(prePushPath, 0o755)
 }
 
 export async function generateCommitlintConfig(targetDir: string) {

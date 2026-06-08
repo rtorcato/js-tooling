@@ -36,6 +36,7 @@ export interface ProjectConfig {
 	semanticRelease: boolean
 	securityAutomation: boolean
 	bundler: 'tsup' | 'esbuild' | 'vite' | 'none'
+	treeshakeCheck?: boolean
 }
 
 export interface SetupOptions {
@@ -243,6 +244,13 @@ async function promptForConfig(): Promise<ProjectConfig> {
 		},
 		{
 			type: 'confirm',
+			name: 'treeshakeCheck',
+			message: '🌳 Add a tree-shake verification check (apps/treeshake-check)?',
+			default: false,
+			when: (answers: any) => answers.projectType === 'library',
+		},
+		{
+			type: 'confirm',
 			name: 'securityAutomation',
 			message: '🛡️  Include security automation (Dependabot + CodeQL)?',
 			default: true,
@@ -296,6 +304,7 @@ async function promptForConfig(): Promise<ProjectConfig> {
 		semanticRelease: answers.semanticRelease || false,
 		securityAutomation: answers.securityAutomation ?? false,
 		bundler: answers.bundler || 'none',
+		treeshakeCheck: answers.treeshakeCheck || false,
 	}
 }
 
@@ -367,6 +376,11 @@ function collectSkippedFixSuggestions(config: ProjectConfig): string[] {
 	}
 	if (config.testing.framework === 'none') {
 		suggestions.push('Run `npx @rtorcato/js-tooling fix vitest` to add a test runner')
+	}
+	if (config.projectType === 'library' && !config.treeshakeCheck) {
+		suggestions.push(
+			'Run `npx @rtorcato/js-tooling fix treeshake-check` to add an esbuild-based tree-shake assertion'
+		)
 	}
 	suggestions.push('Run `npx @rtorcato/js-tooling doctor` any time to audit drift')
 	return suggestions

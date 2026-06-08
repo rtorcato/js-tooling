@@ -2,7 +2,10 @@ import fs from 'fs-extra'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { ProjectConfig } from '../../../src/cli/commands/setup.js'
-import { generatePackageJson } from '../../../src/cli/generators/package-json.js'
+import {
+	composeVerifyScript,
+	generatePackageJson,
+} from '../../../src/cli/generators/package-json.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
@@ -145,5 +148,68 @@ describe('generatePackageJson', () => {
 		const pkg = await fs.readJson(join(dir, 'package.json'))
 		expect(pkg.scripts.typecheck).toBe('tsc --noEmit')
 		expect(pkg.devDependencies.typescript).toBeDefined()
+	})
+
+	it('adds a verify script chaining typecheck + check + vitest for a TS/biome/vitest library', async () => {
+		const dir = newTmpDir()
+		await generatePackageJson(
+			baseConfig({
+				typescript: { enabled: true, config: 'base' },
+				linting: { tool: 'biome' },
+				testing: { framework: 'vitest' },
+			}),
+			dir
+		)
+
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm check && pnpm exec vitest run')
+	})
+
+	it('omits the verify script when only one tool is enabled', async () => {
+		const dir = newTmpDir()
+		await generatePackageJson(
+			baseConfig({
+				typescript: { enabled: true, config: 'base' },
+				linting: { tool: 'none' },
+				testing: { framework: 'none' },
+			}),
+			dir
+		)
+
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.verify).toBeUndefined()
+	})
+})
+
+describe('composeVerifyScript', () => {
+	it('uses pnpm lint for eslint projects', () => {
+		const result = composeVerifyScript(
+			baseConfig({
+				linting: { tool: 'eslint' },
+				testing: { framework: 'vitest' },
+			})
+		)
+		expect(result).toBe('pnpm typecheck && pnpm lint && pnpm exec vitest run')
+	})
+
+	it('uses pnpm test --ci for jest projects', () => {
+		const result = composeVerifyScript(
+			baseConfig({
+				linting: { tool: 'biome' },
+				testing: { framework: 'jest' },
+			})
+		)
+		expect(result).toBe('pnpm typecheck && pnpm check && pnpm test --ci')
+	})
+
+	it('returns null when fewer than two tools are enabled', () => {
+		const result = composeVerifyScript(
+			baseConfig({
+				typescript: { enabled: false, config: 'base' },
+				linting: { tool: 'none' },
+				testing: { framework: 'vitest' },
+			})
+		)
+		expect(result).toBeNull()
 	})
 })

@@ -11,6 +11,7 @@ import { generatePackageJson } from './package-json.js'
 import { generateReadme } from './readme.js'
 import { generateSecurityConfigs } from './security.js'
 import { generateTestingConfigs } from './testing.js'
+import { generateTreeshakeCheck, inferSubpathsFromExports } from './treeshake.js'
 import { generateTSConfig } from './tsconfig.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -55,6 +56,20 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 	// Generate build configurations
 	if (config.bundler !== 'none') {
 		await generateBuildConfigs(config, targetDir)
+	}
+
+	// Tree-shake verification check (libraries only, when opted-in)
+	if (config.treeshakeCheck && config.projectType === 'library') {
+		const pkgPath = path.join(targetDir, 'package.json')
+		const pkg = (await fs.readJson(pkgPath)) as Record<string, unknown>
+		const { allCandidates, defaultAllowed } = inferSubpathsFromExports(pkg)
+		if (defaultAllowed && allCandidates.length >= 2) {
+			await generateTreeshakeCheck(targetDir, {
+				workspaceName: config.projectName,
+				allowedSubpath: defaultAllowed,
+				forbiddenSubpaths: allCandidates.filter((s) => s !== defaultAllowed),
+			})
+		}
 	}
 
 	// Generate README

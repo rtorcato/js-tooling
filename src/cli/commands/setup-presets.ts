@@ -134,10 +134,14 @@ export const CONFIG_SCHEMA = {
 		semanticRelease: { type: 'boolean' },
 		securityAutomation: { type: 'boolean' },
 		bundler: { type: 'string', enum: ['tsup', 'esbuild', 'vite', 'none'] },
+		treeshakeCheck: { type: 'boolean' },
 	},
 } as const
 
-const ALLOWED_KEYS: Set<string> = new Set(CONFIG_SCHEMA.required)
+const ALLOWED_KEYS: Set<string> = new Set([
+	...CONFIG_SCHEMA.required,
+	...Object.keys(CONFIG_SCHEMA.properties),
+])
 
 export interface ConfigValidationResult {
 	valid: boolean
@@ -197,6 +201,13 @@ export function computeFileList(config: ProjectConfig): string[] {
 	else if (config.bundler === 'esbuild') files.push('build.mjs')
 	else if (config.bundler === 'vite') files.push('vite.config.ts')
 	if (config.semanticRelease) files.push('release.config.mjs')
+	if (config.treeshakeCheck && config.projectType === 'library') {
+		files.push(
+			'apps/treeshake-check/package.json',
+			'apps/treeshake-check/check.mjs',
+			'apps/treeshake-check/src/entry.ts'
+		)
+	}
 	files.push('README.md')
 	return files
 }

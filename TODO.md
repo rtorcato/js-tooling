@@ -4,6 +4,8 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 
 ## Recently shipped (v2.x)
 
+- Unified `verify` script (typecheck + lint + tests) + Husky `pre-push` hook that runs `pnpm verify` (#42)
+- Tree-shake verification scaffold via `fix treeshake-check` + setup wizard opt-in for libraries (#43)
 - `fix` command — incremental scaffolder application with `--yes` / `--dry-run` / `--json`; drift never auto-overwrites
 - `Fixer.riskLevel` so safe-merge fixers (`engines`, `husky`, `package-json`) get friendly prompts instead of the alarming "overwrite" wording
 - Doctor checks for Node, `engines.node`, `.editorconfig`, `.nvmrc`, Husky + `lint-staged`, semantic-release, knip, GitHub Actions, GitLab CI, Dependabot, CodeQL
@@ -50,6 +52,7 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 - [ ] **size-limit** — Enforces bundle size budgets in CI. High value for library authors. Config preset + CI step.
 - [ ] **publint** — Validates `package.json` + dist for common npm publishing mistakes. Good `doctor` check candidate too.
 - [ ] **Rolldown** — Rust-based next-gen bundler (Vite 6 uses it internally). Add as bundler option once stable API lands.
+- [ ] **`@rtorcato/repo-tooling` base package** — Extract language-agnostic concerns (GitHub Actions skeleton, Dependabot, CodeQL, Husky, commitlint, semantic-release-github, CODEOWNERS, LICENSE, SECURITY.md, CONTRIBUTING.md, branch protection) into a standalone package. `js-tooling`, plus future `swift-tooling` and `python-tooling`, all depend on it so every repo (TS, Swift/iOS, Python) shares the same release + repo-hygiene baseline without duplicating logic per ecosystem.
 
 ### Medium value
 - [ ] **Cypress** — Major E2E testing alternative alongside Playwright. Add `tooling/cypress/` preset + wizard option.
@@ -63,3 +66,5 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 ### Lower priority
 - [ ] **are-the-types-wrong** — Validates TypeScript exports are correct. Good `doctor` subcommand check.
 - [ ] **Preset-level versioning** — Let consumers lock to `typescript/base@1` while `typescript/base@2` ships.
+
+

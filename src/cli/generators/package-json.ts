@@ -10,6 +10,8 @@ export async function generatePackageJson(config: ProjectConfig, targetDir: stri
 		existingPackageJson = await fs.readJson(packageJsonPath)
 	}
 
+	const includeTreeshake = Boolean(config.treeshakeCheck && config.projectType === 'library')
+
 	const packageJson: any = {
 		name: config.projectName,
 		version: '0.1.0',
@@ -17,7 +19,7 @@ export async function generatePackageJson(config: ProjectConfig, targetDir: stri
 		type: 'module',
 		...existingPackageJson,
 		scripts: {
-			...getScripts(config),
+			...getScripts(config, { includeTreeshake }),
 			...(existingPackageJson as any)?.scripts,
 		},
 		dependencies: {
@@ -51,7 +53,11 @@ export async function generatePackageJson(config: ProjectConfig, targetDir: stri
 	await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 })
 }
 
-function getScripts(config: ProjectConfig): Record<string, string> {
+interface GetScriptsOptions {
+	includeTreeshake?: boolean
+}
+
+function getScripts(config: ProjectConfig, opts: GetScriptsOptions = {}): Record<string, string> {
 	const scripts: Record<string, string> = {}
 
 	// TypeScript scripts
@@ -108,7 +114,64 @@ function getScripts(config: ProjectConfig): Record<string, string> {
 		scripts['release'] = 'semantic-release'
 	}
 
+	if (opts.includeTreeshake) {
+		scripts['pretreeshake'] = scripts['build'] ? 'pnpm build' : 'echo "no build step"'
+		scripts['treeshake'] = 'pnpm --filter=*treeshake-check run check'
+	}
+
+	const verify = composeVerifyScript(config, opts)
+	if (verify) {
+		scripts['verify'] = verify
+	}
+
 	return scripts
+}
+
+export function composeVerifyScript(
+	config: ProjectConfig,
+	opts: { includeTreeshake?: boolean } = {}
+): string | null {
+	const cmds: string[] = []
+	if (config.typescript.enabled) cmds.push('pnpm typecheck')
+	if (config.linting.tool === 'biome' || config.linting.tool === 'both') {
+		cmds.push('pnpm check')
+	} else if (config.linting.tool === 'eslint') {
+		cmds.push('pnpm lint')
+	}
+	if (config.testing.framework === 'vitest') {
+		cmds.push('pnpm exec vitest run')
+	} else if (config.testing.framework === 'jest') {
+		cmds.push('pnpm test --ci')
+	} else if (config.testing.framework === 'playwright') {
+		cmds.push('pnpm test:e2e')
+	}
+	if (opts.includeTreeshake) cmds.push('pnpm treeshake')
+	return cmds.length >= 2 ? cmds.join(' && ') : null
+}
+
+/**
+ * Derive the verify chain from a real package.json's scripts + deps.
+ * Used by `fix verify`, where we shouldn't assume tools beyond what the
+ * project actually has.
+ */
+export function composeVerifyScriptFromPkg(
+	pkg: Record<string, unknown>,
+	opts: { includeTreeshake?: boolean } = {}
+): string | null {
+	const scripts = (pkg.scripts as Record<string, string> | undefined) ?? {}
+	const deps = {
+		...((pkg.dependencies as Record<string, string> | undefined) ?? {}),
+		...((pkg.devDependencies as Record<string, string> | undefined) ?? {}),
+	}
+	const cmds: string[] = []
+	if (scripts.typecheck || deps.typescript) cmds.push('pnpm typecheck')
+	if (scripts.check) cmds.push('pnpm check')
+	else if (scripts.lint && !scripts.check) cmds.push('pnpm lint')
+	if (deps.vitest) cmds.push('pnpm exec vitest run')
+	else if (deps.jest) cmds.push('pnpm test --ci')
+	else if (deps['@playwright/test']) cmds.push('pnpm test:e2e')
+	if (opts.includeTreeshake) cmds.push('pnpm treeshake')
+	return cmds.length >= 2 ? cmds.join(' && ') : null
 }
 
 function getDependencies(config: ProjectConfig): Record<string, string> {

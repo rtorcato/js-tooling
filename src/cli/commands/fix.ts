@@ -3,7 +3,11 @@ import chalk from 'chalk'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import { generateSemanticReleaseConfig } from '../generators/build.js'
-import { generateCommitlintConfig, generateHuskyConfig } from '../generators/git.js'
+import {
+	generateCommitlintConfig,
+	generateHuskyConfig,
+	generatePrePushHook,
+} from '../generators/git.js'
 import { generateGitHubActions } from '../generators/github-actions.js'
 import { generateESLintConfig, generatePrettierConfig } from '../generators/linting.js'
 import {
@@ -13,6 +17,8 @@ import {
 	generateNvmrc,
 	generateSizeLimitConfig,
 } from '../generators/misc.js'
+import { composeVerifyScriptFromPkg } from '../generators/package-json.js'
+import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/treeshake.js'
 import { generateCodeQLWorkflow, generateDependabotConfig } from '../generators/security.js'
 import { generateVitestConfig } from '../generators/testing.js'
 import { copyPreset } from '../utils/copy-preset.js'
@@ -180,9 +186,9 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'husky',
-		description: 'Set up Husky + lint-staged',
-		appliesTo: ['Husky', 'lint-staged'],
-		outputs: ['.husky/pre-commit', 'package.json (lint-staged field)'],
+		description: 'Set up Husky + lint-staged (and a `pnpm verify` pre-push hook)',
+		appliesTo: ['Husky', 'lint-staged', 'Husky pre-push'],
+		outputs: ['.husky/pre-commit', '.husky/pre-push', 'package.json (lint-staged field)'],
 		riskLevel: 'safe-merge',
 		canFixDrift: true,
 		async run({ targetDir, pkg }) {
@@ -193,7 +199,52 @@ const FIXERS: Fixer[] = [
 			const generated = (updated['lint-staged'] as Record<string, unknown> | undefined) ?? {}
 			updated['lint-staged'] = { ...generated, ...existingLintStaged }
 			await fs.writeJson(pkgPath, updated, { spaces: 2 })
-			return { filesWritten: ['.husky/pre-commit', 'package.json'] }
+			const filesWritten = ['.husky/pre-commit', 'package.json']
+			const scripts = (updated.scripts as Record<string, string> | undefined) ?? {}
+			if (scripts.verify) {
+				await generatePrePushHook(targetDir)
+				filesWritten.push('.husky/pre-push')
+			}
+			return { filesWritten }
+		},
+	},
+	{
+		target: 'verify',
+		description: 'Add a unified `verify` script (typecheck && lint && tests) to package.json',
+		appliesTo: ['verify script'],
+		outputs: ['package.json (scripts.verify)'],
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir, pkg }) {
+			const pkgPath = path.join(targetDir, 'package.json')
+			if (!pkg) {
+				console.log(chalk.yellow('   no package.json found — skipping'))
+				return { filesWritten: [] }
+			}
+			const includeTreeshake = await fs.pathExists(
+				path.join(targetDir, 'apps', 'treeshake-check', 'check.mjs')
+			)
+			const verify = composeVerifyScriptFromPkg(pkg, { includeTreeshake })
+			if (!verify) {
+				console.log(
+					chalk.gray(
+						'   not enough tools enabled to compose a verify chain — skipping (need 2+ of typecheck/lint/tests)'
+					)
+				)
+				return { filesWritten: [] }
+			}
+			const updated = { ...pkg }
+			const scripts = { ...((updated.scripts as Record<string, string> | undefined) ?? {}) }
+			scripts.verify = verify
+			if (includeTreeshake && !scripts.treeshake) {
+				scripts.treeshake = 'pnpm --filter=*treeshake-check run check'
+				if (!scripts.pretreeshake) {
+					scripts.pretreeshake = scripts.build ? 'pnpm build' : 'echo "no build step"'
+				}
+			}
+			updated.scripts = scripts
+			await fs.writeJson(pkgPath, updated, { spaces: 2 })
+			return { filesWritten: ['package.json'] }
 		},
 	},
 	{
@@ -297,6 +348,52 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			await generateSizeLimitConfig(targetDir)
 			return { filesWritten: ['.size-limit.json'] }
+		},
+	},
+	{
+		target: 'treeshake-check',
+		description:
+			'Scaffold apps/treeshake-check — esbuild + metafile assertion that one subpath bundles cleanly',
+		appliesTo: ['Tree-shake check'],
+		outputs: [
+			'apps/treeshake-check/package.json',
+			'apps/treeshake-check/check.mjs',
+			'apps/treeshake-check/src/entry.ts',
+		],
+		riskLevel: 'safe-add',
+		canFixDrift: false,
+		async run({ targetDir, pkg }) {
+			if (!pkg) {
+				console.log(chalk.yellow('   no package.json found — skipping'))
+				return { filesWritten: [] }
+			}
+			const workspaceName = (pkg.name as string | undefined) ?? null
+			if (!workspaceName) {
+				console.log(chalk.yellow('   package.json has no `name` — skipping'))
+				return { filesWritten: [] }
+			}
+			const { allCandidates, defaultAllowed } = inferSubpathsFromExports(pkg)
+			if (allCandidates.length < 2 || !defaultAllowed) {
+				console.log(
+					chalk.yellow(
+						'   package.json does not expose ≥2 subpath exports — tree-shake check needs multiple subpaths to be meaningful. Skipping.'
+					)
+				)
+				return { filesWritten: [] }
+			}
+			const allowedSubpath = defaultAllowed
+			const forbiddenSubpaths = allCandidates.filter((s) => s !== allowedSubpath)
+			const written = await generateTreeshakeCheck(targetDir, {
+				workspaceName,
+				allowedSubpath,
+				forbiddenSubpaths,
+			})
+			console.log(
+				chalk.dim(
+					`   Wired '${allowedSubpath}' as allowed; forbidden = [${forbiddenSubpaths.join(', ')}]. Edit apps/treeshake-check/check.mjs to tune.`
+				)
+			)
+			return { filesWritten: written }
 		},
 	},
 	{

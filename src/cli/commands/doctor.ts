@@ -275,6 +275,104 @@ async function checkHusky(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	}
 }
 
+async function checkHuskyPrePush(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const huskyDir = await fs.pathExists(path.join(dir, '.husky'))
+	if (!huskyDir) {
+		// If husky isn't in use, pre-push is not relevant
+		return {
+			check: 'Husky pre-push',
+			status: 'optional-missing',
+			detail: 'husky not configured',
+			hint: 'Run `npx @rtorcato/js-tooling fix husky` to enable git hooks (includes pre-push)',
+		}
+	}
+	const hookPath = path.join(dir, '.husky', 'pre-push')
+	if (!(await fs.pathExists(hookPath))) {
+		return {
+			check: 'Husky pre-push',
+			status: 'optional-missing',
+			detail: 'no .husky/pre-push',
+			hint: 'Run `npx @rtorcato/js-tooling fix husky` to scaffold a pre-push hook that runs `pnpm verify`',
+		}
+	}
+	const contents = await fs.readFile(hookPath, 'utf-8')
+	if (/\bpnpm\s+verify\b/.test(contents)) {
+		return {
+			check: 'Husky pre-push',
+			status: 'ok',
+			detail: '.husky/pre-push runs `pnpm verify`',
+		}
+	}
+	// Pre-push exists but doesn't call pnpm verify
+	const scripts = (pkg?.scripts as Record<string, string> | undefined) ?? {}
+	if (!scripts.verify) {
+		return {
+			check: 'Husky pre-push',
+			status: 'drift',
+			detail: '.husky/pre-push exists but no `verify` script in package.json',
+			hint: 'Run `npx @rtorcato/js-tooling fix verify` to add a verify script, then `fix husky` to align the hook',
+		}
+	}
+	return {
+		check: 'Husky pre-push',
+		status: 'drift',
+		detail: '.husky/pre-push exists but does not call `pnpm verify`',
+		hint: 'Run `npx @rtorcato/js-tooling fix husky` to align the hook with `pnpm verify`',
+	}
+}
+
+async function checkVerifyScript(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	if (!pkg) {
+		return {
+			check: 'verify script',
+			status: 'missing',
+			detail: 'no package.json',
+		}
+	}
+	const scripts = (pkg.scripts as Record<string, string> | undefined) ?? {}
+	const body = scripts.verify
+	if (!body) {
+		return {
+			check: 'verify script',
+			status: 'optional-missing',
+			detail: 'no `verify` script in package.json',
+			hint: 'Run `npx @rtorcato/js-tooling fix verify` to add a unified `pnpm verify` script',
+		}
+	}
+
+	// Lenient: only flag drift when an enabled tool is clearly absent from the script body.
+	const deps = {
+		...((pkg.dependencies as Record<string, string> | undefined) ?? {}),
+		...((pkg.devDependencies as Record<string, string> | undefined) ?? {}),
+	}
+	const missing: string[] = []
+	if (scripts.typecheck && !/\btypecheck\b/.test(body)) missing.push('typecheck')
+	if ((scripts.check || deps['@biomejs/biome']) && !/\b(check|biome|lint)\b/.test(body)) {
+		missing.push('lint/check')
+	}
+	if ((deps.vitest || scripts.test) && !/(vitest|jest|test:e2e|pnpm\s+test)/.test(body)) {
+		missing.push('tests')
+	}
+	const hasTreeshakeApp = await fs.pathExists(
+		path.join(dir, 'apps', 'treeshake-check', 'check.mjs')
+	)
+	if (hasTreeshakeApp && !/\btreeshake\b/.test(body)) missing.push('treeshake')
+
+	if (missing.length > 0) {
+		return {
+			check: 'verify script',
+			status: 'drift',
+			detail: `\`verify\` script is missing: ${missing.join(', ')}`,
+			hint: 'Run `npx @rtorcato/js-tooling fix verify` to regenerate the verify chain',
+		}
+	}
+	return {
+		check: 'verify script',
+		status: 'ok',
+		detail: `\`verify\` = ${body}`,
+	}
+}
+
 const LINT_STAGED_FILES = [
 	'.lintstagedrc',
 	'.lintstagedrc.json',
@@ -546,6 +644,36 @@ async function checkCodeQL(dir: string): Promise<CheckResult> {
 	}
 }
 
+async function checkTreeshakeSetup(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const appCheckPath = path.join(dir, 'apps', 'treeshake-check', 'check.mjs')
+	if (await fs.pathExists(appCheckPath)) {
+		return {
+			check: 'Tree-shake check',
+			status: 'ok',
+			detail: 'apps/treeshake-check/check.mjs found',
+		}
+	}
+	// Only nudge libraries that actually claim tree-shaking via multi-subpath exports + sideEffects: false.
+	const exports = (pkg?.exports as Record<string, unknown> | undefined) ?? {}
+	const subpaths = Object.keys(exports).filter(
+		(k) => k !== '.' && k.startsWith('./') && !k.includes('*')
+	)
+	const sideEffectsFree = pkg?.sideEffects === false
+	if (subpaths.length < 2 || !sideEffectsFree) {
+		return {
+			check: 'Tree-shake check',
+			status: 'ok',
+			detail: 'not applicable (single-export or has side effects)',
+		}
+	}
+	return {
+		check: 'Tree-shake check',
+		status: 'optional-missing',
+		detail: `package exports ${subpaths.length} subpaths with sideEffects: false but no apps/treeshake-check/`,
+		hint: 'Run `npx @rtorcato/js-tooling fix treeshake-check` to scaffold an esbuild metafile assertion',
+	}
+}
+
 async function checkGitLabCI(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.gitlab-ci.yml', '.gitlab-ci.yaml']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -579,6 +707,8 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	}
 	results.push(await checkHusky(targetDir, pkg))
 	results.push(await checkLintStaged(targetDir, pkg))
+	results.push(await checkVerifyScript(targetDir, pkg))
+	results.push(await checkHuskyPrePush(targetDir, pkg))
 	results.push(await checkSemanticRelease(targetDir, pkg))
 	results.push(await checkKnip(targetDir, pkg))
 	results.push(await checkSizeLimit(targetDir, pkg))
@@ -586,6 +716,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkDependabot(targetDir))
 	results.push(await checkCodeQL(targetDir))
 	results.push(await checkGitLabCI(targetDir))
+	results.push(await checkTreeshakeSetup(targetDir, pkg))
 
 	return results
 }

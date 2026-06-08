@@ -250,6 +250,173 @@ describe('doctor extended checks', () => {
 		expect(results.find((r) => r.check === 'GitHub Actions')?.status).toBe('ok')
 	})
 
+	it('reports verify script optional-missing when not in package.json', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const results = await runDoctor(dir)
+		const verify = results.find((r) => r.check === 'verify script')
+		expect(verify?.status).toBe('optional-missing')
+		expect(verify?.hint).toMatch(/fix verify/)
+	})
+
+	it('reports verify script ok when a canonical chain is present', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			scripts: {
+				typecheck: 'tsc --noEmit',
+				check: 'biome check .',
+				verify: 'pnpm typecheck && pnpm check && pnpm exec vitest run',
+			},
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0', vitest: '^4.0.0' },
+		})
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'verify script')?.status).toBe('ok')
+	})
+
+	it('treats user-added steps in the verify chain as ok (lenient)', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			scripts: {
+				typecheck: 'tsc --noEmit',
+				check: 'biome check .',
+				verify: 'pnpm typecheck && pnpm check && pnpm exec vitest run && pnpm treeshake',
+			},
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0', vitest: '^4.0.0' },
+		})
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'verify script')?.status).toBe('ok')
+	})
+
+	it('reports verify script drift when a tool is enabled but missing from the chain', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			scripts: {
+				typecheck: 'tsc --noEmit',
+				check: 'biome check .',
+				verify: 'pnpm check',
+			},
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		const results = await runDoctor(dir)
+		const verify = results.find((r) => r.check === 'verify script')
+		expect(verify?.status).toBe('drift')
+		expect(verify?.detail).toMatch(/typecheck/)
+	})
+
+	it('reports Husky pre-push ok when the hook calls pnpm verify', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.husky'))
+		await fs.writeFile(join(dir, '.husky', 'pre-push'), 'pnpm verify\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Husky pre-push')?.status).toBe('ok')
+	})
+
+	it('reports Husky pre-push drift when the hook does not call pnpm verify', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			scripts: { verify: 'pnpm typecheck && pnpm check' },
+		})
+		await fs.ensureDir(join(dir, '.husky'))
+		await fs.writeFile(join(dir, '.husky', 'pre-push'), 'pnpm test\n')
+		const results = await runDoctor(dir)
+		const prePush = results.find((r) => r.check === 'Husky pre-push')
+		expect(prePush?.status).toBe('drift')
+		expect(prePush?.hint).toMatch(/fix husky/)
+	})
+
+	it('reports Husky pre-push optional-missing when husky is present but the hook is absent', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.husky'))
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Husky pre-push')?.status).toBe('optional-missing')
+	})
+
+	it('reports tree-shake check optional-missing on multi-subpath sideEffects-free libraries', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: '@my-org/my-lib',
+			version: '0.0.0',
+			sideEffects: false,
+			exports: {
+				'.': './dist/index.js',
+				'./a': './dist/a.js',
+				'./b': './dist/b.js',
+			},
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		const results = await runDoctor(dir)
+		const ts = results.find((r) => r.check === 'Tree-shake check')
+		expect(ts?.status).toBe('optional-missing')
+		expect(ts?.hint).toMatch(/fix treeshake-check/)
+	})
+
+	it('reports tree-shake check ok (not applicable) for single-export packages', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			exports: { '.': './dist/index.js' },
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		const results = await runDoctor(dir)
+		const ts = results.find((r) => r.check === 'Tree-shake check')
+		expect(ts?.status).toBe('ok')
+		expect(ts?.detail).toMatch(/not applicable/)
+	})
+
+	it('reports verify script drift when apps/treeshake-check exists but verify omits treeshake', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			scripts: {
+				typecheck: 'tsc --noEmit',
+				check: 'biome check .',
+				verify: 'pnpm typecheck && pnpm check',
+			},
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fs.ensureDir(join(dir, 'apps', 'treeshake-check'))
+		await fs.writeFile(join(dir, 'apps', 'treeshake-check', 'check.mjs'), '// stub\n')
+		const results = await runDoctor(dir)
+		const verify = results.find((r) => r.check === 'verify script')
+		expect(verify?.status).toBe('drift')
+		expect(verify?.detail).toMatch(/treeshake/)
+	})
+
+	it('reports tree-shake check ok when apps/treeshake-check is present', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: '@my-org/my-lib',
+			version: '0.0.0',
+			sideEffects: false,
+			exports: {
+				'.': './dist/index.js',
+				'./a': './dist/a.js',
+				'./b': './dist/b.js',
+			},
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fs.ensureDir(join(dir, 'apps', 'treeshake-check'))
+		await fs.writeFile(
+			join(dir, 'apps', 'treeshake-check', 'check.mjs'),
+			'// stub\n'
+		)
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Tree-shake check')?.status).toBe('ok')
+	})
+
 	it('detects GitLab CI configuration', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
