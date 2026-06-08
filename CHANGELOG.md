@@ -1,3 +1,10 @@
+# [2.12.0](https://github.com/rtorcato/js-tooling/compare/v2.11.0...v2.12.0) (2026-06-08)
+
+
+### Features
+
+* fix --list + CODEOWNERS scaffolder ([e239c58](https://github.com/rtorcato/js-tooling/commit/e239c584ee81d8870d92680fd6a2ee82ff6ed907))
+
 # [2.11.0](https://github.com/rtorcato/js-tooling/compare/v2.10.0...v2.11.0) (2026-06-08)
 
 
