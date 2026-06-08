@@ -425,10 +425,10 @@ describe('fix --json', () => {
 			const payload = JSON.parse(logSpy.mock.calls.at(-1)?.[0] as string)
 			expect(payload.target).toBeNull()
 			expect(payload.actions.length).toBeGreaterThan(5)
-			// At least one applied + at least one unsupported (GitLab CI has no fixer)
 			const statuses = new Set(payload.actions.map((a: { status: string }) => a.status))
 			expect(statuses.has('applied')).toBe(true)
-			expect(statuses.has('unsupported')).toBe(true)
+			// `unsupported` only fires for the `Node` check (no fixer) when the host's
+			// Node version triggers drift, which is environment-dependent — don't assert.
 		} finally {
 			logSpy.mockRestore()
 		}
