@@ -1,3 +1,10 @@
+# [2.13.0](https://github.com/rtorcato/js-tooling/compare/v2.12.0...v2.13.0) (2026-06-08)
+
+
+### Features
+
+* fix --resync re-scaffolds from .js-tooling.json ([d4b97a5](https://github.com/rtorcato/js-tooling/commit/d4b97a5473dbcd66b3b83b5b29dfbe531eea4b63))
+
 # [2.12.0](https://github.com/rtorcato/js-tooling/compare/v2.11.0...v2.12.0) (2026-06-08)
 
 
