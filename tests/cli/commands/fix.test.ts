@@ -538,6 +538,126 @@ describe('fix + lockfile', () => {
 	})
 })
 
+describe('fix --resync', () => {
+	async function writeLock(dir: string): Promise<void> {
+		await fs.writeJson(join(dir, '.js-tooling.json'), {
+			version: 1,
+			config: {
+				projectName: 'demo',
+				projectType: 'library',
+				typescript: { enabled: true, config: 'base' },
+				linting: { tool: 'biome' },
+				formatting: { tool: 'biome' },
+				testing: { framework: 'vitest', environment: 'node' },
+				gitHooks: false,
+				commitLint: false,
+				semanticRelease: false,
+				securityAutomation: false,
+				bundler: 'tsup',
+			},
+			writtenBy: '@rtorcato/js-tooling@test',
+			writtenAt: new Date().toISOString(),
+		})
+	}
+
+	it('errors when no lockfile exists', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {
+			throw new Error('exit')
+		}) as never)
+		const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		try {
+			await expect(fixCommand(undefined, { directory: dir, resync: true })).rejects.toThrow(
+				'exit'
+			)
+			expect(exitSpy).toHaveBeenCalledWith(1)
+			expect(errSpy.mock.calls.flat().join('\n')).toMatch(/No \.js-tooling\.json/)
+		} finally {
+			exitSpy.mockRestore()
+			errSpy.mockRestore()
+		}
+	})
+
+	it('errors in JSON mode with a structured payload when lockfile is missing', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {
+			throw new Error('exit')
+		}) as never)
+		try {
+			await expect(
+				fixCommand(undefined, { directory: dir, resync: true, json: true })
+			).rejects.toThrow('exit')
+			const payload = JSON.parse(logSpy.mock.calls.at(-1)?.[0] as string)
+			expect(payload.error).toBe('no-lockfile')
+		} finally {
+			logSpy.mockRestore()
+			exitSpy.mockRestore()
+		}
+	})
+
+	it('--resync --yes scaffolds files from the lockfile config', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir)
+		await fixCommand(undefined, { directory: dir, resync: true, yes: true })
+		expect(await fs.pathExists(join(dir, '.editorconfig'))).toBe(true)
+		expect(await fs.pathExists(join(dir, '.nvmrc'))).toBe(true)
+		expect(await fs.pathExists(join(dir, 'tsconfig.json'))).toBe(true)
+		expect(await fs.pathExists(join(dir, 'biome.jsonc'))).toBe(true)
+		expect(await fs.pathExists(join(dir, 'vitest.config.ts'))).toBe(true)
+		expect(await fs.pathExists(join(dir, 'tsup.config.ts'))).toBe(true)
+	})
+
+	it('--resync --dry-run lists files without writing any', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir)
+		await fixCommand(undefined, { directory: dir, resync: true, dryRun: true, yes: true })
+		// None of the expected files materialize in dry-run.
+		expect(await fs.pathExists(join(dir, '.editorconfig'))).toBe(false)
+		expect(await fs.pathExists(join(dir, 'biome.jsonc'))).toBe(false)
+	})
+
+	it('--resync --json emits a structured payload listing files written', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand(undefined, { directory: dir, resync: true, json: true })
+			const payload = JSON.parse(logSpy.mock.calls.at(-1)?.[0] as string)
+			expect(payload.mode).toBe('resync')
+			expect(payload.dryRun).toBe(false)
+			expect(Array.isArray(payload.files)).toBe(true)
+			expect(payload.files).toContain('.editorconfig')
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('rejects --resync combined with a [target] argument', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir)
+		const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {
+			throw new Error('exit')
+		}) as never)
+		const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		try {
+			await expect(
+				fixCommand('biome', { directory: dir, resync: true, yes: true })
+			).rejects.toThrow('exit')
+			expect(errSpy.mock.calls.flat().join('\n')).toMatch(/cannot be combined/)
+		} finally {
+			exitSpy.mockRestore()
+			errSpy.mockRestore()
+		}
+	})
+})
+
 describe('fix walk-all', () => {
 	it('applies all missing items when --yes', async () => {
 		const dir = newTmpDir()

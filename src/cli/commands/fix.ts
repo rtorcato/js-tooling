@@ -18,6 +18,7 @@ import {
 	generateNvmrc,
 	generateSizeLimitConfig,
 } from '../generators/misc.js'
+import { generateConfigs } from '../generators/index.js'
 import { composeVerifyScriptFromPkg } from '../generators/package-json.js'
 import { generateCodeQLWorkflow, generateDependabotConfig } from '../generators/security.js'
 import { generateVitestConfig } from '../generators/testing.js'
@@ -33,6 +34,7 @@ import {
 import type { CheckResult } from './doctor.js'
 import { runDoctor } from './doctor.js'
 import { declinedInLock, lockfilePatchForTarget } from './fix-targets.js'
+import { computeFileList } from './setup-presets.js'
 import type { ProjectConfig } from './setup.js'
 
 export interface FixOptions {
@@ -41,6 +43,7 @@ export interface FixOptions {
 	dryRun?: boolean
 	json?: boolean
 	list?: boolean
+	resync?: boolean
 }
 
 export type FixActionStatus = 'applied' | 'dry-run' | 'skipped' | 'already-ok' | 'unsupported'
@@ -605,6 +608,73 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 			)
 		}
 		console.log()
+		return
+	}
+
+	if (options.resync) {
+		if (target) {
+			console.error(chalk.red('\n❌ --resync cannot be combined with a [target] argument\n'))
+			process.exit(1)
+		}
+		const resyncLock = await readLockfile(targetDir)
+		if (!resyncLock) {
+			if (json) {
+				console.log(
+					JSON.stringify(
+						{ directory: targetDir, error: 'no-lockfile', hint: 'run `fix lockfile` first' },
+						null,
+						2
+					)
+				)
+			} else {
+				console.error(
+					chalk.red(
+						`\n❌ No ${LOCKFILE_NAME} found — run \`fix lockfile\` first to record choices\n`
+					)
+				)
+			}
+			process.exit(1)
+		}
+		const files = computeFileList(resyncLock.config)
+		if (!silent) {
+			console.log(
+				chalk.cyan(`\n🔄 Resync from ${LOCKFILE_NAME} (${files.length} files in scope)\n`)
+			)
+		}
+		if (dryRun) {
+			if (json) {
+				console.log(
+					JSON.stringify({ directory: targetDir, mode: 'resync', dryRun: true, files }, null, 2)
+				)
+			} else {
+				for (const f of files) console.log(chalk.cyan(`  [dry-run] would write: ${f}`))
+				console.log()
+			}
+			return
+		}
+		if (!assumeYes) {
+			const { confirm } = await inquirer.prompt([
+				{
+					type: 'confirm',
+					name: 'confirm',
+					message: `Re-scaffold ${files.length} file(s) from ${LOCKFILE_NAME}? Generators preserve existing customizations where possible, but README.md will be rewritten.`,
+					default: false,
+				},
+			])
+			if (!confirm) {
+				console.log(chalk.gray('   skipped\n'))
+				return
+			}
+		}
+		await generateConfigs(resyncLock.config, targetDir)
+		await writeLockfile(targetDir, resyncLock.config)
+		if (json) {
+			console.log(
+				JSON.stringify({ directory: targetDir, mode: 'resync', dryRun: false, files }, null, 2)
+			)
+		} else {
+			console.log(chalk.green(`  ✅ resynced ${files.length} file(s)\n`))
+		}
 		return
 	}
 

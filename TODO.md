@@ -4,6 +4,7 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 
 ## Recently shipped (v2.x)
 
+- `fix --resync` — re-scaffold every file recorded in `.js-tooling.json` (with `--dry-run` / `--json` / confirm prompt)
 - `.js-tooling.json` lockfile — setup records tool choices; doctor stops flagging intentional opt-outs; `fix` auto-resyncs on overrides
 - `fix --list` (and `--list --json`) — print the registered fixer registry without running doctor
 - CODEOWNERS scaffolder (`fix codeowners`) + doctor check
@@ -30,7 +31,6 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 
 - [ ] **E2E tests for `fix`** — current tests mock inquirer; an e2e test that spawns `dist/cli/index.js fix dependabot --yes` against a tmp dir would catch wire-up bugs the unit tests miss.
 - [ ] **Optional diff preview** in `fix` when about to overwrite drift (currently just warns).
-- [ ] **`setup` / `fix --resync`** that replays `.js-tooling.json` to re-scaffold everything (follow-up to the lockfile work).
 
 ## Coverage gaps
 

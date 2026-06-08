@@ -239,6 +239,7 @@ program
 	.option('--dry-run', 'Print what would change without writing files')
 	.option('--json', 'Emit machine-readable JSON output (implies --yes)')
 	.option('--list', 'List all registered fix targets and exit')
+	.option('--resync', 'Re-scaffold every file recorded in .js-tooling.json')
 	.action((target: string | undefined, options) =>
 		fixCommand(target, {
 			directory: options.directory,
@@ -246,6 +247,7 @@ program
 			dryRun: options.dryRun,
 			json: options.json,
 			list: options.list,
+			resync: options.resync,
 		})
 	)
 
