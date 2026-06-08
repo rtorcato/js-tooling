@@ -1,3 +1,10 @@
+# [2.15.0](https://github.com/rtorcato/js-tooling/compare/v2.14.0...v2.15.0) (2026-06-08)
+
+
+### Features
+
+* add Renovate preset as alternative to Dependabot ([3ed09ea](https://github.com/rtorcato/js-tooling/commit/3ed09eaff169b9228ecff4384625339b6d4c7633))
+
 # [2.14.0](https://github.com/rtorcato/js-tooling/compare/v2.13.0...v2.14.0) (2026-06-08)
 
 
