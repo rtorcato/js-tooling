@@ -1,3 +1,10 @@
+# [2.14.0](https://github.com/rtorcato/js-tooling/compare/v2.13.0...v2.14.0) (2026-06-08)
+
+
+### Features
+
+* fix gitlab-ci scaffolds .gitlab-ci.yml ([82e1f3f](https://github.com/rtorcato/js-tooling/commit/82e1f3f35b83a1c2471900e9c3567be0aafa8965))
+
 # [2.13.0](https://github.com/rtorcato/js-tooling/compare/v2.12.0...v2.13.0) (2026-06-08)
 
 
