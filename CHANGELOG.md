@@ -1,3 +1,10 @@
+# [2.17.0](https://github.com/rtorcato/js-tooling/compare/v2.16.0...v2.17.0) (2026-06-08)
+
+
+### Features
+
+* add TypeDoc preset, doctor check, and fixer ([40db809](https://github.com/rtorcato/js-tooling/commit/40db809af1cef08b0bfa9aca43101132ec7ab0f4))
+
 # [2.16.0](https://github.com/rtorcato/js-tooling/compare/v2.15.0...v2.16.0) (2026-06-08)
 
 
