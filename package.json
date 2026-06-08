@@ -188,7 +188,7 @@
 		"commitizen": "^4.3.1",
 		"conventional-changelog-conventionalcommits": "^9.3.1",
 		"cz-conventional-changelog": "^3.3.0",
-		"esbuild": "^0.25.11",
+		"esbuild": "^0.28.0",
 		"esbuild-node-externals": "^1.22.0",
 		"eslint": "9.38.0",
 		"eslint-plugin-import": "^2.32.0",
