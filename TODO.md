@@ -59,7 +59,7 @@ Live backlog for `@rtorcato/js-tooling`. Trim entries as they ship; promote idea
 - [ ] **GitHub Actions templates** — More workflow templates: Docker build+push, Next.js deploy to Vercel/Cloudflare, preview deployments.
 
 ### Lower priority
-- [ ] **are-the-types-wrong** — Validates TypeScript exports are correct. Good `doctor` subcommand check.
-- [ ] **Preset-level versioning** — Let consumers lock to `typescript/base@1` while `typescript/base@2` ships.
+- [x] **are-the-types-wrong** — Validates TypeScript exports are correct. Good `doctor` subcommand check.
+- [x] **Preset-level versioning** — Let consumers lock to `typescript/base@1` while `typescript/base@2` ships.
 
 

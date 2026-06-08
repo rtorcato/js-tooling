@@ -661,6 +661,54 @@ async function checkCodeQL(dir: string): Promise<CheckResult> {
 	}
 }
 
+function isPublishableLibrary(pkg: Pkg | null): boolean {
+	if (!pkg || pkg.private === true) return false
+	return !!(pkg.exports || pkg.main || pkg.module || pkg.files)
+}
+
+async function checkAreTheTypesWrong(_dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	if (!isPublishableLibrary(pkg)) {
+		return {
+			check: 'are-the-types-wrong',
+			status: 'ok',
+			detail: 'not applicable (private or no published exports)',
+		}
+	}
+
+	const deps = {
+		...((pkg?.dependencies as Record<string, string> | undefined) ?? {}),
+		...((pkg?.devDependencies as Record<string, string> | undefined) ?? {}),
+	}
+	const scripts = (pkg?.scripts as Record<string, string> | undefined) ?? {}
+
+	const hasDep = !!deps['are-the-types-wrong']
+	const hasScript = Object.values(scripts).some((s) => /\battw\b|are-the-types-wrong/.test(s))
+
+	if (hasDep && hasScript) {
+		return {
+			check: 'are-the-types-wrong',
+			status: 'ok',
+			detail: 'are-the-types-wrong installed and wired into a script',
+		}
+	}
+
+	if (hasDep) {
+		return {
+			check: 'are-the-types-wrong',
+			status: 'drift',
+			detail: 'are-the-types-wrong installed but no script runs it',
+			hint: 'Add `"attw": "attw --pack"` to package.json scripts and call it from your verify/CI chain',
+		}
+	}
+
+	return {
+		check: 'are-the-types-wrong',
+		status: 'optional-missing',
+		detail: 'are-the-types-wrong not configured',
+		hint: 'Run `pnpm add -D are-the-types-wrong && attw --pack` to validate TypeScript exports before publishing',
+	}
+}
+
 async function checkTreeshakeSetup(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	const appCheckPath = path.join(dir, 'apps', 'treeshake-check', 'check.mjs')
 	if (await fs.pathExists(appCheckPath)) {
@@ -778,6 +826,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkCodeQL(targetDir))
 	results.push(await checkGitLabCI(targetDir))
 	results.push(await checkCodeowners(targetDir))
+	results.push(await checkAreTheTypesWrong(targetDir, pkg))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))
 
 	// Lockfile-driven demotion: if the lock records an intentional opt-out for a

@@ -27,6 +27,7 @@ export const FIX_TARGETS: Record<string, string> = {
 	'GitLab CI': 'gitlab-ci',
 	lockfile: 'lockfile',
 	'.js-tooling.json': 'lockfile',
+	'are-the-types-wrong': 'attw',
 }
 
 export function getFixTargetForCheck(checkName: string): string | null {
