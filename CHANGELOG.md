@@ -1,3 +1,10 @@
+# [2.11.0](https://github.com/rtorcato/js-tooling/compare/v2.10.0...v2.11.0) (2026-06-08)
+
+
+### Features
+
+* .js-tooling.json lockfile records setup choices ([0d8c6b9](https://github.com/rtorcato/js-tooling/commit/0d8c6b906741bd7a1383516ca73f75772a32bce5))
+
 # [2.10.0](https://github.com/rtorcato/js-tooling/compare/v2.9.0...v2.10.0) (2026-06-08)
 
 
