@@ -1,3 +1,10 @@
+# [2.16.0](https://github.com/rtorcato/js-tooling/compare/v2.15.0...v2.16.0) (2026-06-08)
+
+
+### Features
+
+* are-the-types-wrong doctor check + preset versioning ([1e72bbb](https://github.com/rtorcato/js-tooling/commit/1e72bbb4bdd3f6d12d18a3c9ff3f3c9745fb889f))
+
 # [2.15.0](https://github.com/rtorcato/js-tooling/compare/v2.14.0...v2.15.0) (2026-06-08)
 
 
