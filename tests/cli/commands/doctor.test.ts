@@ -445,6 +445,16 @@ describe('doctor security checks', () => {
 		expect(results.find((r) => r.check === 'Dependabot')?.status).toBe('ok')
 	})
 
+	it('reports Dependabot ok when renovate.json exists (Renovate is an accepted alternative)', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeJson(join(dir, 'renovate.json'), { extends: ['config:recommended'] })
+		const results = await runDoctor(dir)
+		const dep = results.find((r) => r.check === 'Dependabot')
+		expect(dep?.status).toBe('ok')
+		expect(dep?.detail).toMatch(/Renovate/)
+	})
+
 	it('reports CodeQL ok when .github/workflows/codeql.yml exists', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

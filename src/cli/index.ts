@@ -198,6 +198,12 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		fixTarget: 'dependabot',
 	},
 	{
+		name: 'Renovate',
+		description: 'Weekly automated dependency updates (alternative to Dependabot)',
+		exports: [],
+		fixTarget: 'renovate',
+	},
+	{
 		name: 'CodeQL',
 		description: 'GitHub security scanning workflow',
 		exports: [],

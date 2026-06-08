@@ -98,6 +98,34 @@ describe('fix targeted', () => {
 		expect(await fs.pathExists(join(dir, '.github', 'dependabot.yml'))).toBe(false)
 	})
 
+	it('fix renovate --yes writes a renovate.json with recommended config', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('renovate', { directory: dir, yes: true })
+		const renovate = await fs.readJson(join(dir, 'renovate.json'))
+		expect(renovate.$schema).toMatch(/renovate-schema/)
+		expect(renovate.extends).toContain('config:recommended')
+	})
+
+	it('fix renovate --yes still scaffolds when dependabot.yml is present', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.outputFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
+		await fixCommand('renovate', { directory: dir, yes: true })
+		expect(await fs.pathExists(join(dir, 'renovate.json'))).toBe(true)
+	})
+
+	it('fix dependabot reports already-ok when renovate.json is present', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeJson(join(dir, 'renovate.json'), { extends: ['config:recommended'] })
+		await fs.outputFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
+		await fixCommand('dependabot', { directory: dir, yes: true })
+		// dependabot.yml should remain untouched (no overwrite) and no error thrown.
+		const yaml = await fs.readFile(join(dir, '.github', 'dependabot.yml'), 'utf-8')
+		expect(yaml).toBe('version: 2\n')
+	})
+
 	it('fix unknown-target exits non-zero', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

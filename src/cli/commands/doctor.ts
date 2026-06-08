@@ -594,11 +594,27 @@ async function checkDependabot(dir: string): Promise<CheckResult> {
 			}
 		}
 	}
+	for (const candidate of [
+		'renovate.json',
+		'renovate.json5',
+		'.github/renovate.json',
+		'.github/renovate.json5',
+		'.renovaterc',
+		'.renovaterc.json',
+	]) {
+		if (await fs.pathExists(path.join(dir, candidate))) {
+			return {
+				check: 'Dependabot',
+				status: 'ok',
+				detail: `${candidate} found (Renovate)`,
+			}
+		}
+	}
 	return {
 		check: 'Dependabot',
 		status: 'optional-missing',
-		detail: 'no .github/dependabot.yml',
-		hint: 'Run `npx @rtorcato/js-tooling fix dependabot` to scaffold weekly dep updates',
+		detail: 'no Dependabot or Renovate config',
+		hint: 'Run `npx @rtorcato/js-tooling fix dependabot` (or `fix renovate`) to scaffold weekly dep updates',
 	}
 }
 

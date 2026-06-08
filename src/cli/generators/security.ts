@@ -28,6 +28,35 @@ updates:
 	await fs.writeFile(filepath, content)
 }
 
+export async function generateRenovateConfig(targetDir: string) {
+	const filepath = path.join(targetDir, 'renovate.json')
+
+	const content = `${JSON.stringify(
+		{
+			$schema: 'https://docs.renovatebot.com/renovate-schema.json',
+			extends: ['config:recommended', ':semanticCommits', ':semanticCommitTypeAll(chore)'],
+			schedule: ['before 4am on Monday'],
+			prConcurrentLimit: 10,
+			prHourlyLimit: 0,
+			rangeStrategy: 'bump',
+			packageRules: [
+				{
+					matchManagers: ['github-actions'],
+					commitMessagePrefix: 'chore(ci):',
+				},
+				{
+					matchManagers: ['npm'],
+					commitMessagePrefix: 'chore(deps):',
+				},
+			],
+		},
+		null,
+		2
+	)}\n`
+
+	await fs.writeFile(filepath, content)
+}
+
 export async function generateCodeQLWorkflow(targetDir: string) {
 	await fs.ensureDir(path.join(targetDir, '.github', 'workflows'))
 	const filepath = path.join(targetDir, '.github', 'workflows', 'codeql.yml')

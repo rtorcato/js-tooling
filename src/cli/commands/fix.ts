@@ -21,7 +21,11 @@ import {
 } from '../generators/misc.js'
 import { generateConfigs } from '../generators/index.js'
 import { composeVerifyScriptFromPkg } from '../generators/package-json.js'
-import { generateCodeQLWorkflow, generateDependabotConfig } from '../generators/security.js'
+import {
+	generateCodeQLWorkflow,
+	generateDependabotConfig,
+	generateRenovateConfig,
+} from '../generators/security.js'
 import { generateVitestConfig } from '../generators/testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/treeshake.js'
 import { copyPreset } from '../utils/copy-preset.js'
@@ -300,6 +304,17 @@ const FIXERS: Fixer[] = [
 		},
 	},
 	{
+		target: 'renovate',
+		description: 'Scaffold renovate.json (weekly schedule; alternative to Dependabot)',
+		appliesTo: ['Dependabot'],
+		outputs: ['renovate.json'],
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			await generateRenovateConfig(targetDir)
+			return { filesWritten: ['renovate.json'] }
+		},
+	},
+	{
 		target: 'codeql',
 		description: 'Scaffold .github/workflows/codeql.yml (security scanning)',
 		appliesTo: ['CodeQL'],
@@ -480,6 +495,17 @@ const FIXERS: Fixer[] = [
 
 export function getFixers(): Fixer[] {
 	return FIXERS
+}
+
+async function ownOutputsPresent(targetDir: string, fixer: Fixer): Promise<boolean> {
+	for (const out of fixer.outputs) {
+		// Outputs that reference a package.json field (e.g. "package.json (scripts.verify)")
+		// can't be cheaply file-checked here; treat as present so we don't accidentally
+		// re-run safe-merge fixers on every targeted invocation.
+		if (out.includes('(')) return true
+		if (await fs.pathExists(path.join(targetDir, out))) return true
+	}
+	return false
 }
 
 function findFixer(target: string): Fixer | undefined {
@@ -743,8 +769,15 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 		// fixable when the user explicitly targets it — treat it as optional-missing
 		// so the override + lockfile resync paths run.
 		const lockfileDemoted = lock !== null && declinedInLock(lock, result.check)
+		// When multiple fixers share a check (e.g. dependabot + renovate both apply to
+		// "Dependabot" deps-update coverage), the check can be `ok` from a sibling tool
+		// while this fixer's own outputs are still absent. In that case, treat as missing
+		// so the targeted scaffold runs.
+		const fixerOutputsPresent = await ownOutputsPresent(targetDir, fixer)
 		const effectiveResult: CheckResult =
-			result.status === 'ok' && lockfileDemoted ? { ...result, status: 'optional-missing' } : result
+			result.status === 'ok' && (lockfileDemoted || !fixerOutputsPresent)
+				? { ...result, status: 'optional-missing' }
+				: result
 		if (effectiveResult.status === 'ok') {
 			actions.push(recordFor(fixer.target, result.check, 'ok', 'already-ok', []))
 			if (json) return emitJson(fixer.target)

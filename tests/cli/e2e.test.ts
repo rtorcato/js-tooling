@@ -130,6 +130,15 @@ describe.skipIf(!fs.existsSync(CLI))('CLI smoke tests (requires pnpm build)', ()
 		expect(applied?.filesWritten).toContain('.github/dependabot.yml')
 	})
 
+	it('fix renovate --yes writes renovate.json', () => {
+		const dir = newTmpDir()
+		seedPkg(dir)
+		const { status } = cli(['fix', 'renovate', '-d', dir, '--yes'])
+		expect(status).toBe(0)
+		const renovate = fs.readJsonSync(join(dir, 'renovate.json'))
+		expect(renovate.$schema).toMatch(/renovate-schema/)
+	})
+
 	it('fix codeowners --yes writes .github/CODEOWNERS', () => {
 		const dir = newTmpDir()
 		seedPkg(dir)

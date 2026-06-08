@@ -116,6 +116,7 @@ export function lockfilePatchForTarget(
 		case 'semantic-release':
 			return c.semanticRelease ? null : { semanticRelease: true }
 		case 'dependabot':
+		case 'renovate':
 		case 'codeql':
 			return c.securityAutomation ? null : { securityAutomation: true }
 		case 'tsconfig':
