@@ -1,3 +1,10 @@
+## [2.17.1](https://github.com/rtorcato/js-tooling/compare/v2.17.0...v2.17.1) (2026-06-09)
+
+
+### Bug Fixes
+
+* **docs:** upgrade to Astro 6 and fix Starlight 0.39 sidebar syntax ([78c31b5](https://github.com/rtorcato/js-tooling/commit/78c31b5ba95b86e2a8a65f782d1fe9b3e3cafd16))
+
 # [2.17.0](https://github.com/rtorcato/js-tooling/compare/v2.16.0...v2.17.0) (2026-06-08)
 
 
