@@ -2,8 +2,11 @@ packages:
   - 'apps/*'
 
 allowBuilds:
+  core-js: false
+  core-js-pure: false
   esbuild: true
   sharp: true
+
 onlyBuiltDependencies:
   - esbuild
   - sharp
