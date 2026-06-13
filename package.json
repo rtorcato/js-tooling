@@ -24,6 +24,8 @@
 		"build": "pnpm build-cli",
 		"build-cli": "rimraf ./dist/cli && tsc --project src/cli/tsconfig.json",
 		"prepublishOnly": "./scripts/fix-bins.sh",
+		"dev": "pnpm --filter @rtorcato/docs dev",
+		"docs:build": "pnpm --filter @rtorcato/docs build",
 		"==================== Common ====================": "",
 		"lint": "pnpm exec biome lint --config-path=tooling/biome/biome.json src scripts",
 		"format": "pnpm exec biome format --config-path=tooling/biome/biome.json src scripts",
