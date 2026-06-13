@@ -4,8 +4,7 @@ import { themes as prismThemes } from 'prism-react-renderer'
 
 const config: Config = {
   title: 'js-tooling',
-  tagline:
-    'JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest. One package, full dev toolchain.',
+  tagline: 'JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.',
   favicon: 'img/favicon.ico',
 
   url: 'https://rtorcato.github.io',
