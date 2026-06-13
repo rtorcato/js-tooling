@@ -49,7 +49,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          routeBasePath: '/',
+          routeBasePath: '/docs',
           editUrl: 'https://github.com/rtorcato/js-tooling/edit/main/apps/docs/',
         },
         blog: false,
@@ -67,7 +67,7 @@ const config: Config = {
         hashed: true,
         indexDocs: true,
         indexBlog: false,
-        docsRouteBasePath: '/',
+        docsRouteBasePath: '/docs',
         highlightSearchTermsOnTargetPage: true,
         searchBarShortcutHint: false,
       },
@@ -82,9 +82,9 @@ const config: Config = {
     navbar: {
       title: 'js-tooling',
       items: [
-        { to: '/', position: 'left', label: 'Docs', activeBaseRegex: '^/(?!guides|reference).*' },
-        { to: '/guides/getting-started', position: 'left', label: 'Guides' },
-        { to: '/reference/biome', position: 'left', label: 'Reference' },
+        { to: '/docs', position: 'left', label: 'Docs' },
+        { to: '/docs/guides/getting-started', position: 'left', label: 'Guides' },
+        { to: '/docs/reference/biome', position: 'left', label: 'Reference' },
         {
           href: 'https://github.com/rtorcato/js-tooling',
           label: 'GitHub',
@@ -103,11 +103,11 @@ const config: Config = {
         {
           title: 'Documentation',
           items: [
-            { label: 'Getting Started', to: '/guides/getting-started' },
-            { label: 'CLI', to: '/guides/cli' },
-            { label: 'For AI Agents', to: '/guides/for-ai-agents' },
-            { label: 'Library style guide', to: '/guides/library-style' },
-            { label: 'Changelog', to: '/changelog' },
+            { label: 'Getting Started', to: '/docs/guides/getting-started' },
+            { label: 'CLI', to: '/docs/guides/cli' },
+            { label: 'For AI Agents', to: '/docs/guides/for-ai-agents' },
+            { label: 'Library style guide', to: '/docs/guides/library-style' },
+            { label: 'Changelog', to: '/docs/changelog' },
           ],
         },
         {

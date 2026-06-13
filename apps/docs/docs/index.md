@@ -2,7 +2,6 @@
 title: js-tooling
 description: JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.
 sidebar_position: 0
-slug: /
 ---
 
 # js-tooling
