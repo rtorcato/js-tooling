@@ -22,7 +22,7 @@ npx @rtorcato/js-tooling copy biome     # → biome.json
 npx @rtorcato/js-tooling copy tsconfig  # → tsconfig.json
 ```
 
-**Why only two?** Biome doesn't support configuration extension, so the only way to customise it is to own the file. TypeScript configs also benefit from being local so editors resolve them without hunting up the tree. All other configs (ESLint, Prettier, Vitest, etc.) can be imported or extended directly — see the [Configuration Reference](/js-tooling/reference/biome/) for usage.
+**Why only two?** Biome doesn't support configuration extension, so the only way to customise it is to own the file. TypeScript configs also benefit from being local so editors resolve them without hunting up the tree. All other configs (ESLint, Prettier, Vitest, etc.) can be imported or extended directly — see the [Configuration Reference](../reference/biome.md) for usage.
 
 ## list / ls
 

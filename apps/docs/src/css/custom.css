@@ -1,0 +1,184 @@
+/**
+ * js-tooling — Docusaurus theme.
+ *
+ * Adapted from the rtorcato/browser-common theme (same structural patterns —
+ * Geist font, navy surfaces, design tokens) but with a green accent
+ * (#10b981 light / #34d399 dark) instead of blue.
+ */
+
+/* ---------- Fonts ---------- */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap");
+
+/* ---------- Light (default) ---------- */
+:root {
+	--ifm-color-primary: #10b981;
+	--ifm-color-primary-dark: #0fa674;
+	--ifm-color-primary-darker: #0e9d6d;
+	--ifm-color-primary-darkest: #0b8159;
+	--ifm-color-primary-light: #1bd397;
+	--ifm-color-primary-lighter: #28d99e;
+	--ifm-color-primary-lightest: #4ce0af;
+
+	--ifm-font-family-base: "Geist", system-ui, -apple-system, sans-serif;
+	--ifm-font-family-monospace: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+	--ifm-heading-font-weight: 800;
+	--ifm-code-font-size: 92%;
+
+	--ifm-background-color: #ffffff;
+	--ifm-background-surface-color: #ffffff;
+	--ifm-navbar-background-color: rgba(255, 255, 255, 0.8);
+	--ifm-heading-color: #0a0e16;
+	--ifm-font-color-base: #374253;
+	--ifm-link-color: #10b981;
+	--ifm-toc-border-color: rgba(12, 18, 28, 0.1);
+	--ifm-code-background: #f3f6f9;
+	--docusaurus-highlighted-code-line-bg: rgba(16, 185, 129, 0.12);
+
+	/* js-tooling custom tokens */
+	--jt-accent: #10b981;
+	--jt-accent-fill: #10b981;
+	--jt-on-accent: #ffffff;
+	--jt-bg: #ffffff;
+	--jt-bg2: #f6f8fb;
+	--jt-surface: #ffffff;
+	--jt-surface2: #f3f6f9;
+	--jt-code-bg: #f3f6f9;
+	--jt-border: rgba(12, 18, 28, 0.1);
+	--jt-border2: rgba(12, 18, 28, 0.16);
+	--jt-heading: #0a0e16;
+	--jt-text: #374253;
+	--jt-muted: #5b6675;
+	--jt-faint: #8a95a5;
+	--jt-accent-soft: rgba(16, 185, 129, 0.12);
+	--jt-accent-border: rgba(16, 185, 129, 0.4);
+	--jt-shadow: 0 22px 50px -26px rgba(20, 28, 44, 0.3);
+}
+
+/* ---------- Dark ---------- */
+[data-theme="dark"] {
+	--ifm-color-primary: #34d399;
+	--ifm-color-primary-dark: #1ccc8c;
+	--ifm-color-primary-darker: #16c285;
+	--ifm-color-primary-darkest: #11a06d;
+	--ifm-color-primary-light: #4cd9a6;
+	--ifm-color-primary-lighter: #58dcac;
+	--ifm-color-primary-lightest: #7ce4bd;
+
+	--ifm-background-color: #0a0e16;
+	--ifm-background-surface-color: #111824;
+	--ifm-navbar-background-color: #0a0e16;
+	--ifm-heading-color: #ffffff;
+	--ifm-font-color-base: #dfe5ee;
+	--ifm-link-color: #34d399;
+	--ifm-toc-border-color: rgba(255, 255, 255, 0.08);
+	--ifm-code-background: #0d131d;
+	--docusaurus-highlighted-code-line-bg: rgba(52, 211, 153, 0.14);
+
+	--jt-accent: #34d399;
+	--jt-accent-fill: #34d399;
+	--jt-on-accent: #0a0e16;
+	--jt-bg: #0a0e16;
+	--jt-bg2: #0b101a;
+	--jt-surface: #111824;
+	--jt-surface2: #0d131d;
+	--jt-code-bg: #0c111b;
+	--jt-border: rgba(255, 255, 255, 0.08);
+	--jt-border2: rgba(255, 255, 255, 0.14);
+	--jt-heading: #ffffff;
+	--jt-text: #dfe5ee;
+	--jt-muted: #94a1b4;
+	--jt-faint: #647184;
+	--jt-accent-soft: rgba(52, 211, 153, 0.14);
+	--jt-accent-border: rgba(52, 211, 153, 0.34);
+	--jt-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.75);
+}
+
+/* ---------- Navbar ---------- */
+.navbar {
+	border-bottom: 1px solid var(--jt-border);
+	box-shadow: none;
+}
+.navbar__link--active {
+	color: var(--jt-heading);
+}
+
+/* ---------- Backgrounds ---------- */
+html,
+body,
+#__docusaurus,
+.main-wrapper {
+	background: var(--ifm-background-color);
+}
+.theme-doc-sidebar-container {
+	background: var(--ifm-background-color) !important;
+	border-right: 1px solid var(--jt-border) !important;
+}
+.theme-doc-sidebar-container > div,
+.theme-doc-sidebar-container nav,
+.theme-doc-sidebar-menu,
+.menu,
+.menu__list {
+	background: var(--ifm-background-color);
+}
+.theme-doc-sidebar-container > div:first-child {
+	height: 100%;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+/* ---------- Sidebar ---------- */
+.menu {
+	font-size: 14px;
+	background: transparent;
+	padding: 16px 12px;
+}
+.menu__link {
+	border-radius: 6px;
+	color: var(--jt-text);
+	padding: 6px 10px;
+}
+.menu__link:hover {
+	background: var(--jt-surface2);
+	color: var(--jt-heading);
+}
+.menu__link--active {
+	background: var(--jt-accent-soft);
+	color: var(--jt-accent);
+	font-weight: 600;
+}
+.menu__list-item-collapsible {
+	border-radius: 6px;
+}
+.menu__list-item-collapsible:hover {
+	background: var(--jt-surface2);
+}
+
+/* ---------- Code blocks ---------- */
+code {
+	background: var(--jt-code-bg);
+	border: 1px solid var(--jt-border);
+	border-radius: 4px;
+	padding: 1px 6px;
+	font-size: var(--ifm-code-font-size);
+}
+.theme-code-block {
+	border-radius: 8px;
+	box-shadow: var(--jt-shadow);
+}
+
+/* ---------- Pagination / cards ---------- */
+.pagination-nav__link {
+	border: 1px solid var(--jt-border);
+	border-radius: 8px;
+	background: var(--jt-surface);
+}
+.pagination-nav__link:hover {
+	border-color: var(--jt-accent-border);
+	background: var(--jt-surface2);
+}
+
+/* ---------- Footer ---------- */
+.footer--dark {
+	background: #050810;
+	border-top: 1px solid var(--jt-border);
+}

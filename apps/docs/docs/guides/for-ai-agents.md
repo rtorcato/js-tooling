@@ -5,7 +5,7 @@ description: Use @rtorcato/js-tooling non-interactively from automated agents, C
 
 This page is for autonomous agents (Claude Code, Cursor, GitHub Copilot, CI bots, self-hosted assistants) that need to scaffold, audit, or fix JS/TS projects without human prompts. Every CLI command supports a non-interactive mode and emits structured JSON.
 
-Quick orientation: [llms.txt](/js-tooling/llms.txt) is a single-file index of every doc URL. The repo also ships an [AGENTS.md](https://github.com/rtorcato/js-tooling/blob/main/AGENTS.md) for agents working from a checkout.
+Quick orientation: [llms.txt](pathname:///llms.txt) is a single-file index of every doc URL. The repo also ships an [AGENTS.md](https://github.com/rtorcato/js-tooling/blob/main/AGENTS.md) for agents working from a checkout.
 
 ## Agent-friendly command catalog
 

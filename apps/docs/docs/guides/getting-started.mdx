@@ -3,22 +3,23 @@ title: Getting Started
 description: Install js-tooling and scaffold your project in one command.
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components'
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 ## Installation
 
 <Tabs>
-  <TabItem label="npx">
+  <TabItem value="npx" label="npx">
     ```bash
     npx @rtorcato/js-tooling setup
     ```
   </TabItem>
-  <TabItem label="pnpm dlx">
+  <TabItem value="pnpm" label="pnpm dlx">
     ```bash
     pnpm --package=@rtorcato/js-tooling dlx setup
     ```
   </TabItem>
-  <TabItem label="global">
+  <TabItem value="global" label="global">
     ```bash
     npm install -g @rtorcato/js-tooling
     js-tooling setup
@@ -106,7 +107,7 @@ npx @rtorcato/js-tooling fix             # walk every finding, prompting per ite
 npx @rtorcato/js-tooling fix dependabot  # or apply just one
 ```
 
-`fix` defaults to **No** when overwriting existing files — your customisations are preserved unless you explicitly opt in (or pass `--yes`). See [CLI reference](/js-tooling/guides/cli/#fix-target) for full details.
+`fix` defaults to **No** when overwriting existing files — your customisations are preserved unless you explicitly opt in (or pass `--yes`). See [CLI reference](./cli.md#fix-target) for full details.
 
 ## Using specific configs without the wizard
 
