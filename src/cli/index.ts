@@ -156,6 +156,18 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		fixTarget: 'semantic-release',
 	},
 	{
+		name: 'Changesets',
+		description: 'Monorepo-friendly release tool (alternative to semantic-release)',
+		exports: ['@rtorcato/js-tooling/changesets'],
+		fixTarget: 'changesets',
+	},
+	{
+		name: 'Oxlint',
+		description: 'Rust-based linter (additive to Biome/ESLint)',
+		exports: ['@rtorcato/js-tooling/oxlint'],
+		fixTarget: 'oxlint',
+	},
+	{
 		name: 'tsup',
 		description: 'TypeScript bundler configuration',
 		exports: ['@rtorcato/js-tooling/tsup'],

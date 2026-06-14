@@ -35,6 +35,8 @@ export interface ProjectConfig {
 	gitHooks: boolean
 	commitLint: boolean
 	semanticRelease: boolean
+	changesets?: boolean
+	oxlint?: boolean
 	securityAutomation: boolean
 	bundler: 'tsup' | 'esbuild' | 'vite' | 'none'
 	treeshakeCheck?: boolean
@@ -201,6 +203,13 @@ async function promptForConfig(): Promise<ProjectConfig> {
 			when: (answers: any) => answers.lintingTool === 'eslint' || answers.lintingTool === 'both',
 		},
 		{
+			type: 'confirm',
+			name: 'oxlint',
+			message: '🦀 Also run Oxlint alongside (50–100× faster than ESLint)?',
+			default: false,
+			when: (answers: any) => answers.lintingTool !== 'none',
+		},
+		{
 			type: 'list',
 			name: 'testingFramework',
 			message: '🧪 Which testing framework?',
@@ -238,10 +247,15 @@ async function promptForConfig(): Promise<ProjectConfig> {
 			when: (answers: any) => answers.gitHooks,
 		},
 		{
-			type: 'confirm',
-			name: 'semanticRelease',
-			message: '🚀 Set up semantic release for automated versioning?',
-			default: (answers: any) => answers.projectType === 'library',
+			type: 'list',
+			name: 'releaseTool',
+			message: '🚀 Automated release tool?',
+			choices: [
+				{ name: '📦 semantic-release (commit-message-driven)', value: 'semantic-release' },
+				{ name: '📝 Changesets (changeset-file-driven, monorepo-friendly)', value: 'changesets' },
+				{ name: '❌ None', value: 'none' },
+			],
+			default: 'semantic-release',
 			when: (answers: any) => answers.projectType === 'library',
 		},
 		{
@@ -303,7 +317,9 @@ async function promptForConfig(): Promise<ProjectConfig> {
 		},
 		gitHooks: answers.gitHooks || false,
 		commitLint: answers.commitLint || false,
-		semanticRelease: answers.semanticRelease || false,
+		semanticRelease: answers.releaseTool === 'semantic-release',
+		changesets: answers.releaseTool === 'changesets',
+		oxlint: answers.oxlint || false,
 		securityAutomation: answers.securityAutomation ?? false,
 		bundler: answers.bundler || 'none',
 		treeshakeCheck: answers.treeshakeCheck || false,

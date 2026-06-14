@@ -88,7 +88,17 @@ describe('generateBuildConfigs', () => {
 		expect(content).toContain('@rtorcato/js-tooling/semantic-release/github')
 	})
 
-	it('writes no files when bundler is none and semanticRelease is false', async () => {
+	it('writes .changeset/config.json when changesets is true', async () => {
+		const dir = newTmpDir()
+		await generateBuildConfigs(baseConfig({ changesets: true }), dir)
+
+		const config = await fs.readJson(join(dir, '.changeset/config.json'))
+		expect(config.access).toBe('public')
+		expect(config.baseBranch).toBe('main')
+		expect(await fs.pathExists(join(dir, 'release.config.mjs'))).toBe(false)
+	})
+
+	it('writes no files when bundler is none and no release tool is selected', async () => {
 		const dir = newTmpDir()
 		await generateBuildConfigs(baseConfig(), dir)
 
@@ -96,5 +106,6 @@ describe('generateBuildConfigs', () => {
 		expect(await fs.pathExists(join(dir, 'build.mjs'))).toBe(false)
 		expect(await fs.pathExists(join(dir, 'vite.config.ts'))).toBe(false)
 		expect(await fs.pathExists(join(dir, 'release.config.mjs'))).toBe(false)
+		expect(await fs.pathExists(join(dir, '.changeset/config.json'))).toBe(false)
 	})
 })

@@ -70,4 +70,23 @@ describe('generateLintingConfigs', () => {
 		const eslint = await fs.readFile(join(dir, 'eslint.config.mjs'), 'utf-8')
 		expect(eslint).toContain("from '@rtorcato/js-tooling/eslint/base'")
 	})
+
+	it('drops .oxlintrc.json when oxlint is enabled (additive to Biome)', async () => {
+		const dir = newTmpDir()
+		await generateLintingConfigs(
+			baseConfig({ linting: { tool: 'biome' }, oxlint: true }),
+			dir
+		)
+
+		expect(await fs.pathExists(join(dir, 'biome.jsonc'))).toBe(true)
+		const oxlint = await fs.readJson(join(dir, '.oxlintrc.json'))
+		expect(oxlint.categories?.correctness).toBe('error')
+	})
+
+	it('skips .oxlintrc.json when oxlint flag is unset', async () => {
+		const dir = newTmpDir()
+		await generateLintingConfigs(baseConfig({ linting: { tool: 'biome' } }), dir)
+
+		expect(await fs.pathExists(join(dir, '.oxlintrc.json'))).toBe(false)
+	})
 })

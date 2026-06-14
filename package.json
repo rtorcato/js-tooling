@@ -73,6 +73,8 @@
 		"tooling/tests/ssr-safety.d.mts",
 		"tooling/tsup/index.ts",
 		"tooling/biome/biome.json",
+		"tooling/changesets/config.json",
+		"tooling/oxlint/oxlintrc.json",
 		"tooling/typedoc/typedoc.json",
 		"tooling/semantic-release/*.mjs",
 		"tooling/semantic-release/*.d.mts",
@@ -146,6 +148,8 @@
 		},
 		"./tsup": "./tooling/tsup/index.ts",
 		"./biome": "./tooling/biome/biome.json",
+		"./changesets": "./tooling/changesets/config.json",
+		"./oxlint": "./tooling/oxlint/oxlintrc.json",
 		"./typedoc": "./tooling/typedoc/typedoc.json",
 		"./semantic-release": {
 			"types": "./tooling/semantic-release/index.d.mts",

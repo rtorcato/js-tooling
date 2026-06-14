@@ -15,6 +15,11 @@ export async function generateBuildConfigs(config: ProjectConfig, targetDir: str
 	if (config.semanticRelease) {
 		await generateSemanticReleaseConfig(targetDir)
 	}
+
+	// Generate Changesets config (alternative to semantic-release)
+	if (config.changesets) {
+		await generateChangesetsConfig(targetDir)
+	}
 }
 
 async function generateTsupConfig(targetDir: string) {
@@ -86,4 +91,12 @@ export async function generateSemanticReleaseConfig(targetDir: string) {
 `
 
 	await fs.writeFile(releaseConfigPath, releaseConfig)
+}
+
+export async function generateChangesetsConfig(targetDir: string) {
+	// Drop the canonical Changesets config into .changeset/config.json. The user
+	// owns this file once it's in their repo; subsequent `pnpm changeset` runs
+	// create per-change markdown files alongside it.
+	const { copyPreset } = await import('../utils/copy-preset.js')
+	await copyPreset('changesets', targetDir)
 }
