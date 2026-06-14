@@ -720,3 +720,77 @@ describe('fix walk-all', () => {
 		expect(await fs.pathExists(join(dir, '.editorconfig'))).toBe(false)
 	})
 })
+
+describe('fix --diff', () => {
+	it('prints a unified diff before the confirm prompt for a drifted destructive fixer', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		// Seed a drifted biome.json so doctor flags drift and the diff has both sides.
+		await fs.writeJson(join(dir, 'biome.json'), { foo: 'bar' })
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		promptMock.mockResolvedValue({ confirm: false })
+		try {
+			await fixCommand('biome', { directory: dir, diff: true })
+			const output = logSpy.mock.calls.flat().join('\n')
+			// Unified diff headers come from `createPatch`.
+			expect(output).toMatch(/--- biome\.json/)
+			expect(output).toMatch(/\+\+\+ biome\.json/)
+			// The drifted content should appear as a removed line in the diff.
+			expect(output).toMatch(/-.*"foo"/)
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('labels the preview as "create" when the target file does not yet exist', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		promptMock.mockResolvedValue({ confirm: false })
+		try {
+			await fixCommand('nvmrc', { directory: dir, diff: true })
+			const output = logSpy.mock.calls.flat().join('\n')
+			expect(output).toMatch(/create.*\.nvmrc/)
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('emits no diff markers when --json is set (JSON output stream stays clean)', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeJson(join(dir, 'biome.json'), { foo: 'bar' })
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand('biome', { directory: dir, diff: true, json: true })
+			// Every console.log call in JSON mode should be valid JSON or empty.
+			for (const call of logSpy.mock.calls) {
+				const line = call[0] as string
+				if (!line || line.trim() === '') continue
+				expect(line).not.toMatch(/^\+\+\+ /)
+				expect(line).not.toMatch(/^--- /)
+			}
+			const lastCall = logSpy.mock.calls.at(-1)?.[0] as string
+			const payload = JSON.parse(lastCall)
+			expect(payload.actions).toBeDefined()
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('does not show a diff for safe-add fixers (would-be no-op)', async () => {
+		// `dependabot` is safe-add — the preview path should be skipped.
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		promptMock.mockResolvedValue({ confirm: false })
+		try {
+			await fixCommand('dependabot', { directory: dir, diff: true })
+			const output = logSpy.mock.calls.flat().join('\n')
+			expect(output).not.toMatch(/^\+\+\+ /m)
+			expect(output).not.toMatch(/^--- /m)
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+})

@@ -264,6 +264,7 @@ program
 	.option('--json', 'Emit machine-readable JSON output (implies --yes)')
 	.option('--list', 'List all registered fix targets and exit')
 	.option('--resync', 'Re-scaffold every file recorded in .js-tooling.json')
+	.option('--diff', 'Show a unified diff of each change before confirming')
 	.action((target: string | undefined, options) =>
 		fixCommand(target, {
 			directory: options.directory,
@@ -272,6 +273,7 @@ program
 			json: options.json,
 			list: options.list,
 			resync: options.resync,
+			diff: options.diff,
 		})
 	)
 
