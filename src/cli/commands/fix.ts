@@ -284,6 +284,28 @@ const FIXERS: Fixer[] = [
 		},
 	},
 	{
+		target: 'changesets',
+		description: 'Scaffold .changeset/config.json (alternative to semantic-release)',
+		appliesTo: ['Changesets'],
+		outputs: ['.changeset/config.json'],
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const result = await copyPreset('changesets', targetDir)
+			return { filesWritten: [result.target] }
+		},
+	},
+	{
+		target: 'oxlint',
+		description: 'Scaffold .oxlintrc.json (additive to Biome/ESLint)',
+		appliesTo: ['Oxlint'],
+		outputs: ['.oxlintrc.json'],
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const result = await copyPreset('oxlint', targetDir)
+			return { filesWritten: [result.target] }
+		},
+	},
+	{
 		target: 'github-actions',
 		description: 'Scaffold .github/workflows/ci.yml',
 		appliesTo: ['GitHub Actions'],

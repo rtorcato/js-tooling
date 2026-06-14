@@ -1,7 +1,7 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 
-export type PresetName = 'biome' | 'tsconfig'
+export type PresetName = 'biome' | 'changesets' | 'oxlint' | 'tsconfig'
 
 export interface PresetDefinition {
 	source: string
@@ -14,6 +14,16 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		source: 'tooling/biome/biome.json',
 		target: 'biome.json',
 		desc: 'Biome formatter and linter configuration',
+	},
+	changesets: {
+		source: 'tooling/changesets/config.json',
+		target: '.changeset/config.json',
+		desc: 'Changesets release-tool configuration',
+	},
+	oxlint: {
+		source: 'tooling/oxlint/oxlintrc.json',
+		target: '.oxlintrc.json',
+		desc: 'Oxlint linter configuration (additive to Biome)',
 	},
 	tsconfig: {
 		source: 'tooling/typescript/tsconfig.base.json',

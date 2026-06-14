@@ -132,6 +132,8 @@ export const CONFIG_SCHEMA = {
 		gitHooks: { type: 'boolean' },
 		commitLint: { type: 'boolean' },
 		semanticRelease: { type: 'boolean' },
+		changesets: { type: 'boolean' },
+		oxlint: { type: 'boolean' },
 		securityAutomation: { type: 'boolean' },
 		bundler: { type: 'string', enum: ['tsup', 'esbuild', 'vite', 'none'] },
 		treeshakeCheck: { type: 'boolean' },
@@ -201,6 +203,8 @@ export function computeFileList(config: ProjectConfig): string[] {
 	else if (config.bundler === 'esbuild') files.push('build.mjs')
 	else if (config.bundler === 'vite') files.push('vite.config.ts')
 	if (config.semanticRelease) files.push('release.config.mjs')
+	if (config.changesets) files.push('.changeset/config.json')
+	if (config.oxlint) files.push('.oxlintrc.json')
 	if (config.treeshakeCheck && config.projectType === 'library') {
 		files.push(
 			'apps/treeshake-check/package.json',

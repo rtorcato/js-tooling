@@ -17,6 +17,19 @@ export async function generateLintingConfigs(config: ProjectConfig, targetDir: s
 	if (config.linting.tool === 'eslint') {
 		await generatePrettierConfig(targetDir)
 	}
+
+	// Generate Oxlint config (additive — runs alongside Biome/ESLint)
+	if (config.oxlint) {
+		await generateOxlintConfig(targetDir)
+	}
+}
+
+export async function generateOxlintConfig(targetDir: string) {
+	// Oxlint's `extends` resolution from npm packages isn't reliably supported,
+	// so we copy the full preset rather than write a thin pointer file (same
+	// pattern as biome.jsonc — the user owns the file once it's in their repo).
+	const { copyPreset } = await import('../utils/copy-preset.js')
+	await copyPreset('oxlint', targetDir)
 }
 
 export async function generateBiomeConfig(targetDir: string) {

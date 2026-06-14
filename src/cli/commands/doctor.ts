@@ -120,6 +120,24 @@ const FILE_CHECKS: FileCheck[] = [
 		matcher: /@rtorcato\/js-tooling\/commitlint\/config/,
 		optional: true,
 	},
+	{
+		check: 'Oxlint',
+		candidates: ['.oxlintrc.json', 'oxlintrc.json'],
+		// Oxlint configs are project-owned (extends from npm packages isn't
+		// reliably supported), so any well-formed file counts as ok.
+		expected: 'is a valid Oxlint configuration',
+		matcher: /"(rules|plugins|categories|extends)"/,
+		optional: true,
+		hint: 'Run `npx @rtorcato/js-tooling copy oxlint` to scaffold',
+	},
+	{
+		check: 'Changesets',
+		candidates: ['.changeset/config.json'],
+		expected: 'is a valid Changesets configuration',
+		matcher: /"(changelog|access|baseBranch)"/,
+		optional: true,
+		hint: 'Run `npx @rtorcato/js-tooling copy changesets` to scaffold',
+	},
 ]
 
 async function checkFile(dir: string, spec: FileCheck): Promise<CheckResult> {
@@ -510,7 +528,27 @@ async function checkSemanticRelease(dir: string, pkg: Pkg | null): Promise<Check
 		}
 	}
 
+	const hasChangesets = await fs.pathExists(path.join(dir, '.changeset', 'config.json'))
+
+	// Conflict: both semantic-release and Changesets configured.
+	if ((inPkg || configFile) && hasChangesets) {
+		return {
+			check: 'semantic-release',
+			status: 'drift',
+			detail: 'both semantic-release and Changesets are configured',
+			hint: 'Pick one release tool — remove either the semantic-release config or the .changeset/ directory',
+		}
+	}
+
 	if (!inPkg && !configFile) {
+		// Changesets present — treat semantic-release as intentionally not used.
+		if (hasChangesets) {
+			return {
+				check: 'semantic-release',
+				status: 'ok',
+				detail: 'using Changesets (.changeset/config.json) instead',
+			}
+		}
 		return {
 			check: 'semantic-release',
 			status: isPrivate ? 'optional-missing' : 'drift',

@@ -19,10 +19,12 @@ const sidebars: SidebarsConfig = {
       label: 'Configuration Reference',
       items: [
         'reference/biome',
+        'reference/changesets',
         'reference/commitlint',
         'reference/esbuild',
         'reference/eslint',
         'reference/jest',
+        'reference/oxlint',
         'reference/prettier',
         'reference/semantic-release',
         'reference/tsup',
