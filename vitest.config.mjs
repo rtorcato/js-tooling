@@ -7,6 +7,7 @@ export default mergeConfig(
 	base,
 	defineConfig({
 		test: {
+			exclude: ['**/node_modules/**', '**/dist/**', '**/.claude/**'],
 			coverage: {
 				include: ['src/cli/generators/**/*.ts'],
 				thresholds: {
