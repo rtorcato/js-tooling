@@ -175,11 +175,13 @@
 	"dependencies": {
 		"chalk": "^5.6.2",
 		"commander": "^14.0.3",
+		"diff": "^9.0.0",
 		"fs-extra": "^11.3.2",
 		"inquirer": "^14.0.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.16",
+		"@types/diff": "^8.0.0",
 		"@commitlint/cli": "^20.1.0",
 		"@commitlint/config-conventional": "^21.0.2",
 		"@commitlint/types": "^20.0.0",
@@ -239,6 +241,7 @@
 		"@semantic-release/github": "^12.0.8",
 		"@semantic-release/npm": "^13.0.0",
 		"@semantic-release/release-notes-generator": "^14.0.0",
+		"@size-limit/preset-small-lib": "^12.0.0",
 		"@total-typescript/ts-reset": "^0.6.0",
 		"@typescript-eslint/eslint-plugin": "^8.0.0",
 		"@typescript-eslint/parser": "^8.0.0",
@@ -252,7 +255,6 @@
 		"prettier": "^3.0.0",
 		"semantic-release": "^25.0.0",
 		"size-limit": "^12.0.0",
-		"@size-limit/preset-small-lib": "^12.0.0",
 		"ts-jest": "^29.0.0",
 		"tsup": "^8.0.0",
 		"typescript": ">=5.0.0",

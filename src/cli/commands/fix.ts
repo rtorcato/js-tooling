@@ -1,5 +1,7 @@
 import path from 'node:path'
+import os from 'node:os'
 import chalk from 'chalk'
+import { createPatch } from 'diff'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import { generateSemanticReleaseConfig } from '../generators/build.js'
@@ -50,6 +52,7 @@ export interface FixOptions {
 	json?: boolean
 	list?: boolean
 	resync?: boolean
+	diff?: boolean
 }
 
 export type FixActionStatus = 'applied' | 'dry-run' | 'skipped' | 'already-ok' | 'unsupported'
@@ -592,6 +595,130 @@ export function listFixers(): FixerSummary[] {
 	}))
 }
 
+// Fixer outputs sometimes carry annotations like
+// "package.json (lint-staged field)" — strip them to get a usable filesystem path.
+function outputToRelativePath(output: string): string {
+	return output.split(' ')[0] ?? output
+}
+
+function shouldColorise(): boolean {
+	// Respect NO_COLOR (https://no-color.org) and chalk's own detection.
+	if (process.env.NO_COLOR && process.env.NO_COLOR !== '') return false
+	return chalk.level > 0
+}
+
+function colorisePatch(patch: string): string {
+	if (!shouldColorise()) return patch
+	return patch
+		.split('\n')
+		.map((line) => {
+			if (line.startsWith('+++') || line.startsWith('---')) return chalk.bold(line)
+			if (line.startsWith('@@')) return chalk.cyan(line)
+			if (line.startsWith('+')) return chalk.green(line)
+			if (line.startsWith('-')) return chalk.red(line)
+			return line
+		})
+		.join('\n')
+}
+
+interface PreviewEntry {
+	path: string
+	kind: 'create' | 'modify' | 'unchanged'
+	patch: string | null
+}
+
+/**
+ * Shadow-run a fixer in a temp copy of the target directory and return per-output
+ * diffs. We copy the real target into tmp so fixers that read existing state
+ * (e.g. husky reading package.json) still produce realistic output.
+ */
+async function previewFixer(
+	fixer: Fixer,
+	result: CheckResult,
+	targetDir: string,
+	pkg: Pkg,
+	lock: Lockfile | null
+): Promise<PreviewEntry[]> {
+	// Pick a tmp root that is NOT inside targetDir. macOS sometimes hands us a
+	// $TMPDIR that lives under the working dir (e.g. when the caller is itself
+	// running inside a tempdir tree), which would make fs.copy fail with
+	// "subdirectory of itself". Fall back to the parent of targetDir if so.
+	const resolvedTarget = path.resolve(targetDir)
+	let tmpRoot = path.resolve(os.tmpdir())
+	if (tmpRoot === resolvedTarget || tmpRoot.startsWith(resolvedTarget + path.sep)) {
+		tmpRoot = path.dirname(resolvedTarget)
+	}
+	const tmpDir = await fs.mkdtemp(path.join(tmpRoot, 'js-tooling-fix-preview-'))
+	try {
+		await fs.copy(targetDir, tmpDir, {
+			filter: (src) => {
+				const rel = path.relative(targetDir, src)
+				if (!rel) return true
+				const first = rel.split(path.sep)[0]
+				// Skip large/derived dirs that fixers never touch — keeps preview fast on
+				// big repos.
+				return first !== 'node_modules' && first !== 'dist' && first !== 'build' && first !== '.git'
+			},
+		})
+		await fixer.run({ targetDir: tmpDir, pkg, result, lock })
+
+		const previews: PreviewEntry[] = []
+		const seen = new Set<string>()
+		for (const output of fixer.outputs) {
+			const rel = outputToRelativePath(output)
+			if (seen.has(rel)) continue
+			seen.add(rel)
+
+			const tmpPath = path.join(tmpDir, rel)
+			const realPath = path.join(targetDir, rel)
+			if (!(await fs.pathExists(tmpPath))) continue
+
+			const newContent = await fs.readFile(tmpPath, 'utf-8')
+			const existed = await fs.pathExists(realPath)
+			const oldContent = existed ? await fs.readFile(realPath, 'utf-8') : ''
+
+			if (newContent === oldContent) {
+				previews.push({ path: rel, kind: 'unchanged', patch: null })
+				continue
+			}
+			const patch = createPatch(rel, oldContent, newContent, undefined, undefined, { context: 3 })
+			previews.push({
+				path: rel,
+				kind: existed ? 'modify' : 'create',
+				patch: colorisePatch(patch),
+			})
+		}
+		return previews
+	} finally {
+		await fs.remove(tmpDir).catch(() => {
+			// Best-effort cleanup; tmp dirs get GC'd by the OS eventually.
+		})
+	}
+}
+
+function printPreviews(previews: PreviewEntry[]): void {
+	if (previews.length === 0) {
+		console.log(chalk.gray('  (no preview available — fixer produced no recognisable outputs)'))
+		return
+	}
+	for (const p of previews) {
+		if (p.kind === 'unchanged') {
+			console.log(chalk.gray(`  ${p.path} — unchanged`))
+			continue
+		}
+		const label = p.kind === 'create' ? chalk.green('create') : chalk.yellow('modify')
+		console.log(`  ${label} ${chalk.bold(p.path)}`)
+		if (p.patch) {
+			console.log(
+				p.patch
+					.split('\n')
+					.map((l) => `    ${l}`)
+					.join('\n')
+			)
+		}
+	}
+}
+
 async function applyFixer(
 	fixer: Fixer,
 	result: CheckResult,
@@ -678,6 +805,8 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 	// JSON mode implies --yes so prompts don't corrupt the output stream.
 	const assumeYes = options.yes === true || json
 	const silent = json
+	// Diff preview is interactive-only — suppress in JSON mode.
+	const showDiff = options.diff === true && !json
 
 	if (options.list) {
 		const summary = listFixers()
@@ -840,6 +969,10 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 			)
 		}
 		const conflict = noteLockConflict(result.check)
+		if (showDiff && (fixer.riskLevel ?? 'destructive') !== 'safe-add') {
+			const previews = await previewFixer(fixer, effectiveResult, targetDir, pkg, lock)
+			printPreviews(previews)
+		}
 		const ok = await confirmApply(fixer, effectiveResult, assumeYes)
 		if (!ok) {
 			actions.push(
@@ -892,6 +1025,10 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 			console.log(`  ${chalk.bold(result.check)} (${result.status}) → ${fixer.target}`)
 		}
 		const conflict = noteLockConflict(result.check)
+		if (showDiff && (fixer.riskLevel ?? 'destructive') !== 'safe-add') {
+			const previews = await previewFixer(fixer, result, targetDir, pkg, lock)
+			printPreviews(previews)
+		}
 		const ok = await confirmApply(fixer, result, assumeYes)
 		if (!ok) {
 			actions.push(recordFor(fixer.target, result.check, result.status, 'skipped', [], conflict))

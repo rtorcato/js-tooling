@@ -82,6 +82,7 @@ npx @rtorcato/js-tooling fix                    # walk all findings interactivel
 npx @rtorcato/js-tooling fix dependabot         # scaffold just .github/dependabot.yml
 npx @rtorcato/js-tooling fix --yes              # apply every recommended fix without prompts
 npx @rtorcato/js-tooling fix biome --dry-run    # print what would change, write nothing
+npx @rtorcato/js-tooling fix biome --diff       # show the exact diff before confirming
 ```
 
 ### Flags
@@ -91,10 +92,46 @@ npx @rtorcato/js-tooling fix biome --dry-run    # print what would change, write
 | `-d, --directory <path>` | Target directory (defaults to cwd) |
 | `--yes` | Assume yes to every prompt, including drift overwrites |
 | `--dry-run` | Print the files each fixer would write, without writing |
+| `--diff` | Print a unified diff of each change before the confirm prompt |
 
 ### Drift policy
 
 When a file exists but doesn't extend the preset, `fix` defaults the confirm prompt to **No** — your customisations are preserved unless you explicitly say yes (or pass `--yes`). The prompt always tells you which file is about to be overwritten.
+
+### Diff preview (`--diff`)
+
+When you want to see *exactly* what would change before saying yes, pass `--diff`. For each output the fixer would touch, you'll see:
+
+- a `create <path>` header if the file is new (no diff body to show), or
+- a `modify <path>` header followed by a unified diff comparing the current file to what the fixer would write.
+
+```text
+$ npx @rtorcato/js-tooling fix biome --diff
+🔧 biome — Biome is drift
+
+  modify biome.json
+    --- biome.json
+    +++ biome.json
+    @@ -1,3 +1,12 @@
+    -{
+    -  "rules": { "noConsole": "error" }
+    -}
+    +{
+    +  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+    +  "extends": ["@rtorcato/js-tooling/biome"],
+    +  …
+    +}
+? ⚠️  Scaffold biome.json … — overwrite existing file? user customizations will be lost (y/N)
+```
+
+The diff:
+
+- is suppressed in `--json` mode (the structured output stream stays clean),
+- is suppressed for safe-add fixers (those never overwrite existing files),
+- honours `NO_COLOR` and the standard terminal-colour detection chalk uses,
+- works in both targeted (`fix biome --diff`) and walk-all (`fix --diff`) modes.
+
+Implementation note: the preview is computed by shadow-running the fixer in a temp copy of your project directory — your real files are never touched until you confirm.
 
 ### Available targets
 
