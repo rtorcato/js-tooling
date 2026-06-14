@@ -1,3 +1,19 @@
+# [2.18.0](https://github.com/rtorcato/js-tooling/compare/v2.17.1...v2.18.0) (2026-06-14)
+
+
+### Bug Fixes
+
+* **ci:** remove conflicting pnpm version pin in workflow ([c1cf346](https://github.com/rtorcato/js-tooling/commit/c1cf3464cf12451bbe5f3516a748638d0446a979))
+* **test:** bump vitest to 4.1.8 and adapt helper tests ([8f4a700](https://github.com/rtorcato/js-tooling/commit/8f4a7003e8dc120fb8906cc1e326b5447c63369a))
+
+
+### Features
+
+* add Oxlint and Changesets presets ([#71](https://github.com/rtorcato/js-tooling/issues/71)) ([bf1445f](https://github.com/rtorcato/js-tooling/commit/bf1445f6eaac9ebc59629d7fed3c307ec89d86b6)), closes [#55](https://github.com/rtorcato/js-tooling/issues/55) [#57](https://github.com/rtorcato/js-tooling/issues/57) [#57](https://github.com/rtorcato/js-tooling/issues/57) [#55](https://github.com/rtorcato/js-tooling/issues/55) [60-#70](https://github.com/60-/issues/70) [#59](https://github.com/rtorcato/js-tooling/issues/59)
+* **docs:** browser-common-styled landing page ([#53](https://github.com/rtorcato/js-tooling/issues/53)) ([7e38336](https://github.com/rtorcato/js-tooling/commit/7e383360ce5739e3cb5ba1036919a4bb4ace0267))
+* **docs:** migrate apps/docs from Astro Starlight to Docusaurus 3 ([#51](https://github.com/rtorcato/js-tooling/issues/51)) ([e6435af](https://github.com/rtorcato/js-tooling/commit/e6435af11d966a615f620feb91bd83502499b8b5)), closes [10b981/#34d399](https://github.com/rtorcato/js-tooling/issues/34d399) [#50](https://github.com/rtorcato/js-tooling/issues/50)
+* **fix:** add --diff flag for unified-diff preview before confirm ([#72](https://github.com/rtorcato/js-tooling/issues/72)) ([ace0ccf](https://github.com/rtorcato/js-tooling/commit/ace0ccf11961fed5cd9d990c943dc7736b01b0fe))
+
 ## [2.17.1](https://github.com/rtorcato/js-tooling/compare/v2.17.0...v2.17.1) (2026-06-09)
 
 
