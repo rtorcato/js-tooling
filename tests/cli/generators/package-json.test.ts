@@ -62,12 +62,30 @@ describe('generatePackageJson', () => {
 		await generatePackageJson(baseConfig({ projectType: 'library' }), dir)
 
 		const pkg = await fs.readJson(join(dir, 'package.json'))
-		expect(pkg.main).toBe('./dist/index.js')
-		expect(pkg.module).toBe('./dist/index.mjs')
+		// Mapping must match tsup output (type:module, format cjs+esm):
+		// ESM → index.js, CJS → index.cjs, types → index.d.ts / index.d.cts.
+		expect(pkg.main).toBe('./dist/index.cjs')
+		expect(pkg.module).toBe('./dist/index.js')
 		expect(pkg.types).toBe('./dist/index.d.ts')
-		expect(pkg.exports['.']).toBeDefined()
+		expect(pkg.exports['.'].import).toBe('./dist/index.js')
+		expect(pkg.exports['.'].require).toBe('./dist/index.cjs')
 		expect(pkg.files).toContain('dist')
 		expect(pkg.publishConfig.access).toBe('public')
+	})
+
+	it('approves esbuild build and installs release plugins for a library', async () => {
+		const dir = newTmpDir()
+		await generatePackageJson(
+			baseConfig({ projectType: 'library', bundler: 'tsup', semanticRelease: true }),
+			dir
+		)
+
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		// pnpm 11 blocks esbuild's build script (pulled via tsup) unless approved.
+		expect(pkg.pnpm.onlyBuiltDependencies).toContain('esbuild')
+		// The github release preset activates the changelog + git plugins.
+		expect(pkg.devDependencies['@semantic-release/changelog']).toBeDefined()
+		expect(pkg.devDependencies['@semantic-release/git']).toBeDefined()
 	})
 
 	it('omits library fields for web-app project type', async () => {

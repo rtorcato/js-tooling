@@ -32,21 +32,37 @@ export async function generatePackageJson(config: ProjectConfig, targetDir: stri
 		},
 	}
 
-	// Add additional package.json fields based on project type
+	// Add additional package.json fields based on project type.
+	// Exports must match tsup's output for a "type": "module" package with
+	// format: ['cjs','esm']: ESM → index.js, CJS → index.cjs, types →
+	// index.d.ts (ESM) / index.d.cts (CJS).
 	if (config.projectType === 'library') {
-		packageJson.main = './dist/index.js'
-		packageJson.module = './dist/index.mjs'
+		packageJson.main = './dist/index.cjs'
+		packageJson.module = './dist/index.js'
 		packageJson.types = './dist/index.d.ts'
 		packageJson.exports = {
 			'.': {
-				import: './dist/index.mjs',
-				require: './dist/index.js',
-				types: './dist/index.d.ts',
+				types: {
+					import: './dist/index.d.ts',
+					require: './dist/index.d.cts',
+				},
+				import: './dist/index.js',
+				require: './dist/index.cjs',
 			},
 		}
 		packageJson.files = ['dist']
 		packageJson.publishConfig = {
 			access: 'public',
+		}
+	}
+
+	// pnpm 11 refuses to run a dependency's build script unless it's approved.
+	// esbuild (pulled in by tsup/esbuild/vite) has one, so `pnpm install` exits
+	// 1 with ERR_PNPM_IGNORED_BUILDS until it's whitelisted here.
+	if (config.bundler === 'tsup' || config.bundler === 'esbuild' || config.bundler === 'vite') {
+		packageJson.pnpm = {
+			...(packageJson.pnpm as Record<string, unknown> | undefined),
+			onlyBuiltDependencies: ['esbuild'],
 		}
 	}
 
@@ -229,10 +245,14 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 		deps['@commitlint/config-conventional'] = '^20.0.0'
 	}
 
-	// Semantic release
+	// Semantic release. The shipped github preset activates the changelog and
+	// git plugins (and @semantic-release/github), so they must be installed too
+	// or `semantic-release` crashes with "Cannot find module".
 	if (config.semanticRelease) {
 		deps['semantic-release'] = '^25.0.0'
 		deps['@semantic-release/github'] = '^12.0.0'
+		deps['@semantic-release/changelog'] = '^6.0.0'
+		deps['@semantic-release/git'] = '^10.0.0'
 	}
 
 	return deps

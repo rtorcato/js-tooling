@@ -30,6 +30,10 @@ describe('generateLintingConfigs', () => {
 
 		const biome = await fs.readJson(join(dir, 'biome.jsonc'))
 		expect(biome.extends).toEqual(['@rtorcato/js-tooling/biome'])
+		// Biome 2.x schema + shape — no 1.x `files.include`/`ignore` that would
+		// force consumers to run `biome migrate` before `biome check` runs.
+		expect(biome.$schema).toContain('biomejs.dev/schemas/2.')
+		expect(biome.files?.include).toBeUndefined()
 		expect(await fs.pathExists(join(dir, 'eslint.config.mjs'))).toBe(false)
 		expect(await fs.pathExists(join(dir, 'prettier.config.mjs'))).toBe(false)
 	})

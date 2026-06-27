@@ -59,7 +59,7 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: .nvmrc
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v4
@@ -94,7 +94,7 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: .nvmrc
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v4
@@ -125,7 +125,7 @@ ${
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: .nvmrc
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v4
@@ -158,7 +158,7 @@ ${
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: .nvmrc
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v4
@@ -191,7 +191,7 @@ ${
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: .nvmrc
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v4
@@ -242,7 +242,7 @@ ${
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: .nvmrc
           registry-url: 'https://registry.npmjs.org'
 
       - name: 📦 Setup pnpm

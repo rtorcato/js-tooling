@@ -68,19 +68,15 @@ npx --no -- commitlint --edit $1
 	const packageJsonPath = path.join(targetDir, 'package.json')
 	const packageJson = await fs.readJson(packageJsonPath)
 
+	// No explicit `git add` — lint-staged stages tool output itself, and the
+	// extra add races its index lock. `--no-errors-on-unmatched` keeps biome
+	// from failing a commit when every matched file is biome-ignored.
+	const useBiome = config.linting.tool === 'biome' || config.linting.tool === 'both'
 	packageJson['lint-staged'] = {
-		'*.{js,ts,jsx,tsx}': [
-			config.linting.tool === 'biome' || config.linting.tool === 'both'
-				? 'biome check --fix'
-				: 'eslint --fix',
-			'git add',
-		],
-		'*.{json,md,yml,yaml}': [
-			config.linting.tool === 'biome' || config.linting.tool === 'both'
-				? 'biome format --write'
-				: 'prettier --write',
-			'git add',
-		],
+		'*.{js,ts,jsx,tsx}': useBiome ? 'biome check --fix --no-errors-on-unmatched' : 'eslint --fix',
+		'*.{json,md,yml,yaml}': useBiome
+			? 'biome format --write --no-errors-on-unmatched'
+			: 'prettier --write',
 	}
 
 	await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 })

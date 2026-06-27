@@ -71,7 +71,8 @@
 		"tooling/tests/exports-resolution.d.mts",
 		"tooling/tests/ssr-safety.mjs",
 		"tooling/tests/ssr-safety.d.mts",
-		"tooling/tsup/index.ts",
+		"tooling/tsup/index.mjs",
+		"tooling/tsup/index.d.mts",
 		"tooling/biome/biome.json",
 		"tooling/changesets/config.json",
 		"tooling/oxlint/oxlintrc.json",
@@ -147,7 +148,10 @@
 			"types": "./tooling/vitest/jsdom-shims.d.mts",
 			"import": "./tooling/vitest/jsdom-shims.mjs"
 		},
-		"./tsup": "./tooling/tsup/index.ts",
+		"./tsup": {
+			"types": "./tooling/tsup/index.d.mts",
+			"import": "./tooling/tsup/index.mjs"
+		},
 		"./biome": "./tooling/biome/biome.json",
 		"./changesets": "./tooling/changesets/config.json",
 		"./oxlint": "./tooling/oxlint/oxlintrc.json",
