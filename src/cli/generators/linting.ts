@@ -35,13 +35,13 @@ export async function generateOxlintConfig(targetDir: string) {
 export async function generateBiomeConfig(targetDir: string) {
 	const biomeConfigPath = path.join(targetDir, 'biome.jsonc')
 
+	// Biome 2.x schema + shape. The base preset (extends) already defines the
+	// file globs via `files.includes`; emitting the old 1.x `include`/`ignore`
+	// keys here forced consumers to run `biome migrate` before `biome check`
+	// would run at all.
 	const biomeConfig = {
-		$schema: 'https://biomejs.dev/schemas/1.9.4/schema.json',
+		$schema: 'https://biomejs.dev/schemas/2.3.0/schema.json',
 		extends: ['@rtorcato/js-tooling/biome'],
-		files: {
-			include: ['src/**/*', '*.ts', '*.js', '*.tsx', '*.jsx'],
-			ignore: ['node_modules', 'dist', 'build', '.next'],
-		},
 	}
 
 	await fs.writeJson(biomeConfigPath, biomeConfig, { spaces: 2 })

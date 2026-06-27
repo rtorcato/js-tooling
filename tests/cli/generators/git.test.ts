@@ -41,7 +41,13 @@ describe('generateGitConfigs', () => {
 		expect(commitMsg).toContain('commitlint --edit')
 
 		const pkg = await fs.readJson(join(dir, 'package.json'))
-		expect(pkg['lint-staged']['*.{js,ts,jsx,tsx}']).toContain('biome check --fix')
+		const lintStaged = pkg['lint-staged']
+		expect(lintStaged['*.{js,ts,jsx,tsx}']).toContain('biome check --fix')
+		// No explicit `git add` (races lint-staged's own staging) and biome must
+		// not fail the commit when every matched file is ignored.
+		expect(JSON.stringify(lintStaged)).not.toContain('git add')
+		expect(lintStaged['*.{js,ts,jsx,tsx}']).toContain('--no-errors-on-unmatched')
+		expect(lintStaged['*.{json,md,yml,yaml}']).toContain('--no-errors-on-unmatched')
 	})
 
 	it('skips commit-msg hook when commitLint is disabled', async () => {

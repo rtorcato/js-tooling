@@ -33,6 +33,10 @@ describe('generateGitHubActions', () => {
 		expect(await fs.pathExists(join(dir, WORKFLOW_PATH))).toBe(true)
 		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
 		expect(content).toContain('CI/CD Pipeline')
+		// Read Node from .nvmrc rather than a hardcoded literal — a pinned '20'
+		// drifts from engines (>=22) and crashes under pnpm 11 (node:sqlite).
+		expect(content).toContain('node-version-file: .nvmrc')
+		expect(content).not.toContain("node-version: '20'")
 	})
 
 	it('includes typecheck job when TypeScript is enabled', async () => {

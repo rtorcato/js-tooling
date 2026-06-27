@@ -27,6 +27,10 @@
     // 📈 Performance
     "skipLibCheck": true, // Skip type checking of declaration files
     "incremental": true, // Enable incremental compilation
+    // Pin the build-info location so downstream emit tools (e.g. tsup's `dts`
+    // build) don't hit TS5074 from inheriting `incremental` without a file.
+    // ${configDir} resolves to the consuming project's dir (TS 5.5+).
+    "tsBuildInfoFile": "${configDir}/node_modules/.cache/tsconfig.tsbuildinfo",
     "disableSourceOfProjectReferenceRedirect": true, // Disable source of project reference redirect
 
     // 🚨 Strict Type Checking
