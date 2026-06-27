@@ -43,7 +43,7 @@ jobs:
       cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - name: 📦 Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v6
@@ -77,7 +77,7 @@ jobs:
     if: needs.check-skip.outputs.should-skip != 'true'
     steps:
       - name: 📦 Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v6
@@ -105,7 +105,7 @@ jobs:
     if: needs.check-skip.outputs.should-skip != 'true' && github.event_name == 'push'
     steps:
       - name: 📦 Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -142,7 +142,7 @@ jobs:
     if: needs.check-skip.outputs.should-skip != 'true'
     steps:
       - name: 📦 Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v6
@@ -202,7 +202,7 @@ jobs:
     name: test (node ${{ matrix.node-version }})
     steps:
       - name: 📦 Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v6
@@ -237,7 +237,7 @@ jobs:
     if: needs.check-skip.outputs.should-skip != 'true'
     steps:
       - name: 📦 Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v6
@@ -291,7 +291,7 @@ jobs:
       id-token: write
     steps:
       - name: 📦 Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Fetch full history for semantic-release
           token: ${{ secrets.GITHUB_TOKEN }}
