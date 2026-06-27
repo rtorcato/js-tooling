@@ -281,6 +281,41 @@ describe('fix targeted', () => {
 		expect(pkg.scripts.typecheck).toBe('tsc --noEmit')
 	})
 
+	it('fix attw --yes installs the cli, adds a script, and appends to verify', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			type: 'module',
+			exports: { '.': { import: './dist/index.js', require: './dist/index.cjs' } },
+			scripts: { verify: 'pnpm typecheck && pnpm check' },
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fixCommand('attw', { directory: dir, yes: true })
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		// dual CJS/ESM (exports has a `require` condition) → no esm-only profile
+		expect(pkg.scripts.attw).toBe('attw --pack')
+		expect(pkg.devDependencies['@arethetypeswrong/cli']).toBeDefined()
+		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm check && pnpm attw')
+	})
+
+	it('fix attw --yes uses the esm-only profile and does not duplicate in verify', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			type: 'module',
+			exports: { '.': './dist/index.js' }, // ESM-only: no require condition
+			scripts: { verify: 'pnpm typecheck && pnpm attw' }, // already wired
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fixCommand('attw', { directory: dir, yes: true })
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.attw).toBe('attw --pack --profile esm-only')
+		// verify already contained `attw` → left untouched, not duplicated
+		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm attw')
+	})
+
 	it('fix verify --yes is a no-op when fewer than two tools are detectable', async () => {
 		const dir = newTmpDir()
 		// no biome dep, no vitest dep, no typecheck script — only one signal at best

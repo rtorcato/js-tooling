@@ -789,14 +789,14 @@ async function checkAreTheTypesWrong(_dir: string, pkg: Pkg | null): Promise<Che
 	}
 	const scripts = (pkg?.scripts as Record<string, string> | undefined) ?? {}
 
-	const hasDep = !!deps['are-the-types-wrong']
-	const hasScript = Object.values(scripts).some((s) => /\battw\b|are-the-types-wrong/.test(s))
+	const hasDep = !!deps['@arethetypeswrong/cli']
+	const hasScript = Object.values(scripts).some((s) => /\battw\b/.test(s))
 
 	if (hasDep && hasScript) {
 		return {
 			check: 'are-the-types-wrong',
 			status: 'ok',
-			detail: 'are-the-types-wrong installed and wired into a script',
+			detail: '@arethetypeswrong/cli installed and wired into a script',
 		}
 	}
 
@@ -804,16 +804,16 @@ async function checkAreTheTypesWrong(_dir: string, pkg: Pkg | null): Promise<Che
 		return {
 			check: 'are-the-types-wrong',
 			status: 'drift',
-			detail: 'are-the-types-wrong installed but no script runs it',
-			hint: 'Add `"attw": "attw --pack"` to package.json scripts and call it from your verify/CI chain',
+			detail: '@arethetypeswrong/cli installed but no script runs it',
+			hint: 'Run `npx @rtorcato/js-tooling fix attw` to add an `attw` script and wire it into verify',
 		}
 	}
 
 	return {
 		check: 'are-the-types-wrong',
 		status: 'optional-missing',
-		detail: 'are-the-types-wrong not configured',
-		hint: 'Run `pnpm add -D are-the-types-wrong && attw --pack` to validate TypeScript exports before publishing',
+		detail: '@arethetypeswrong/cli not configured',
+		hint: 'Run `npx @rtorcato/js-tooling fix attw` to validate TypeScript exports before publishing',
 	}
 }
 

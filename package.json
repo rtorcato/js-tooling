@@ -78,6 +78,7 @@
 		"tooling/typedoc/typedoc.json",
 		"tooling/semantic-release/*.mjs",
 		"tooling/semantic-release/*.d.mts",
+		"tooling/claude/*.md",
 		"README.md"
 	],
 	"exports": {

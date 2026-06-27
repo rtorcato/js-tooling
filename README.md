@@ -23,6 +23,24 @@ Most tooling libraries give you one piece — just TypeScript configs, or just a
 npx @rtorcato/js-tooling setup
 ```
 
+## Claude Code skill
+
+The package ships a Claude Code skill that teaches agents to drive the CLI
+(`doctor` / `fix` / `setup`) non-interactively. Import it into your repo by
+symlinking it into `.claude/skills/` (symlink = stays in sync on upgrade):
+
+```bash
+mkdir -p .claude/skills
+ln -sf ../../node_modules/@rtorcato/js-tooling/tooling/claude/js-tooling.md \
+  .claude/skills/js-tooling.md
+```
+
+Or copy it if you prefer a pinned snapshot:
+
+```bash
+cp node_modules/@rtorcato/js-tooling/tooling/claude/js-tooling.md .claude/skills/
+```
+
 ## What's new
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history.

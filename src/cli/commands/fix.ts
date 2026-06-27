@@ -135,6 +135,23 @@ async function readPackageJson(dir: string): Promise<Pkg> {
 	}
 }
 
+/** True when any (possibly nested) exports condition declares a `require`/CJS entry. */
+function hasRequireCondition(exports: unknown): boolean {
+	if (!exports || typeof exports !== 'object') return false
+	for (const value of Object.values(exports as Record<string, unknown>)) {
+		if (value && typeof value === 'object') {
+			if ('require' in value) return true
+			if (hasRequireCondition(value)) return true
+		}
+	}
+	return false
+}
+
+/** ESM-only = `"type": "module"` and no CJS/`require` resolution in exports. */
+function isEsmOnly(pkg: Record<string, unknown>): boolean {
+	return pkg.type === 'module' && !hasRequireCondition(pkg.exports)
+}
+
 const FIXERS: Fixer[] = [
 	{
 		target: 'biome',
@@ -499,6 +516,38 @@ const FIXERS: Fixer[] = [
 				}
 			}
 			return { filesWritten }
+		},
+	},
+	{
+		target: 'attw',
+		description:
+			'Install @arethetypeswrong/cli + add an `attw` script (esm-only profile when applicable) and wire it into verify',
+		appliesTo: ['are-the-types-wrong'],
+		outputs: ['package.json (devDependencies + scripts.attw)'],
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir, pkg }) {
+			const pkgPath = path.join(targetDir, 'package.json')
+			if (!pkg) {
+				console.log(chalk.yellow('   no package.json found — skipping'))
+				return { filesWritten: [] }
+			}
+			const updated = { ...pkg }
+			const devDeps = {
+				...((updated.devDependencies as Record<string, string> | undefined) ?? {}),
+			}
+			if (!devDeps['@arethetypeswrong/cli']) devDeps['@arethetypeswrong/cli'] = '^0.18.2'
+			updated.devDependencies = devDeps
+
+			const scripts = { ...((updated.scripts as Record<string, string> | undefined) ?? {}) }
+			scripts.attw = isEsmOnly(pkg) ? 'attw --pack --profile esm-only' : 'attw --pack'
+			if (scripts.verify && !/\battw\b/.test(scripts.verify)) {
+				scripts.verify = `${scripts.verify} && pnpm attw`
+			}
+			updated.scripts = scripts
+
+			await fs.writeJson(pkgPath, updated, { spaces: 2 })
+			return { filesWritten: ['package.json'] }
 		},
 	},
 	{
