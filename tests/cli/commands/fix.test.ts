@@ -316,6 +316,16 @@ describe('fix targeted', () => {
 		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm attw')
 	})
 
+	it('fix claude-skill --yes installs the skill into .claude/skills/', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('claude-skill', { directory: dir, yes: true })
+		const skillPath = join(dir, '.claude', 'skills', 'js-tooling.md')
+		expect(await fs.pathExists(skillPath)).toBe(true)
+		const body = await fs.readFile(skillPath, 'utf8')
+		expect(body).toContain('name: js-tooling')
+	})
+
 	it('fix verify --yes is a no-op when fewer than two tools are detectable', async () => {
 		const dir = newTmpDir()
 		// no biome dep, no vitest dep, no typecheck script — only one signal at best

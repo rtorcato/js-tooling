@@ -154,6 +154,7 @@ Implementation note: the preview is computed by shadow-running the fixer in a te
 | `dependabot` | `Dependabot` | `.github/dependabot.yml` |
 | `codeql` | `CodeQL` | `.github/workflows/codeql.yml` |
 | `attw` | `are-the-types-wrong` | adds `@arethetypeswrong/cli` + an `attw` script (esm-only profile when applicable), wires it into `verify` |
+| `claude-skill` | _(opt-in)_ | installs the Claude Code skill at `.claude/skills/js-tooling.md` |
 
 ### Typical workflow
 

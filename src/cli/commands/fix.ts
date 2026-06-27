@@ -551,6 +551,18 @@ const FIXERS: Fixer[] = [
 		},
 	},
 	{
+		target: 'claude-skill',
+		description: 'Install the js-tooling Claude Code skill into .claude/skills/',
+		appliesTo: ['Claude skill'],
+		outputs: ['.claude/skills/js-tooling.md'],
+		riskLevel: 'safe-add',
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const result = await copyPreset('claude-skill', targetDir)
+			return { filesWritten: [result.target] }
+		},
+	},
+	{
 		target: 'package-json',
 		description: 'Add @rtorcato/js-tooling to devDependencies',
 		appliesTo: ['package.json'],

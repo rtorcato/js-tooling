@@ -1,7 +1,7 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 
-export type PresetName = 'biome' | 'changesets' | 'oxlint' | 'tsconfig'
+export type PresetName = 'biome' | 'changesets' | 'oxlint' | 'tsconfig' | 'claude-skill'
 
 export interface PresetDefinition {
 	source: string
@@ -29,6 +29,11 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		source: 'tooling/typescript/tsconfig.base.json',
 		target: 'tsconfig.json',
 		desc: 'TypeScript base configuration',
+	},
+	'claude-skill': {
+		source: 'tooling/claude/js-tooling.md',
+		target: '.claude/skills/js-tooling.md',
+		desc: 'Claude Code skill for driving the js-tooling CLI',
 	},
 }
 

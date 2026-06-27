@@ -26,19 +26,19 @@ npx @rtorcato/js-tooling setup
 ## Claude Code skill
 
 The package ships a Claude Code skill that teaches agents to drive the CLI
-(`doctor` / `fix` / `setup`) non-interactively. Import it into your repo by
-symlinking it into `.claude/skills/` (symlink = stays in sync on upgrade):
+(`doctor` / `fix` / `setup`) non-interactively. Install it with one command:
+
+```bash
+npx @rtorcato/js-tooling fix claude-skill --yes
+```
+
+That writes `.claude/skills/js-tooling.md`. Prefer a symlink that stays in
+sync on every upgrade instead?
 
 ```bash
 mkdir -p .claude/skills
 ln -sf ../../node_modules/@rtorcato/js-tooling/tooling/claude/js-tooling.md \
   .claude/skills/js-tooling.md
-```
-
-Or copy it if you prefer a pinned snapshot:
-
-```bash
-cp node_modules/@rtorcato/js-tooling/tooling/claude/js-tooling.md .claude/skills/
 ```
 
 ## What's new
