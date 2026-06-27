@@ -83,6 +83,24 @@ Running `setup` (or its alias `init`) launches an interactive wizard:
 
 A universal baseline (`.editorconfig`, `.nvmrc`, `engines.node`, `knip.json`) is scaffolded automatically — no prompt — because these are safe defaults for every project.
 
+## Non-interactive setup (CI / scripts)
+
+Skip the prompts entirely by scaffolding from a named preset:
+
+```bash
+npx @rtorcato/js-tooling setup --preset library -d ./my-lib --skip-install
+```
+
+Presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`.
+
+For full control, drive setup from a `ProjectConfig` JSON file — print the schema, write a config, preview, then scaffold:
+
+```bash
+npx @rtorcato/js-tooling setup --config-schema > project-config.schema.json
+npx @rtorcato/js-tooling setup --config project.json --dry-run   # preview file list
+npx @rtorcato/js-tooling setup --config project.json -d ./my-lib --skip-install
+```
+
 ## Files generated
 
 - `package.json` — merged with chosen devDependencies, scripts, and `engines.node`
@@ -114,9 +132,14 @@ npx @rtorcato/js-tooling fix dependabot  # or apply just one
 If you only need one config file, use `copy`:
 
 ```bash
-npx @rtorcato/js-tooling copy biome     # → biome.json
-npx @rtorcato/js-tooling copy tsconfig  # → tsconfig.json
+npx @rtorcato/js-tooling copy biome        # → biome.json
+npx @rtorcato/js-tooling copy tsconfig     # → tsconfig.json
+npx @rtorcato/js-tooling copy changesets   # → .changeset/config.json
+npx @rtorcato/js-tooling copy oxlint       # → .oxlintrc.json
+npx @rtorcato/js-tooling copy claude-skill # → .claude/skills/js-tooling.md
 ```
+
+`copy` drops the raw preset as-is. For configs you might later customise (`biome`, `tsconfig`, `vitest`, …) prefer `fix <target>` — it won't clobber an existing file without `--yes`, and `doctor` verifies it afterwards.
 
 Or import configs directly in your own files:
 

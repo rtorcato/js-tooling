@@ -17,11 +17,39 @@ Most tooling libraries give you one piece — just TypeScript configs, or just a
 
 **[Full documentation →](https://rtorcato.github.io/js-tooling/)**
 
-## Quick start
+## Start a new project
+
+Interactive wizard — answers every prompt, scaffolds the whole project:
 
 ```bash
 npx @rtorcato/js-tooling setup
 ```
+
+Non-interactive — scaffold from a named preset in one shot (CI-friendly):
+
+```bash
+npx @rtorcato/js-tooling setup --preset library -d ./my-lib --skip-install
+# presets: library | web-app | node-api | nextjs-app | react-app
+```
+
+Just one config file? Use `copy`:
+
+```bash
+npx @rtorcato/js-tooling copy biome        # → biome.json
+npx @rtorcato/js-tooling copy tsconfig     # → tsconfig.json
+npx @rtorcato/js-tooling copy changesets   # → .changeset/config.json
+npx @rtorcato/js-tooling copy oxlint       # → .oxlintrc.json
+npx @rtorcato/js-tooling copy claude-skill # → .claude/skills/js-tooling.md
+```
+
+**Already have a project?** Don't rerun `setup` — use `doctor` + `fix`:
+
+```bash
+npx @rtorcato/js-tooling doctor   # find what's missing or drifted
+npx @rtorcato/js-tooling fix      # apply scaffolders, prompting per item
+```
+
+See the [Getting Started guide](https://rtorcato.github.io/js-tooling/guides/getting-started/) for the full walkthrough.
 
 ## Claude Code skill
 
