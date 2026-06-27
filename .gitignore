@@ -8,3 +8,4 @@ tsconfig.tsbuildinfo
 .DS_Store
 .infra
 .claude/settings.local.json
+.claude/worktrees/
