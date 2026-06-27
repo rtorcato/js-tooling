@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import { createPatch } from 'diff'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
+import { installAgentRules } from '../generators/agent-rules.js'
 import { generateSemanticReleaseConfig } from '../generators/build.js'
 import {
 	generateCommitlintConfig,
@@ -560,6 +561,45 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			const result = await copyPreset('claude-skill', targetDir)
 			return { filesWritten: [result.target] }
+		},
+	},
+	{
+		target: 'cursor-rules',
+		description: 'Install the js-tooling rules for Cursor (.cursor/rules/js-tooling.mdc)',
+		appliesTo: ['Cursor rules'],
+		outputs: ['.cursor/rules/js-tooling.mdc'],
+		riskLevel: 'safe-add',
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const written = await installAgentRules(targetDir, 'cursor')
+			return { filesWritten: [written] }
+		},
+	},
+	{
+		target: 'copilot-instructions',
+		description:
+			'Install the js-tooling rules for GitHub Copilot (.github/copilot-instructions.md)',
+		appliesTo: ['Copilot instructions'],
+		outputs: ['.github/copilot-instructions.md'],
+		// Upserts a delimited block — never clobbers the consumer's own instructions.
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const written = await installAgentRules(targetDir, 'copilot')
+			return { filesWritten: [written] }
+		},
+	},
+	{
+		target: 'agents-md',
+		description: 'Install the js-tooling rules into AGENTS.md (universal agent instructions)',
+		appliesTo: ['AGENTS.md rules'],
+		outputs: ['AGENTS.md'],
+		// Upserts a delimited block — never clobbers existing AGENTS.md content.
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const written = await installAgentRules(targetDir, 'agents-md')
+			return { filesWritten: [written] }
 		},
 	},
 	{

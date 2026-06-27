@@ -326,6 +326,42 @@ describe('fix targeted', () => {
 		expect(body).toContain('name: js-tooling')
 	})
 
+	it('fix cursor-rules --yes writes a .mdc rule with Cursor frontmatter', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('cursor-rules', { directory: dir, yes: true })
+		const body = await fs.readFile(join(dir, '.cursor', 'rules', 'js-tooling.mdc'), 'utf8')
+		expect(body).toMatch(/^---\ndescription: .+\nglobs:\nalwaysApply: false\n---/)
+		expect(body).toContain('# js-tooling') // shared body, frontmatter stripped
+		expect(body).not.toContain('name: js-tooling') // Claude frontmatter not carried over
+	})
+
+	it('fix agents-md --yes upserts a block without clobbering existing content', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeFile(join(dir, 'AGENTS.md'), '# My project\n\nKeep this.\n')
+		await fixCommand('agents-md', { directory: dir, yes: true })
+		let body = await fs.readFile(join(dir, 'AGENTS.md'), 'utf8')
+		expect(body).toContain('Keep this.') // existing content preserved
+		expect(body).toContain('<!-- js-tooling:start -->')
+		expect(body).toContain('# js-tooling')
+
+		// re-run is idempotent — replaces the block, doesn't duplicate it
+		await fixCommand('agents-md', { directory: dir, yes: true })
+		body = await fs.readFile(join(dir, 'AGENTS.md'), 'utf8')
+		expect(body.match(/js-tooling:start/g)?.length).toBe(1)
+		expect(body).toContain('Keep this.')
+	})
+
+	it('fix copilot-instructions --yes writes the block under .github/', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('copilot-instructions', { directory: dir, yes: true })
+		const body = await fs.readFile(join(dir, '.github', 'copilot-instructions.md'), 'utf8')
+		expect(body).toContain('<!-- js-tooling:start -->')
+		expect(body).toContain('# js-tooling')
+	})
+
 	it('fix verify --yes is a no-op when fewer than two tools are detectable', async () => {
 		const dir = newTmpDir()
 		// no biome dep, no vitest dep, no typecheck script — only one signal at best

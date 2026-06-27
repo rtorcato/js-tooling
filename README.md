@@ -51,17 +51,24 @@ npx @rtorcato/js-tooling fix      # apply scaffolders, prompting per item
 
 See the [Getting Started guide](https://rtorcato.github.io/js-tooling/guides/getting-started/) for the full walkthrough.
 
-## Claude Code skill
+## AI agent rules
 
-The package ships a Claude Code skill that teaches agents to drive the CLI
-(`doctor` / `fix` / `setup`) non-interactively. Install it with one command:
+The package ships rules that teach AI coding agents to drive the CLI
+(`doctor` / `fix` / `setup`) non-interactively. Install for your agent — all
+generated from one source, so guidance never drifts between them:
 
 ```bash
-npx @rtorcato/js-tooling fix claude-skill --yes
+npx @rtorcato/js-tooling fix claude-skill --yes           # → .claude/skills/js-tooling.md
+npx @rtorcato/js-tooling fix cursor-rules --yes           # → .cursor/rules/js-tooling.mdc
+npx @rtorcato/js-tooling fix copilot-instructions --yes   # → .github/copilot-instructions.md
+npx @rtorcato/js-tooling fix agents-md --yes              # → AGENTS.md
 ```
 
-That writes `.claude/skills/js-tooling.md`. Prefer a symlink that stays in
-sync on every upgrade instead?
+`copilot-instructions` and `agents-md` upsert a delimited block, so your own
+content in those shared files is never clobbered. Re-running updates the block
+in place on upgrade.
+
+Prefer a symlink that auto-syncs the Claude skill on every upgrade?
 
 ```bash
 mkdir -p .claude/skills

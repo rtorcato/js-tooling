@@ -155,6 +155,9 @@ Implementation note: the preview is computed by shadow-running the fixer in a te
 | `codeql` | `CodeQL` | `.github/workflows/codeql.yml` |
 | `attw` | `are-the-types-wrong` | adds `@arethetypeswrong/cli` + an `attw` script (esm-only profile when applicable), wires it into `verify` |
 | `claude-skill` | _(opt-in)_ | installs the Claude Code skill at `.claude/skills/js-tooling.md` |
+| `cursor-rules` | _(opt-in)_ | installs the rules for Cursor at `.cursor/rules/js-tooling.mdc` |
+| `copilot-instructions` | _(opt-in)_ | upserts the rules block into `.github/copilot-instructions.md` |
+| `agents-md` | _(opt-in)_ | upserts the rules block into `AGENTS.md` (universal) |
 
 ### Typical workflow
 
