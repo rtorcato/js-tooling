@@ -1,3 +1,10 @@
+## [2.19.1](https://github.com/rtorcato/js-tooling/compare/v2.19.0...v2.19.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* **cli:** repair library preset scaffold defects ([#101](https://github.com/rtorcato/js-tooling/issues/101)) ([925fd98](https://github.com/rtorcato/js-tooling/commit/925fd981cd65f2d908bcede955c61d32fc090337)), closes [#98](https://github.com/rtorcato/js-tooling/issues/98) [#91](https://github.com/rtorcato/js-tooling/issues/91) [#92](https://github.com/rtorcato/js-tooling/issues/92) [#93](https://github.com/rtorcato/js-tooling/issues/93) [#94](https://github.com/rtorcato/js-tooling/issues/94) [#95](https://github.com/rtorcato/js-tooling/issues/95) [#96](https://github.com/rtorcato/js-tooling/issues/96) [#97](https://github.com/rtorcato/js-tooling/issues/97) [#98](https://github.com/rtorcato/js-tooling/issues/98) [#91](https://github.com/rtorcato/js-tooling/issues/91) [#92](https://github.com/rtorcato/js-tooling/issues/92) [#93](https://github.com/rtorcato/js-tooling/issues/93) [#94](https://github.com/rtorcato/js-tooling/issues/94) [#95](https://github.com/rtorcato/js-tooling/issues/95) [#96](https://github.com/rtorcato/js-tooling/issues/96) [#97](https://github.com/rtorcato/js-tooling/issues/97) [#98](https://github.com/rtorcato/js-tooling/issues/98)
+
 # [2.19.0](https://github.com/rtorcato/js-tooling/compare/v2.18.0...v2.19.0) (2026-06-27)
 
 
