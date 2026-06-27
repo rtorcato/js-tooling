@@ -1,3 +1,17 @@
+# [2.19.0](https://github.com/rtorcato/js-tooling/compare/v2.18.0...v2.19.0) (2026-06-27)
+
+
+### Bug Fixes
+
+* **ci:** revert release to GITHUB_TOKEN, drop broken app-token step ([cfa8f1f](https://github.com/rtorcato/js-tooling/commit/cfa8f1fa9eee80ff8e6c119c9215f287dd43bdc6))
+
+
+### Features
+
+* **cli:** add `fix claude-skill` to auto-install the skill ([935b13a](https://github.com/rtorcato/js-tooling/commit/935b13aee4a474beb2c6230a1b08ad987e9119f8))
+* **cli:** add attw fixer + ship a Claude Code skill for consumers ([61bffc6](https://github.com/rtorcato/js-tooling/commit/61bffc602e95da75ca6709c51e67321d74c8af86))
+* **cli:** support Cursor, Copilot, and AGENTS.md agent rules ([673707b](https://github.com/rtorcato/js-tooling/commit/673707bf41ed8d8c5632b387255664ed6a1a96ae))
+
 # [2.18.0](https://github.com/rtorcato/js-tooling/compare/v2.17.1...v2.18.0) (2026-06-14)
 
 
