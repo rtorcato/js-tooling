@@ -291,17 +291,18 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'semantic-release',
-		description: 'Scaffold release.config.mjs (skipped on private packages)',
+		description:
+			'Scaffold release.config.mjs + install preset plugins (skipped on private packages)',
 		appliesTo: ['semantic-release'],
-		outputs: ['release.config.mjs'],
+		outputs: ['release.config.mjs', 'package.json'],
 		canFixDrift: true,
 		async run({ targetDir, pkg }) {
 			if (pkg?.private === true) {
 				console.log(chalk.gray('   skipping — package is private'))
 				return { filesWritten: [] }
 			}
-			await generateSemanticReleaseConfig(targetDir)
-			return { filesWritten: ['release.config.mjs'] }
+			const filesWritten = await generateSemanticReleaseConfig(targetDir)
+			return { filesWritten }
 		},
 	},
 	{
