@@ -52,8 +52,11 @@ export default {
 				changelogFile: 'CHANGELOG.md',
 			},
 		],
-		['@semantic-release/npm', { npmPublish: true, pkgRoot: '.' }],
-		// NPM plugin to publish the package
+		// npm publishing is opt-in via NPM_TOKEN: a repo that provides the token
+		// publishes; one that doesn't (GitLab releases only) gets a green release
+		// instead of an EINVALIDNPMTOKEN failure. The version in package.json is
+		// still bumped either way.
+		['@semantic-release/npm', { npmPublish: Boolean(process.env.NPM_TOKEN), pkgRoot: '.' }],
 		[
 			'@semantic-release/git',
 			{
