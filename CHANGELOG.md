@@ -1,3 +1,11 @@
+## [2.19.2](https://github.com/rtorcato/js-tooling/compare/v2.19.1...v2.19.2) (2026-06-28)
+
+
+### Bug Fixes
+
+* **cli:** bump stale version pins in scaffolded output ([#107](https://github.com/rtorcato/js-tooling/issues/107)) ([7cc2e1b](https://github.com/rtorcato/js-tooling/commit/7cc2e1b2e2fd04e2a1dbf155a0e8f15acdc43c9a)), closes [#105](https://github.com/rtorcato/js-tooling/issues/105)
+* **release:** make npm publish opt-in and install preset plugins ([#108](https://github.com/rtorcato/js-tooling/issues/108)) ([ea95afc](https://github.com/rtorcato/js-tooling/commit/ea95afc63fc3ed7c867cb93eb5d3e03486727b9f))
+
 ## [2.19.1](https://github.com/rtorcato/js-tooling/compare/v2.19.0...v2.19.1) (2026-06-27)
 
 
