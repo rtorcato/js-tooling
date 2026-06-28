@@ -6,6 +6,7 @@ import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import { installAgentRules } from '../generators/agent-rules.js'
 import { generateSemanticReleaseConfig } from '../generators/build.js'
+import { generateCommunityHealth } from '../generators/community-health.js'
 import {
 	generateCommitlintConfig,
 	generateHuskyConfig,
@@ -379,6 +380,24 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			const written = await generateCodeowners(targetDir)
 			return { filesWritten: [written] }
+		},
+	},
+	{
+		target: 'community-health',
+		description: 'Scaffold CONTRIBUTING.md, SECURITY.md, PR + issue templates',
+		appliesTo: ['Community health'],
+		outputs: [
+			'CONTRIBUTING.md',
+			'SECURITY.md',
+			'.github/PULL_REQUEST_TEMPLATE.md',
+			'.github/ISSUE_TEMPLATE/bug_report.md',
+			'.github/ISSUE_TEMPLATE/feature_request.md',
+		],
+		riskLevel: 'safe-add',
+		canFixDrift: false,
+		async run({ targetDir }) {
+			const filesWritten = await generateCommunityHealth(targetDir)
+			return { filesWritten }
 		},
 	},
 	{
