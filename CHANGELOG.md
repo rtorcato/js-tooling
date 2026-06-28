@@ -1,3 +1,10 @@
+# [2.20.0](https://github.com/rtorcato/js-tooling/compare/v2.19.2...v2.20.0) (2026-06-28)
+
+
+### Features
+
+* **cli:** scaffold community-health files via fix/doctor ([#112](https://github.com/rtorcato/js-tooling/issues/112)) ([799b908](https://github.com/rtorcato/js-tooling/commit/799b908c509a04eebd6b38a0d637b033c382f7f2))
+
 ## [2.19.2](https://github.com/rtorcato/js-tooling/compare/v2.19.1...v2.19.2) (2026-06-28)
 
 
