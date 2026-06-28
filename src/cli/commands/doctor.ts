@@ -889,6 +889,24 @@ async function checkCodeowners(dir: string): Promise<CheckResult> {
 	}
 }
 
+async function checkCommunityHealth(dir: string): Promise<CheckResult> {
+	const anchors = ['CONTRIBUTING.md', 'SECURITY.md']
+	const present = await Promise.all(anchors.map((f) => fs.pathExists(path.join(dir, f))))
+	if (present.every(Boolean)) {
+		return {
+			check: 'Community health',
+			status: 'ok',
+			detail: 'CONTRIBUTING.md and SECURITY.md found',
+		}
+	}
+	return {
+		check: 'Community health',
+		status: 'optional-missing',
+		detail: 'missing community-health files (CONTRIBUTING/SECURITY/templates)',
+		hint: 'Run `npx @rtorcato/js-tooling fix community-health` to scaffold them',
+	}
+}
+
 async function checkGitLabCI(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.gitlab-ci.yml', '.gitlab-ci.yaml']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -934,6 +952,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkCodeQL(targetDir))
 	results.push(await checkGitLabCI(targetDir))
 	results.push(await checkCodeowners(targetDir))
+	results.push(await checkCommunityHealth(targetDir))
 	results.push(await checkTypedoc(targetDir, pkg))
 	results.push(await checkAreTheTypesWrong(targetDir, pkg))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))
