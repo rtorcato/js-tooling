@@ -175,7 +175,8 @@
 		"./tests/ssr-safety": {
 			"types": "./tooling/tests/ssr-safety.d.mts",
 			"import": "./tooling/tests/ssr-safety.mjs"
-		}
+		},
+		"./package.json": "./package.json"
 	},
 	"dependencies": {
 		"chalk": "^5.6.2",

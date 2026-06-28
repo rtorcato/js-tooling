@@ -40,7 +40,7 @@ export async function generateBiomeConfig(targetDir: string) {
 	// keys here forced consumers to run `biome migrate` before `biome check`
 	// would run at all.
 	const biomeConfig = {
-		$schema: 'https://biomejs.dev/schemas/2.3.0/schema.json',
+		$schema: 'https://biomejs.dev/schemas/2.5.0/schema.json',
 		extends: ['@rtorcato/js-tooling/biome'],
 	}
 
