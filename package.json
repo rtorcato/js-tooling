@@ -191,7 +191,7 @@
 		"@commitlint/cli": "^20.1.0",
 		"@commitlint/config-conventional": "^21.0.2",
 		"@commitlint/types": "^20.0.0",
-		"@eslint/js": "^9.38.0",
+		"@eslint/js": "^10.0.1",
 		"@ianvs/prettier-plugin-sort-imports": "^4.4.2",
 		"@next/eslint-plugin-next": "^16.2.7",
 		"@playwright/test": "^1.60.0",
