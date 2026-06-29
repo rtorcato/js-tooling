@@ -20,9 +20,10 @@ export default {
 				"test",
 			],
 		],
-		// Enforce length limits: 72 chars matches the conventional-commits
-		// recommendation and git's default email format
-		"header-max-length": [2, "always", 72],
+		// 100 is the conventional-commits/semantic-release default. 72 was too
+		// tight: GitHub appends " (#NN)" to squash commits, overflowing the
+		// header on main and skipping the release. Body/footer stay at 72.
+		"header-max-length": [2, "always", 100],
 		"body-max-line-length": [2, "always", 72],
 		"footer-max-line-length": [2, "always", 72],
 		// Enforce case rules (allow common patterns)
