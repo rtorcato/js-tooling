@@ -1,3 +1,15 @@
+# [2.21.0](https://github.com/rtorcato/js-tooling/compare/v2.20.0...v2.21.0) (2026-06-29)
+
+
+### Bug Fixes
+
+* **commitlint:** raise header-max to 100, ungate release ([#132](https://github.com/rtorcato/js-tooling/issues/132)) ([dc02107](https://github.com/rtorcato/js-tooling/commit/dc02107b5044da9878ace9059c14248aa720f287)), closes [#NN](https://github.com/rtorcato/js-tooling/issues/NN)
+
+
+### Features
+
+* **cli:** scaffold RELEASE_TOKEN-aware release workflow + doctor check ([#131](https://github.com/rtorcato/js-tooling/issues/131)) ([537f3cf](https://github.com/rtorcato/js-tooling/commit/537f3cfd8d199328c19ff2003c60caf0af914dfd))
+
 # [2.20.0](https://github.com/rtorcato/js-tooling/compare/v2.19.2...v2.20.0) (2026-06-28)
 
 
