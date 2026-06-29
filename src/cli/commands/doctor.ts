@@ -622,6 +622,49 @@ async function checkGitHubActions(dir: string): Promise<CheckResult> {
 	}
 }
 
+// Detects the broken-release-on-protected-main footgun: a workflow that runs
+// semantic-release but only hands it GITHUB_TOKEN, which can't push the version
+// commit + tag past branch protection. The fix is an admin PAT (RELEASE_TOKEN)
+// with a GITHUB_TOKEN fallback.
+async function checkReleaseToken(dir: string): Promise<CheckResult> {
+	const workflowsDir = path.join(dir, '.github', 'workflows')
+	if (!(await fs.pathExists(workflowsDir))) {
+		return { check: 'Release token', status: 'optional-missing', detail: 'no .github/workflows/' }
+	}
+	try {
+		const files = await fs.readdir(workflowsDir)
+		for (const f of files) {
+			if (!(f.endsWith('.yml') || f.endsWith('.yaml'))) continue
+			const content = await fs.readFile(path.join(workflowsDir, f), 'utf-8')
+			if (!/semantic-release/.test(content)) continue
+			if (/RELEASE_TOKEN/.test(content)) {
+				return {
+					check: 'Release token',
+					status: 'ok',
+					detail: `${f} uses RELEASE_TOKEN (with GITHUB_TOKEN fallback)`,
+				}
+			}
+			return {
+				check: 'Release token',
+				status: 'drift',
+				detail: `${f} runs semantic-release with bare GITHUB_TOKEN`,
+				hint: 'GITHUB_TOKEN cannot push to a protected main. Set the checkout `token:` and the semantic-release `GITHUB_TOKEN` env to `${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}` and add a RELEASE_TOKEN admin PAT secret',
+			}
+		}
+		return {
+			check: 'Release token',
+			status: 'optional-missing',
+			detail: 'no semantic-release workflow found',
+		}
+	} catch {
+		return {
+			check: 'Release token',
+			status: 'optional-missing',
+			detail: 'unable to read .github/workflows/',
+		}
+	}
+}
+
 async function checkDependabot(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.github/dependabot.yml', '.github/dependabot.yaml']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -948,6 +991,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkKnip(targetDir, pkg))
 	results.push(await checkSizeLimit(targetDir, pkg))
 	results.push(await checkGitHubActions(targetDir))
+	results.push(await checkReleaseToken(targetDir))
 	results.push(await checkDependabot(targetDir))
 	results.push(await checkCodeQL(targetDir))
 	results.push(await checkGitLabCI(targetDir))
