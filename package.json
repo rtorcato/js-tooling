@@ -73,6 +73,8 @@
 		"tooling/tests/ssr-safety.d.mts",
 		"tooling/tsup/index.mjs",
 		"tooling/tsup/index.d.mts",
+		"tooling/docusaurus/index.mjs",
+		"tooling/docusaurus/index.d.mts",
 		"tooling/biome/biome.json",
 		"tooling/changesets/config.json",
 		"tooling/oxlint/oxlintrc.json",
@@ -151,6 +153,10 @@
 		"./tsup": {
 			"types": "./tooling/tsup/index.d.mts",
 			"import": "./tooling/tsup/index.mjs"
+		},
+		"./docusaurus": {
+			"types": "./tooling/docusaurus/index.d.mts",
+			"import": "./tooling/docusaurus/index.mjs"
 		},
 		"./biome": "./tooling/biome/biome.json",
 		"./changesets": "./tooling/changesets/config.json",

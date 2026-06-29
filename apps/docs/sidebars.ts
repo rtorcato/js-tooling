@@ -14,6 +14,7 @@ const sidebars: SidebarsConfig = {
         'guides/library-style',
         'guides/dependabot-strategy',
         'guides/public-repo-issue-safety',
+        'guides/docs-site',
       ],
     },
     {
