@@ -1,3 +1,10 @@
+# [2.22.0](https://github.com/rtorcato/js-tooling/compare/v2.21.0...v2.22.0) (2026-06-29)
+
+
+### Features
+
+* **docusaurus:** shared TypeDoc helper + reusable docs deploy ([#134](https://github.com/rtorcato/js-tooling/issues/134)) ([f5e73eb](https://github.com/rtorcato/js-tooling/commit/f5e73eb68229be312585942c80752878c303ba81))
+
 # [2.21.0](https://github.com/rtorcato/js-tooling/compare/v2.20.0...v2.21.0) (2026-06-29)
 
 
