@@ -112,8 +112,8 @@ importers:
         specifier: ^0.28.0
         version: 0.28.1
       esbuild-node-externals:
-        specifier: ^1.22.0
-        version: 1.22.0(esbuild@0.28.1)
+        specifier: ^1.23.1
+        version: 1.23.1(esbuild@0.28.1)
       eslint:
         specifier: 10.6.0
         version: 10.6.0(jiti@2.7.0)
@@ -4839,8 +4839,8 @@ packages:
   esast-util-from-js@2.0.1:
     resolution: {integrity: sha512-8Ja+rNJ0Lt56Pcf3TAmpBZjmx8ZcK5Ts4cAzIOjsjevg9oSXJnl6SUQ2EevU8tv3h6ZLWmoKL5H4fgWvdvfETw==}
 
-  esbuild-node-externals@1.22.0:
-    resolution: {integrity: sha512-5MOqbBYAjGayiA6JPCDJ+QOvW1Xl6M9LlQbYMgwbE0DE/pv6NyXKzPzQhksU6lY1ZB8MWMn6Ov6IGooMAZnTyQ==}
+  esbuild-node-externals@1.23.1:
+    resolution: {integrity: sha512-aU/Bxaq9KU5SUnsCVP0a2Kj74qZz0QpRH2qvcQ4tRQ7yGYcmzUPOdXXA2hd7o55OjChduOwsFYP5EPJH01gn2Q==}
     engines: {node: '>=12'}
     peerDependencies:
       esbuild: 0.12 - 0.28
@@ -15228,7 +15228,7 @@ snapshots:
       esast-util-from-estree: 2.0.0
       vfile-message: 4.0.3
 
-  esbuild-node-externals@1.22.0(esbuild@0.28.1):
+  esbuild-node-externals@1.23.1(esbuild@0.28.1):
     dependencies:
       empathic: 2.0.1
       esbuild: 0.28.1

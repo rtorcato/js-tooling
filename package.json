@@ -213,7 +213,7 @@
 		"conventional-changelog-conventionalcommits": "^9.3.1",
 		"cz-conventional-changelog": "^3.3.0",
 		"esbuild": "^0.28.0",
-		"esbuild-node-externals": "^1.22.0",
+		"esbuild-node-externals": "^1.23.1",
 		"eslint": "10.6.0",
 		"eslint-plugin-import": "^2.32.0",
 		"eslint-plugin-jest": "29.15.3",
