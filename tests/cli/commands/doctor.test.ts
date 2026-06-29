@@ -701,4 +701,33 @@ describe('nextStepSuggestions', () => {
 		])
 		expect(suggestions).toEqual([])
 	})
+
+	it('flags a release workflow that runs semantic-release with bare GITHUB_TOKEN', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  release:\n    steps:\n      - run: npx semantic-release\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n'
+		)
+
+		const results = await runDoctor(dir)
+		const rt = results.find((r) => r.check === 'Release token')
+		expect(rt?.status).toBe('drift')
+		expect(rt?.hint).toMatch(/RELEASE_TOKEN/)
+	})
+
+	it('reports ok when the release workflow uses the RELEASE_TOKEN fallback', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  release:\n    steps:\n      - uses: actions/checkout@v7\n        with:\n          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}\n      - run: npx semantic-release\n        env:\n          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}\n'
+		)
+
+		const results = await runDoctor(dir)
+		const rt = results.find((r) => r.check === 'Release token')
+		expect(rt?.status).toBe('ok')
+	})
 })

@@ -237,7 +237,10 @@ ${
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          token: \${{ secrets.GITHUB_TOKEN }}
+          # RELEASE_TOKEN (admin PAT) lets semantic-release push the version
+          # commit + tag to a protected main; GITHUB_TOKEN can't bypass branch
+          # protection. Falls back to GITHUB_TOKEN when no PAT is set.
+          token: \${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v6
@@ -265,7 +268,7 @@ ${
 
       - name: 🚀 Run semantic-release
         env:
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: \${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
           NPM_TOKEN: \${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: \${{ secrets.NPM_TOKEN }}
         run: npx semantic-release`
