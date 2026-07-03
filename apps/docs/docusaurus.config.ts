@@ -80,10 +80,15 @@ const config: Config = {
     },
     navbar: {
       title: 'js-tooling',
+      logo: {
+        alt: 'js-tooling',
+        src: 'img/logo.svg',
+        srcDark: 'img/logo-dark.svg',
+      },
       items: [
         { to: '/docs', position: 'left', label: 'Docs' },
-        { to: '/docs/guides/getting-started', position: 'left', label: 'Guides' },
-        { to: '/docs/reference/biome', position: 'left', label: 'Reference' },
+        { to: '/docs/guides', position: 'left', label: 'Guides' },
+        { to: '/docs/reference', position: 'left', label: 'Reference' },
         {
           href: 'https://github.com/rtorcato/js-tooling',
           label: 'GitHub',
