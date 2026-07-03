@@ -1,3 +1,10 @@
+# [2.23.0](https://github.com/rtorcato/js-tooling/compare/v2.22.0...v2.23.0) (2026-07-03)
+
+
+### Features
+
+* **docs:** add logo, restructure nav, custom mobile sidebar theming ([928d7b9](https://github.com/rtorcato/js-tooling/commit/928d7b982ca3e3f22cea6d6d935bf26e500a0cc7))
+
 # [2.22.0](https://github.com/rtorcato/js-tooling/compare/v2.21.0...v2.22.0) (2026-06-29)
 
 
