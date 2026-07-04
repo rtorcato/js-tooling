@@ -196,12 +196,12 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 	// TypeScript
 	if (config.typescript.enabled) {
 		deps['typescript'] = '^5.9.3'
-		deps['@types/node'] = '^24.0.0'
+		deps['@types/node'] = '^26.0.1'
 	}
 
 	// Linting tools
 	if (config.linting.tool === 'biome' || config.linting.tool === 'both') {
-		deps['@biomejs/biome'] = '^2.3.0'
+		deps['@biomejs/biome'] = '^2.5.1'
 	}
 	if (config.linting.tool === 'eslint' || config.linting.tool === 'both') {
 		deps['eslint'] = '^9.0.0'
@@ -210,9 +210,9 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 
 	// Testing frameworks
 	if (config.testing.framework === 'vitest') {
-		deps['vitest'] = '^4.0.0'
+		deps['vitest'] = '^4.1.9'
 		if (config.testing.environment === 'browser' || config.testing.environment === 'both') {
-			deps['@vitest/ui'] = '^4.0.0'
+			deps['@vitest/ui'] = '^4.1.9'
 			deps['jsdom'] = '^25.0.0'
 		}
 	} else if (config.testing.framework === 'jest') {
@@ -221,7 +221,7 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 			deps['ts-jest'] = '^29.0.0'
 		}
 	} else if (config.testing.framework === 'playwright') {
-		deps['@playwright/test'] = '^1.56.0'
+		deps['@playwright/test'] = '^1.60.0'
 	}
 
 	// Build tools
