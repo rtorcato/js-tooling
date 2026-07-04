@@ -237,6 +237,25 @@ describe('doctor extended checks', () => {
 		expect(results.find((r) => r.check === 'Husky')?.status).toBe('ok')
 	})
 
+	it('AI setup: optional-missing on a bare project, ok once AGENTS.md has the block', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		let results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'AI setup')?.status).toBe('optional-missing')
+
+		await fs.writeFile(join(dir, 'AGENTS.md'), '<!-- js-tooling:start -->\nx\n<!-- js-tooling:end -->\n')
+		results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'AI setup')?.status).toBe('ok')
+	})
+
+	it('AI setup: ok when the Claude skill is present without AGENTS.md', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.outputFile(join(dir, '.claude', 'skills', 'js-tooling.md'), '# skill\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'AI setup')?.status).toBe('ok')
+	})
+
 	it('detects lint-staged in package.json', async () => {
 		const dir = newTmpDir()
 		await fs.writeJson(join(dir, 'package.json'), {
@@ -716,6 +735,14 @@ describe('doctor + lockfile', () => {
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'Dependabot')?.status).toBe('ok')
 		expect(results.find((r) => r.check === 'CodeQL')?.status).toBe('ok')
+	})
+
+	it('demotes AI setup to ok when the lock records aiSetup=false', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await writeLock(dir, { aiSetup: false })
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'AI setup')?.status).toBe('ok')
 	})
 
 	it('only ever demotes optional-missing to ok, never makes anything worse', async () => {

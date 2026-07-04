@@ -170,6 +170,28 @@ describe('fix targeted', () => {
 		expect(content.trim()).toBe('22')
 	})
 
+	it('fix ai --yes installs every AI agent file and is idempotent', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('ai', { directory: dir, yes: true })
+		for (const rel of [
+			'AGENTS.md',
+			'CLAUDE.md',
+			'.cursor/rules/js-tooling.mdc',
+			'.github/copilot-instructions.md',
+			'.claude/skills/js-tooling.md',
+			'.mcp.json.example',
+		]) {
+			expect(await fs.pathExists(join(dir, rel))).toBe(true)
+		}
+		expect(await fs.pathExists(join(dir, '.mcp.json'))).toBe(false)
+		expect(await fs.readFile(join(dir, 'CLAUDE.md'), 'utf8')).toContain('@AGENTS.md')
+		// second run must not duplicate the AGENTS.md block
+		await fixCommand('ai', { directory: dir, yes: true })
+		const agents = await fs.readFile(join(dir, 'AGENTS.md'), 'utf8')
+		expect(agents.match(/<!-- js-tooling:start -->/g)).toHaveLength(1)
+	})
+
 	it('fix node-version --yes rewrites hardcoded workflow versions to node-version-file', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir, { engines: { node: '>=22' } })

@@ -18,6 +18,7 @@ const BASE: Omit<ProjectConfig, 'projectName' | 'projectType' | 'typescript' | '
 	commitLint: true,
 	semanticRelease: false,
 	securityAutomation: true,
+	aiSetup: true,
 }
 
 export function buildPresetConfig(name: PresetName, projectName: string): ProjectConfig {
@@ -137,6 +138,7 @@ export const CONFIG_SCHEMA = {
 		securityAutomation: { type: 'boolean' },
 		bundler: { type: 'string', enum: ['tsup', 'esbuild', 'vite', 'none'] },
 		treeshakeCheck: { type: 'boolean' },
+		aiSetup: { type: 'boolean' },
 	},
 } as const
 
@@ -210,6 +212,16 @@ export function computeFileList(config: ProjectConfig): string[] {
 			'apps/treeshake-check/package.json',
 			'apps/treeshake-check/check.mjs',
 			'apps/treeshake-check/src/entry.ts'
+		)
+	}
+	if (config.aiSetup) {
+		files.push(
+			'AGENTS.md',
+			'CLAUDE.md',
+			'.cursor/rules/js-tooling.mdc',
+			'.github/copilot-instructions.md',
+			'.claude/skills/js-tooling.md',
+			'.mcp.json.example'
 		)
 	}
 	files.push('README.md')
