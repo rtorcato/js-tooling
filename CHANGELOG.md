@@ -1,3 +1,10 @@
+## [2.25.1](https://github.com/rtorcato/js-tooling/compare/v2.25.0...v2.25.1) (2026-07-04)
+
+
+### Bug Fixes
+
+* **tsconfig:** pin tsBuildInfoFile in the v1 base preset (TS5074) ([#155](https://github.com/rtorcato/js-tooling/issues/155)) ([4f3ee40](https://github.com/rtorcato/js-tooling/commit/4f3ee405659f098068f4d213d2096046b6647868)), closes [#98](https://github.com/rtorcato/js-tooling/issues/98) [#97](https://github.com/rtorcato/js-tooling/issues/97) [#98](https://github.com/rtorcato/js-tooling/issues/98)
+
 # [2.25.0](https://github.com/rtorcato/js-tooling/compare/v2.24.1...v2.25.0) (2026-07-04)
 
 
