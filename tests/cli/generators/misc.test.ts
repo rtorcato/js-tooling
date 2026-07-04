@@ -75,12 +75,40 @@ describe('ensureEnginesNode', () => {
 })
 
 describe('generateKnipConfig', () => {
-	it('writes knip.json with default entry and project', async () => {
+	it('writes a narrow src/index entry when no package.json exists', async () => {
 		const dir = newTmpDir()
 		await generateKnipConfig(dir)
 		const knip = await fs.readJson(join(dir, 'knip.json'))
-		expect(knip.entry).toEqual(['src/index.ts'])
-		expect(knip.project).toEqual(['src/**/*.ts'])
+		expect(knip.entry).toEqual(['src/index.{ts,tsx}'])
+		expect(knip.project).toEqual(['src/**/*.{ts,tsx}'])
+		expect(knip.$schema).toBe('https://unpkg.com/knip@6/schema.json')
+	})
+
+	it('keeps the narrow entry for a single-barrel library', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			exports: { '.': './dist/index.js' },
+		})
+		await generateKnipConfig(dir)
+		const knip = await fs.readJson(join(dir, 'knip.json'))
+		expect(knip.entry).toEqual(['src/index.{ts,tsx}'])
+	})
+
+	it('uses an all-of-src entry for per-file-entry libraries (>1 subpath export)', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			exports: {
+				'.': './dist/index.js',
+				'./hooks': './dist/hooks/index.js',
+				'./providers': './dist/providers/index.js',
+			},
+		})
+		await generateKnipConfig(dir)
+		const knip = await fs.readJson(join(dir, 'knip.json'))
+		expect(knip.entry).toEqual(['src/**/*.{ts,tsx}'])
+		expect(knip.project).toEqual(['src/**/*.{ts,tsx}'])
 	})
 })
 

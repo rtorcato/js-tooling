@@ -447,7 +447,7 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'knip',
-		description: 'Scaffold knip.json with default entry/project globs',
+		description: 'Scaffold knip.json (entry globs matched to the package.json build model)',
 		appliesTo: ['knip'],
 		outputs: ['knip.json'],
 		canFixDrift: true,
