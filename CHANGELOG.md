@@ -1,3 +1,10 @@
+## [2.24.1](https://github.com/rtorcato/js-tooling/compare/v2.24.0...v2.24.1) (2026-07-04)
+
+
+### Bug Fixes
+
+* **doctor,fix:** validate husky/lint-staged wiring, not just config presence ([#152](https://github.com/rtorcato/js-tooling/issues/152)) ([a09b3df](https://github.com/rtorcato/js-tooling/commit/a09b3df3b9f4f87ac403a3eae062f91a499de857)), closes [#149](https://github.com/rtorcato/js-tooling/issues/149) [#150](https://github.com/rtorcato/js-tooling/issues/150) [#149](https://github.com/rtorcato/js-tooling/issues/149) [#150](https://github.com/rtorcato/js-tooling/issues/150) [#149](https://github.com/rtorcato/js-tooling/issues/149) [#150](https://github.com/rtorcato/js-tooling/issues/150)
+
 # [2.24.0](https://github.com/rtorcato/js-tooling/compare/v2.23.0...v2.24.0) (2026-07-04)
 
 

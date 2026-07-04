@@ -248,6 +248,34 @@ describe('doctor extended checks', () => {
 		expect(results.find((r) => r.check === 'lint-staged')?.status).toBe('ok')
 	})
 
+	it('reports lint-staged ok when a husky hook actually calls it', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			'lint-staged': { '*.ts': 'biome check' },
+		})
+		await fs.ensureDir(join(dir, '.husky'))
+		await fs.writeFile(join(dir, '.husky', 'pre-commit'), 'npx lint-staged\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'lint-staged')?.status).toBe('ok')
+	})
+
+	it('reports lint-staged drift when configured but the husky hook only comments it out', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			'lint-staged': { '*.ts': 'biome check' },
+		})
+		await fs.ensureDir(join(dir, '.husky'))
+		await fs.writeFile(join(dir, '.husky', 'pre-commit'), '# npx lint-staged\npnpm check\n')
+		const results = await runDoctor(dir)
+		const ls = results.find((r) => r.check === 'lint-staged')
+		expect(ls?.status).toBe('drift')
+		expect(ls?.hint).toMatch(/fix husky/)
+	})
+
 	it('detects knip config field', async () => {
 		const dir = newTmpDir()
 		await fs.writeJson(join(dir, 'package.json'), {
@@ -382,6 +410,20 @@ describe('doctor extended checks', () => {
 		const prePush = results.find((r) => r.check === 'Husky pre-push')
 		expect(prePush?.status).toBe('drift')
 		expect(prePush?.hint).toMatch(/fix husky/)
+	})
+
+	it('reports Husky pre-push drift when the verify call is commented out', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			scripts: { verify: 'pnpm typecheck && pnpm check' },
+		})
+		await fs.ensureDir(join(dir, '.husky'))
+		await fs.writeFile(join(dir, '.husky', 'pre-push'), '#!/usr/bin/env sh\n# pnpm verify\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Husky pre-push')?.status).toBe('drift')
 	})
 
 	it('reports Husky pre-push optional-missing when husky is present but the hook is absent', async () => {
