@@ -111,6 +111,9 @@ jobs:
 
       - name: 🔍 Run linting
         run: ${config.linting.tool === 'biome' || config.linting.tool === 'both' ? 'pnpm check' : 'pnpm lint'}
+
+      - name: 🧹 Check for unused files, exports, and dependencies
+        run: pnpm knip
 ${
 	hasTypeScript
 		? `
