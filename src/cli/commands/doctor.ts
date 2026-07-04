@@ -263,6 +263,105 @@ async function checkNodeVersionPin(dir: string): Promise<CheckResult> {
 	}
 }
 
+interface NodeSignal {
+	source: string
+	major: number
+}
+
+/** First integer in an `engines.node` range (the floor major), or null. */
+function enginesFloorMajor(pkg: Pkg | null): number | null {
+	const engines = (pkg?.engines as Record<string, string> | undefined) ?? {}
+	const raw = engines.node
+	if (!raw) return null
+	const m = raw.match(/\d+/)
+	return m ? Number.parseInt(m[0], 10) : null
+}
+
+async function nvmrcMajor(dir: string): Promise<{ file: string; major: number } | null> {
+	for (const candidate of ['.nvmrc', '.node-version']) {
+		const p = path.join(dir, candidate)
+		if (await fs.pathExists(p)) {
+			const m = (await fs.readFile(p, 'utf-8')).trim().match(/\d+/)
+			if (m) return { file: candidate, major: Number.parseInt(m[0], 10) }
+		}
+	}
+	return null
+}
+
+// Matches a hardcoded scalar `node-version: <major>` — a leading digit (after
+// an optional quote) is required. This skips matrix arrays (`[22, 24]`),
+// `${{ matrix.node-version }}` expressions, bare `node-version:` input keys, and
+// `node-version-file:` (a different key entirely) — those aren't drift signals.
+const HARDCODED_NODE_VERSION = /node-version:\s*['"]?(\d+)/g
+
+async function workflowNodeMajors(dir: string): Promise<NodeSignal[]> {
+	const workflowsDir = path.join(dir, '.github', 'workflows')
+	if (!(await fs.pathExists(workflowsDir))) return []
+	let files: string[]
+	try {
+		files = (await fs.readdir(workflowsDir)).filter(
+			(f) => f.endsWith('.yml') || f.endsWith('.yaml')
+		)
+	} catch {
+		return []
+	}
+	const signals: NodeSignal[] = []
+	for (const file of files) {
+		const contents = await fs.readFile(path.join(workflowsDir, file), 'utf-8')
+		const seen = new Set<number>()
+		for (const match of contents.matchAll(HARDCODED_NODE_VERSION)) {
+			const major = Number.parseInt(match[1] ?? '', 10)
+			if (!Number.isNaN(major) && !seen.has(major)) {
+				seen.add(major)
+				signals.push({ source: `.github/workflows/${file}`, major })
+			}
+		}
+	}
+	return signals
+}
+
+// Root-cause check for the #94 class: a workflow hardcoding a Node major that
+// disagrees with .nvmrc / engines.node (e.g. ci.yml pinned Node 20 while
+// .nvmrc said 22 → node:sqlite crash under pnpm). Only flags genuine
+// disagreement; a matrix that tests several majors uses arrays/expressions and
+// is not counted.
+async function checkNodeVersionConsistency(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const signals: NodeSignal[] = []
+	const nvmrc = await nvmrcMajor(dir)
+	if (nvmrc) signals.push({ source: nvmrc.file, major: nvmrc.major })
+	const eng = enginesFloorMajor(pkg)
+	if (eng !== null) signals.push({ source: 'engines.node', major: eng })
+	signals.push(...(await workflowNodeMajors(dir)))
+
+	if (signals.length < 2) {
+		return {
+			check: 'Node version consistency',
+			status: 'ok',
+			detail:
+				signals.length === 0
+					? 'no Node version pins to cross-check'
+					: `single Node version source (${signals[0]?.source} → ${signals[0]?.major})`,
+		}
+	}
+
+	const distinct = [...new Set(signals.map((s) => s.major))]
+	if (distinct.length === 1) {
+		return {
+			check: 'Node version consistency',
+			status: 'ok',
+			detail: `Node ${distinct[0]} agrees across ${signals.length} sources`,
+		}
+	}
+
+	const summary = signals.map((s) => `${s.source}→${s.major}`).join(', ')
+	return {
+		check: 'Node version consistency',
+		status: 'drift',
+		detail: `Node major disagreement: ${summary}`,
+		hint: 'Run `npx @rtorcato/js-tooling fix node-version` to point workflows at `node-version-file: .nvmrc` (one source of truth)',
+	}
+}
+
 async function checkHusky(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	const huskyDir = await fs.pathExists(path.join(dir, '.husky'))
 	const scripts = (pkg?.scripts as Record<string, string> | undefined) ?? {}
@@ -980,6 +1079,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(checkEnginesNode(pkg))
 	results.push(await checkEditorConfig(targetDir))
 	results.push(await checkNodeVersionPin(targetDir))
+	results.push(await checkNodeVersionConsistency(targetDir, pkg))
 	for (const spec of FILE_CHECKS) {
 		results.push(await checkFile(targetDir, spec))
 	}

@@ -19,6 +19,7 @@ import {
 	ensureEnginesNode,
 	generateCodeowners,
 	generateEditorConfig,
+	alignNodeVersion,
 	generateKnipConfig,
 	generateNvmrc,
 	generateSizeLimitConfig,
@@ -431,6 +432,18 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			await generateNvmrc(targetDir)
 			return { filesWritten: ['.nvmrc'] }
+		},
+	},
+	{
+		target: 'node-version',
+		description: 'Point CI workflows at `node-version-file: .nvmrc` (one Node source of truth)',
+		appliesTo: ['Node version consistency'],
+		outputs: ['.nvmrc', '.github/workflows/*.yml (node-version-file)'],
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const filesWritten = await alignNodeVersion(targetDir)
+			return { filesWritten }
 		},
 	},
 	{
