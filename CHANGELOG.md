@@ -1,3 +1,10 @@
+# [2.24.0](https://github.com/rtorcato/js-tooling/compare/v2.23.0...v2.24.0) (2026-07-04)
+
+
+### Features
+
+* **knip:** match knip.json entry globs to the build model ([#151](https://github.com/rtorcato/js-tooling/issues/151)) ([ed7304d](https://github.com/rtorcato/js-tooling/commit/ed7304db72e9f4192185ec6b90dc3eaa6f56b976)), closes [#145](https://github.com/rtorcato/js-tooling/issues/145) [#145](https://github.com/rtorcato/js-tooling/issues/145)
+
 # [2.23.0](https://github.com/rtorcato/js-tooling/compare/v2.22.0...v2.23.0) (2026-07-03)
 
 
