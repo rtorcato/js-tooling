@@ -120,6 +120,9 @@ function getScripts(config: ProjectConfig, opts: GetScriptsOptions = {}): Record
 		scripts['preview'] = 'vite preview'
 	}
 
+	// knip is part of the universal baseline (knip.json is always generated).
+	scripts['knip'] = 'knip'
+
 	// Git hooks
 	if (config.gitHooks) {
 		scripts['prepare'] = 'husky'
@@ -191,7 +194,8 @@ export function composeVerifyScriptFromPkg(
 }
 
 function getDependencies(config: ProjectConfig): Record<string, string> {
-	const deps: Record<string, string> = {}
+	// knip is part of the universal baseline (knip.json + `knip` script).
+	const deps: Record<string, string> = { knip: '^6.0.0' }
 
 	// TypeScript
 	if (config.typescript.enabled) {

@@ -21,12 +21,6 @@ indent_size = 2
 
 const NVMRC_CONTENT = '22\n'
 
-const KNIP_CONFIG = {
-	$schema: 'https://unpkg.com/knip@5/schema.json',
-	entry: ['src/index.ts'],
-	project: ['src/**/*.ts'],
-}
-
 const SIZE_LIMIT_CONFIG = [
 	{
 		name: 'package (default entry)',
@@ -77,8 +71,39 @@ export async function ensureEnginesNode(
 	return 'added'
 }
 
+/**
+ * Build a knip config whose `entry` matches the project's build model, read
+ * from package.json `exports`:
+ *   - >1 public subpath export  → per-file/multi-entry lib (e.g. react-common,
+ *     whose build makes every src module its own entry). Every file is a public
+ *     entry, so `entry` covers all of src — flagging none as "unused files"
+ *     while still catching unused exports and dependencies.
+ *   - single root barrel / no exports → narrow `src/index` entry so knip can
+ *     trace and flag genuinely unreachable modules.
+ * `.tsx` is included so React libraries aren't silently skipped.
+ */
+export async function buildKnipConfig(targetDir: string) {
+	const pkgPath = path.join(targetDir, 'package.json')
+	let multiEntry = false
+	if (await fs.pathExists(pkgPath)) {
+		const pkg = (await fs.readJson(pkgPath)) as { exports?: unknown }
+		if (pkg.exports && typeof pkg.exports === 'object') {
+			const subpaths = Object.keys(pkg.exports).filter(
+				(k) => k.startsWith('.') && k !== './package.json'
+			)
+			multiEntry = subpaths.length > 1
+		}
+	}
+	return {
+		$schema: 'https://unpkg.com/knip@6/schema.json',
+		entry: multiEntry ? ['src/**/*.{ts,tsx}'] : ['src/index.{ts,tsx}'],
+		project: ['src/**/*.{ts,tsx}'],
+	}
+}
+
 export async function generateKnipConfig(targetDir: string) {
-	await fs.writeJson(path.join(targetDir, 'knip.json'), KNIP_CONFIG, { spaces: 2 })
+	const config = await buildKnipConfig(targetDir)
+	await fs.writeJson(path.join(targetDir, 'knip.json'), config, { spaces: 2 })
 }
 
 export async function generateSizeLimitConfig(targetDir: string) {
