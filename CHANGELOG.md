@@ -1,3 +1,10 @@
+## [2.25.2](https://github.com/rtorcato/js-tooling/compare/v2.25.1...v2.25.2) (2026-07-04)
+
+
+### Bug Fixes
+
+* **husky:** scaffold v10 hook format, drop deprecated v9 bootstrap ([#156](https://github.com/rtorcato/js-tooling/issues/156)) ([4d79999](https://github.com/rtorcato/js-tooling/commit/4d79999a21e34c78002e469b92475743e7d9d8b5)), closes [#135](https://github.com/rtorcato/js-tooling/issues/135) [db-common#16](https://github.com/db-common/issues/16) [#135](https://github.com/rtorcato/js-tooling/issues/135)
+
 ## [2.25.1](https://github.com/rtorcato/js-tooling/compare/v2.25.0...v2.25.1) (2026-07-04)
 
 
