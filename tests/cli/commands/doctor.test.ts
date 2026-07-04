@@ -166,6 +166,56 @@ describe('doctor extended checks', () => {
 		expect(results.find((r) => r.check === 'Node version pin')?.status).toBe('ok')
 	})
 
+	it('Node version consistency: ok when .nvmrc, engines, and workflow all agree', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			engines: { node: '>=22' },
+		})
+		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
+		await fs.outputFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  build:\n    steps:\n      - uses: actions/setup-node@v6\n        with:\n          node-version: "22"\n'
+		)
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Node version consistency')?.status).toBe('ok')
+	})
+
+	it('Node version consistency: drift when a workflow hardcodes a different major', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			engines: { node: '>=22' },
+		})
+		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
+		await fs.outputFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  build:\n    steps:\n      - uses: actions/setup-node@v6\n        with:\n          node-version: 20\n'
+		)
+		const results = await runDoctor(dir)
+		const c = results.find((r) => r.check === 'Node version consistency')
+		expect(c?.status).toBe('drift')
+		expect(c?.hint).toMatch(/fix node-version/)
+	})
+
+	it('Node version consistency: a matrix array is not flagged as drift', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			engines: { node: '>=22' },
+		})
+		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
+		await fs.outputFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  test:\n    strategy:\n      matrix:\n        node-version: ["22", "24"]\n    steps:\n      - uses: actions/setup-node@v6\n        with:\n          node-version: ${{ matrix.node-version }}\n'
+		)
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Node version consistency')?.status).toBe('ok')
+	})
+
 	it('reports husky drift when .husky/ exists without prepare script', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

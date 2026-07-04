@@ -6,6 +6,7 @@ export const FIX_TARGETS: Record<string, string> = {
 	'engines.node': 'engines',
 	EditorConfig: 'editorconfig',
 	'Node version pin': 'nvmrc',
+	'Node version consistency': 'node-version',
 	TypeScript: 'tsconfig',
 	Biome: 'biome',
 	ESLint: 'eslint',

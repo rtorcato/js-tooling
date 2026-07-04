@@ -52,6 +52,68 @@ export async function generateNvmrc(targetDir: string) {
 	await fs.writeFile(path.join(targetDir, '.nvmrc'), NVMRC_CONTENT)
 }
 
+const DEFAULT_NODE_MAJOR = 22
+
+/**
+ * Resolve the authoritative Node major: an existing .nvmrc/.node-version wins,
+ * else the `engines.node` floor, else the default. Used to seed .nvmrc when a
+ * repo has no pin yet before pointing workflows at it.
+ */
+async function resolveNodeMajor(targetDir: string): Promise<number> {
+	for (const candidate of ['.nvmrc', '.node-version']) {
+		const p = path.join(targetDir, candidate)
+		if (await fs.pathExists(p)) {
+			const m = (await fs.readFile(p, 'utf-8')).trim().match(/\d+/)
+			if (m) return Number.parseInt(m[0], 10)
+		}
+	}
+	const pkgPath = path.join(targetDir, 'package.json')
+	if (await fs.pathExists(pkgPath)) {
+		const pkg = (await fs.readJson(pkgPath)) as Record<string, unknown>
+		const node = (pkg.engines as Record<string, string> | undefined)?.node
+		const m = node?.match(/\d+/)
+		if (m) return Number.parseInt(m[0], 10)
+	}
+	return DEFAULT_NODE_MAJOR
+}
+
+// A hardcoded scalar `node-version: <major>` line (leading digit after an
+// optional quote). Deliberately does NOT match matrix arrays (`[22, 24]`),
+// `${{ }}` expressions, or bare `node-version:` input keys — those are left as-is.
+const NODE_VERSION_LINE = /^([ \t]*)node-version:[ \t]*['"]?\d[\w.-]*['"]?[ \t]*$/gm
+
+/**
+ * Make .nvmrc the single Node source of truth: ensure it exists (pinned to the
+ * resolved major) and rewrite hardcoded scalar `node-version:` lines in CI
+ * workflows to `node-version-file: .nvmrc`. Returns the files changed.
+ */
+export async function alignNodeVersion(targetDir: string): Promise<string[]> {
+	const written: string[] = []
+	const nvmrcPath = path.join(targetDir, '.nvmrc')
+	if (!(await fs.pathExists(nvmrcPath))) {
+		const major = await resolveNodeMajor(targetDir)
+		await fs.writeFile(nvmrcPath, `${major}\n`)
+		written.push('.nvmrc')
+	}
+
+	const workflowsDir = path.join(targetDir, '.github', 'workflows')
+	if (await fs.pathExists(workflowsDir)) {
+		const files = (await fs.readdir(workflowsDir)).filter(
+			(f) => f.endsWith('.yml') || f.endsWith('.yaml')
+		)
+		for (const file of files) {
+			const p = path.join(workflowsDir, file)
+			const contents = await fs.readFile(p, 'utf-8')
+			const next = contents.replace(NODE_VERSION_LINE, '$1node-version-file: .nvmrc')
+			if (next !== contents) {
+				await fs.writeFile(p, next)
+				written.push(`.github/workflows/${file}`)
+			}
+		}
+	}
+	return written
+}
+
 export type EnsureEnginesResult = 'added' | 'already-set' | 'no-package-json'
 
 export async function ensureEnginesNode(
