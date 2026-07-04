@@ -119,6 +119,10 @@ out/
 *.swp
 *.swo
 
+# Claude Code (worktrees + local settings are per-machine; agents/commands are shared)
+.claude/worktrees/
+.claude/settings.local.json
+
 # OS
 .DS_Store
 Thumbs.db

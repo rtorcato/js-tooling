@@ -131,4 +131,17 @@ describe('generateGitConfigs', () => {
 		expect(gitignore).toContain('.vite/')
 		expect(gitignore).toContain('/playwright-report/')
 	})
+
+	it('ignores Claude Code worktrees and local settings (but not shared agents/commands)', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await generateGitConfigs(baseConfig(), dir)
+
+		const gitignore = await fs.readFile(join(dir, '.gitignore'), 'utf-8')
+		expect(gitignore).toContain('.claude/worktrees/')
+		expect(gitignore).toContain('.claude/settings.local.json')
+		// Shared config must NOT be ignored.
+		expect(gitignore).not.toContain('.claude/agents')
+		expect(gitignore).not.toMatch(/^\.claude\/$/m)
+	})
 })
