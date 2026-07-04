@@ -388,6 +388,27 @@ describe('fix targeted', () => {
 		expect(prePush).toContain('pnpm verify')
 	})
 
+	it('fix husky --yes repairs a commented-out pre-push even when Husky itself is ok', async () => {
+		const dir = newTmpDir()
+		// Husky wired (prepare script + .husky dir + pre-commit) → Husky check is
+		// `ok`, but pre-push is commented out → pre-push check is drift. The fixer
+		// must act on the drift, not report "already configured".
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			scripts: { prepare: 'husky', verify: 'pnpm typecheck && pnpm check' },
+			'lint-staged': { '*.ts': 'biome check' },
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fs.ensureDir(join(dir, '.husky'))
+		await fs.writeFile(join(dir, '.husky', 'pre-commit'), 'npx lint-staged\n')
+		await fs.writeFile(join(dir, '.husky', 'pre-push'), '# pnpm verify\n')
+		await fixCommand('husky', { directory: dir, yes: true })
+		const prePush = await fs.readFile(join(dir, '.husky', 'pre-push'), 'utf-8')
+		expect(prePush).toContain('pnpm verify')
+		expect(prePush).not.toMatch(/^#\s*pnpm verify/m)
+	})
+
 	it('fix treeshake-check --yes scaffolds apps/treeshake-check from pkg.exports', async () => {
 		const dir = newTmpDir()
 		await fs.writeJson(join(dir, 'package.json'), {
