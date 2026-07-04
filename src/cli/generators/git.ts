@@ -29,13 +29,11 @@ export async function generateHuskyConfig(config: ProjectConfig, targetDir: stri
 	const huskyDir = path.join(targetDir, '.husky')
 	await fs.ensureDir(huskyDir)
 
-	// Pre-commit hook
+	// Pre-commit hook. husky v10 format: just the command — the v9 shebang +
+	// `. "$(dirname ...)/_/husky.sh"` bootstrap is deprecated (warns on every
+	// hook run in v9, fails outright in v10).
 	const preCommitPath = path.join(huskyDir, 'pre-commit')
-	const preCommitContent = `#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-npx lint-staged
-`
+	const preCommitContent = 'npx lint-staged\n'
 	await fs.writeFile(preCommitPath, preCommitContent)
 	await fs.chmod(preCommitPath, 0o755)
 
@@ -52,14 +50,11 @@ npx lint-staged
 		}
 	}
 
-	// Commit-msg hook (if commitlint is enabled)
+	// Commit-msg hook (if commitlint is enabled). husky v10 format — no v9
+	// bootstrap. $1 is still the commit-message file path git passes through.
 	if (config.commitLint) {
 		const commitMsgPath = path.join(huskyDir, 'commit-msg')
-		const commitMsgContent = `#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-npx --no -- commitlint --edit $1
-`
+		const commitMsgContent = 'npx --no -- commitlint --edit $1\n'
 		await fs.writeFile(commitMsgPath, commitMsgContent)
 		await fs.chmod(commitMsgPath, 0o755)
 	}
