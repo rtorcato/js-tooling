@@ -1,3 +1,10 @@
+# [2.25.0](https://github.com/rtorcato/js-tooling/compare/v2.24.1...v2.25.0) (2026-07-04)
+
+
+### Features
+
+* **doctor,fix:** Node version consistency check + node-version fix target ([#154](https://github.com/rtorcato/js-tooling/issues/154)) ([3a3c7bb](https://github.com/rtorcato/js-tooling/commit/3a3c7bb671b2d5e073fa1f1fdc6394c0a8e87daa)), closes [#143](https://github.com/rtorcato/js-tooling/issues/143) [#94](https://github.com/rtorcato/js-tooling/issues/94) [#143](https://github.com/rtorcato/js-tooling/issues/143)
+
 ## [2.24.1](https://github.com/rtorcato/js-tooling/compare/v2.24.0...v2.24.1) (2026-07-04)
 
 
