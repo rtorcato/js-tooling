@@ -170,6 +170,40 @@ describe('fix targeted', () => {
 		expect(content.trim()).toBe('22')
 	})
 
+	it('fix node-version --yes rewrites hardcoded workflow versions to node-version-file', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir, { engines: { node: '>=22' } })
+		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
+		await fs.outputFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			[
+				'jobs:',
+				'  build:',
+				'    steps:',
+				'      - uses: actions/setup-node@v6',
+				'        with:',
+				'          node-version: 20',
+				'  test:',
+				'    strategy:',
+				'      matrix:',
+				'        node-version: ["22", "24"]',
+				'    steps:',
+				'      - uses: actions/setup-node@v6',
+				'        with:',
+				'          node-version: ${{ matrix.node-version }}',
+				'',
+			].join('\n')
+		)
+		await fixCommand('node-version', { directory: dir, yes: true })
+		const yaml = await fs.readFile(join(dir, '.github', 'workflows', 'ci.yml'), 'utf-8')
+		// Hardcoded scalar rewritten...
+		expect(yaml).toContain('node-version-file: .nvmrc')
+		expect(yaml).not.toMatch(/node-version:\s*20\b/)
+		// ...but the matrix array and the ${{ }} expression are left untouched.
+		expect(yaml).toContain('node-version: ["22", "24"]')
+		expect(yaml).toContain('node-version: ${{ matrix.node-version }}')
+	})
+
 	it('fix engines adds engines.node when missing', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
@@ -386,6 +420,27 @@ describe('fix targeted', () => {
 		await fixCommand('husky', { directory: dir, yes: true })
 		const prePush = await fs.readFile(join(dir, '.husky', 'pre-push'), 'utf-8')
 		expect(prePush).toContain('pnpm verify')
+	})
+
+	it('fix husky --yes repairs a commented-out pre-push even when Husky itself is ok', async () => {
+		const dir = newTmpDir()
+		// Husky wired (prepare script + .husky dir + pre-commit) → Husky check is
+		// `ok`, but pre-push is commented out → pre-push check is drift. The fixer
+		// must act on the drift, not report "already configured".
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			scripts: { prepare: 'husky', verify: 'pnpm typecheck && pnpm check' },
+			'lint-staged': { '*.ts': 'biome check' },
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fs.ensureDir(join(dir, '.husky'))
+		await fs.writeFile(join(dir, '.husky', 'pre-commit'), 'npx lint-staged\n')
+		await fs.writeFile(join(dir, '.husky', 'pre-push'), '# pnpm verify\n')
+		await fixCommand('husky', { directory: dir, yes: true })
+		const prePush = await fs.readFile(join(dir, '.husky', 'pre-push'), 'utf-8')
+		expect(prePush).toContain('pnpm verify')
+		expect(prePush).not.toMatch(/^#\s*pnpm verify/m)
 	})
 
 	it('fix treeshake-check --yes scaffolds apps/treeshake-check from pkg.exports', async () => {

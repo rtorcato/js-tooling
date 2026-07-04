@@ -91,38 +91,57 @@
 /* Code window */
 .codeWindow {
 	width: 100%;
-	max-width: 560px;
-	border-radius: 14px;
-	overflow: hidden;
-	border: 1px solid var(--jt-border2);
-	background: var(--jt-code-bg);
-	box-shadow: var(--jt-shadow);
+	max-width: 680px;
 	text-align: left;
 }
-.codeBar {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 11px 14px;
-	border-bottom: 1px solid var(--jt-border);
-}
-.dot {
-	width: 11px;
-	height: 11px;
-	border-radius: 50%;
-}
 .codeFile {
-	margin-left: 6px;
+	padding: 0 4px 8px;
 	font: 500 12px var(--ifm-font-family-monospace);
 	color: var(--jt-faint);
 }
+
+/* Tab bar — segmented pill control, not plain text buttons */
+.codeTabs :global(.tabs) {
+	gap: 8px;
+	padding: 0 0 14px;
+}
+.codeTabs :global(.tabs__item) {
+	padding: 6px 14px;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--jt-muted);
+	border: 1px solid var(--jt-border2);
+	border-radius: 8px;
+	transition:
+		background 0.15s,
+		color 0.15s,
+		border-color 0.15s;
+}
+.codeTabs :global(.tabs__item:hover) {
+	background: var(--jt-surface2);
+	color: var(--jt-heading);
+}
+.codeTabs :global(.tabs__item--active) {
+	background: var(--jt-accent-soft);
+	border-color: var(--jt-accent-border);
+	color: var(--jt-accent);
+}
+.codeTabs :global(.margin-top--md) {
+	margin-top: 0 !important;
+}
+/* CodeBlock brings its own chrome — strip it so it blends into the window */
 .codePre {
 	margin: 0;
+	border: 1px solid var(--jt-border2);
+	border-radius: 14px;
+	box-shadow: var(--jt-shadow);
+}
+.codePre :global(pre) {
+	margin: 0;
 	padding: 16px;
-	font: 500 12.5px / 1.8 var(--ifm-font-family-monospace);
-	color: var(--jt-text);
-	overflow: auto;
 	background: transparent;
+	font: 500 12.5px / 1.8 var(--ifm-font-family-monospace);
 }
 
 /* Sections */

@@ -150,6 +150,10 @@ When adding support for a new development tool:
 - Add JSDoc comments for functions and classes
 - Update CLI help text when adding commands
 - Include examples in tool documentation
+- Setting up a library docs site? See the
+  [Docs site that stays in sync](apps/docs/docs/guides/docs-site.md) guide —
+  shared TypeDoc helper (`@rtorcato/js-tooling/docusaurus`) + reusable
+  `docs-deploy.yml` workflow.
 
 ## 🧪 Testing
 

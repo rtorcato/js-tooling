@@ -1,3 +1,64 @@
+## [2.25.2](https://github.com/rtorcato/js-tooling/compare/v2.25.1...v2.25.2) (2026-07-04)
+
+
+### Bug Fixes
+
+* **husky:** scaffold v10 hook format, drop deprecated v9 bootstrap ([#156](https://github.com/rtorcato/js-tooling/issues/156)) ([4d79999](https://github.com/rtorcato/js-tooling/commit/4d79999a21e34c78002e469b92475743e7d9d8b5)), closes [#135](https://github.com/rtorcato/js-tooling/issues/135) [db-common#16](https://github.com/db-common/issues/16) [#135](https://github.com/rtorcato/js-tooling/issues/135)
+
+## [2.25.1](https://github.com/rtorcato/js-tooling/compare/v2.25.0...v2.25.1) (2026-07-04)
+
+
+### Bug Fixes
+
+* **tsconfig:** pin tsBuildInfoFile in the v1 base preset (TS5074) ([#155](https://github.com/rtorcato/js-tooling/issues/155)) ([4f3ee40](https://github.com/rtorcato/js-tooling/commit/4f3ee405659f098068f4d213d2096046b6647868)), closes [#98](https://github.com/rtorcato/js-tooling/issues/98) [#97](https://github.com/rtorcato/js-tooling/issues/97) [#98](https://github.com/rtorcato/js-tooling/issues/98)
+
+# [2.25.0](https://github.com/rtorcato/js-tooling/compare/v2.24.1...v2.25.0) (2026-07-04)
+
+
+### Features
+
+* **doctor,fix:** Node version consistency check + node-version fix target ([#154](https://github.com/rtorcato/js-tooling/issues/154)) ([3a3c7bb](https://github.com/rtorcato/js-tooling/commit/3a3c7bb671b2d5e073fa1f1fdc6394c0a8e87daa)), closes [#143](https://github.com/rtorcato/js-tooling/issues/143) [#94](https://github.com/rtorcato/js-tooling/issues/94) [#143](https://github.com/rtorcato/js-tooling/issues/143)
+
+## [2.24.1](https://github.com/rtorcato/js-tooling/compare/v2.24.0...v2.24.1) (2026-07-04)
+
+
+### Bug Fixes
+
+* **doctor,fix:** validate husky/lint-staged wiring, not just config presence ([#152](https://github.com/rtorcato/js-tooling/issues/152)) ([a09b3df](https://github.com/rtorcato/js-tooling/commit/a09b3df3b9f4f87ac403a3eae062f91a499de857)), closes [#149](https://github.com/rtorcato/js-tooling/issues/149) [#150](https://github.com/rtorcato/js-tooling/issues/150) [#149](https://github.com/rtorcato/js-tooling/issues/149) [#150](https://github.com/rtorcato/js-tooling/issues/150) [#149](https://github.com/rtorcato/js-tooling/issues/149) [#150](https://github.com/rtorcato/js-tooling/issues/150)
+
+# [2.24.0](https://github.com/rtorcato/js-tooling/compare/v2.23.0...v2.24.0) (2026-07-04)
+
+
+### Features
+
+* **knip:** match knip.json entry globs to the build model ([#151](https://github.com/rtorcato/js-tooling/issues/151)) ([ed7304d](https://github.com/rtorcato/js-tooling/commit/ed7304db72e9f4192185ec6b90dc3eaa6f56b976)), closes [#145](https://github.com/rtorcato/js-tooling/issues/145) [#145](https://github.com/rtorcato/js-tooling/issues/145)
+
+# [2.23.0](https://github.com/rtorcato/js-tooling/compare/v2.22.0...v2.23.0) (2026-07-03)
+
+
+### Features
+
+* **docs:** add logo, restructure nav, custom mobile sidebar theming ([928d7b9](https://github.com/rtorcato/js-tooling/commit/928d7b982ca3e3f22cea6d6d935bf26e500a0cc7))
+
+# [2.22.0](https://github.com/rtorcato/js-tooling/compare/v2.21.0...v2.22.0) (2026-06-29)
+
+
+### Features
+
+* **docusaurus:** shared TypeDoc helper + reusable docs deploy ([#134](https://github.com/rtorcato/js-tooling/issues/134)) ([f5e73eb](https://github.com/rtorcato/js-tooling/commit/f5e73eb68229be312585942c80752878c303ba81))
+
+# [2.21.0](https://github.com/rtorcato/js-tooling/compare/v2.20.0...v2.21.0) (2026-06-29)
+
+
+### Bug Fixes
+
+* **commitlint:** raise header-max to 100, ungate release ([#132](https://github.com/rtorcato/js-tooling/issues/132)) ([dc02107](https://github.com/rtorcato/js-tooling/commit/dc02107b5044da9878ace9059c14248aa720f287)), closes [#NN](https://github.com/rtorcato/js-tooling/issues/NN)
+
+
+### Features
+
+* **cli:** scaffold RELEASE_TOKEN-aware release workflow + doctor check ([#131](https://github.com/rtorcato/js-tooling/issues/131)) ([537f3cf](https://github.com/rtorcato/js-tooling/commit/537f3cfd8d199328c19ff2003c60caf0af914dfd))
+
 # [2.20.0](https://github.com/rtorcato/js-tooling/compare/v2.19.2...v2.20.0) (2026-06-28)
 
 

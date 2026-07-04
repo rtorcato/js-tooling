@@ -263,6 +263,105 @@ async function checkNodeVersionPin(dir: string): Promise<CheckResult> {
 	}
 }
 
+interface NodeSignal {
+	source: string
+	major: number
+}
+
+/** First integer in an `engines.node` range (the floor major), or null. */
+function enginesFloorMajor(pkg: Pkg | null): number | null {
+	const engines = (pkg?.engines as Record<string, string> | undefined) ?? {}
+	const raw = engines.node
+	if (!raw) return null
+	const m = raw.match(/\d+/)
+	return m ? Number.parseInt(m[0], 10) : null
+}
+
+async function nvmrcMajor(dir: string): Promise<{ file: string; major: number } | null> {
+	for (const candidate of ['.nvmrc', '.node-version']) {
+		const p = path.join(dir, candidate)
+		if (await fs.pathExists(p)) {
+			const m = (await fs.readFile(p, 'utf-8')).trim().match(/\d+/)
+			if (m) return { file: candidate, major: Number.parseInt(m[0], 10) }
+		}
+	}
+	return null
+}
+
+// Matches a hardcoded scalar `node-version: <major>` — a leading digit (after
+// an optional quote) is required. This skips matrix arrays (`[22, 24]`),
+// `${{ matrix.node-version }}` expressions, bare `node-version:` input keys, and
+// `node-version-file:` (a different key entirely) — those aren't drift signals.
+const HARDCODED_NODE_VERSION = /node-version:\s*['"]?(\d+)/g
+
+async function workflowNodeMajors(dir: string): Promise<NodeSignal[]> {
+	const workflowsDir = path.join(dir, '.github', 'workflows')
+	if (!(await fs.pathExists(workflowsDir))) return []
+	let files: string[]
+	try {
+		files = (await fs.readdir(workflowsDir)).filter(
+			(f) => f.endsWith('.yml') || f.endsWith('.yaml')
+		)
+	} catch {
+		return []
+	}
+	const signals: NodeSignal[] = []
+	for (const file of files) {
+		const contents = await fs.readFile(path.join(workflowsDir, file), 'utf-8')
+		const seen = new Set<number>()
+		for (const match of contents.matchAll(HARDCODED_NODE_VERSION)) {
+			const major = Number.parseInt(match[1] ?? '', 10)
+			if (!Number.isNaN(major) && !seen.has(major)) {
+				seen.add(major)
+				signals.push({ source: `.github/workflows/${file}`, major })
+			}
+		}
+	}
+	return signals
+}
+
+// Root-cause check for the #94 class: a workflow hardcoding a Node major that
+// disagrees with .nvmrc / engines.node (e.g. ci.yml pinned Node 20 while
+// .nvmrc said 22 → node:sqlite crash under pnpm). Only flags genuine
+// disagreement; a matrix that tests several majors uses arrays/expressions and
+// is not counted.
+async function checkNodeVersionConsistency(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const signals: NodeSignal[] = []
+	const nvmrc = await nvmrcMajor(dir)
+	if (nvmrc) signals.push({ source: nvmrc.file, major: nvmrc.major })
+	const eng = enginesFloorMajor(pkg)
+	if (eng !== null) signals.push({ source: 'engines.node', major: eng })
+	signals.push(...(await workflowNodeMajors(dir)))
+
+	if (signals.length < 2) {
+		return {
+			check: 'Node version consistency',
+			status: 'ok',
+			detail:
+				signals.length === 0
+					? 'no Node version pins to cross-check'
+					: `single Node version source (${signals[0]?.source} → ${signals[0]?.major})`,
+		}
+	}
+
+	const distinct = [...new Set(signals.map((s) => s.major))]
+	if (distinct.length === 1) {
+		return {
+			check: 'Node version consistency',
+			status: 'ok',
+			detail: `Node ${distinct[0]} agrees across ${signals.length} sources`,
+		}
+	}
+
+	const summary = signals.map((s) => `${s.source}→${s.major}`).join(', ')
+	return {
+		check: 'Node version consistency',
+		status: 'drift',
+		detail: `Node major disagreement: ${summary}`,
+		hint: 'Run `npx @rtorcato/js-tooling fix node-version` to point workflows at `node-version-file: .nvmrc` (one source of truth)',
+	}
+}
+
 async function checkHusky(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	const huskyDir = await fs.pathExists(path.join(dir, '.husky'))
 	const scripts = (pkg?.scripts as Record<string, string> | undefined) ?? {}
@@ -294,6 +393,18 @@ async function checkHusky(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	}
 }
 
+/**
+ * True when a shell hook has an uncommented line matching `pattern`. A
+ * commented-out line (e.g. `# pnpm verify`) doesn't count — the command never
+ * runs, so it isn't real wiring.
+ */
+function hookHasUncommented(contents: string, pattern: RegExp): boolean {
+	return contents.split('\n').some((line) => {
+		const trimmed = line.trim()
+		return trimmed.length > 0 && !trimmed.startsWith('#') && pattern.test(trimmed)
+	})
+}
+
 async function checkHuskyPrePush(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	const huskyDir = await fs.pathExists(path.join(dir, '.husky'))
 	if (!huskyDir) {
@@ -315,7 +426,7 @@ async function checkHuskyPrePush(dir: string, pkg: Pkg | null): Promise<CheckRes
 		}
 	}
 	const contents = await fs.readFile(hookPath, 'utf-8')
-	if (/\bpnpm\s+verify\b/.test(contents)) {
+	if (hookHasUncommented(contents, /\bpnpm\s+verify\b/)) {
 		return {
 			check: 'Husky pre-push',
 			status: 'ok',
@@ -405,6 +516,23 @@ const LINT_STAGED_FILES = [
 	'lint-staged.config.mjs',
 ]
 
+/**
+ * True when any .husky hook has an uncommented line that invokes lint-staged.
+ * A commented-out `# npx lint-staged` line (react-common's repro) does not
+ * count — lint-staged never actually runs.
+ */
+async function huskyHookCallsLintStaged(dir: string): Promise<boolean> {
+	const huskyDir = path.join(dir, '.husky')
+	if (!(await fs.pathExists(huskyDir))) return false
+	for (const name of await fs.readdir(huskyDir)) {
+		const hookPath = path.join(huskyDir, name)
+		if (!(await fs.stat(hookPath)).isFile()) continue
+		const contents = await fs.readFile(hookPath, 'utf-8')
+		if (hookHasUncommented(contents, /\blint-staged\b/)) return true
+	}
+	return false
+}
+
 async function checkLintStaged(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	const inPkg = pkg ? 'lint-staged' in pkg : false
 	let inFile: string | null = null
@@ -416,10 +544,23 @@ async function checkLintStaged(dir: string, pkg: Pkg | null): Promise<CheckResul
 	}
 
 	if (inPkg || inFile) {
+		const where = inPkg ? '`lint-staged` field in package.json' : `${inFile} found`
+		// Config presence isn't enough — verify a husky hook actually runs it.
+		// Only assert wiring when husky is in use; a non-husky setup may invoke
+		// lint-staged another way and shouldn't be flagged.
+		const huskyInUse = await fs.pathExists(path.join(dir, '.husky'))
+		if (huskyInUse && !(await huskyHookCallsLintStaged(dir))) {
+			return {
+				check: 'lint-staged',
+				status: 'drift',
+				detail: `${where} but no husky hook runs it`,
+				hint: 'Run `npx @rtorcato/js-tooling fix husky` to wire lint-staged into the pre-commit hook',
+			}
+		}
 		return {
 			check: 'lint-staged',
 			status: 'ok',
-			detail: inPkg ? '`lint-staged` field in package.json' : `${inFile} found`,
+			detail: where,
 		}
 	}
 	return {
@@ -616,6 +757,49 @@ async function checkGitHubActions(dir: string): Promise<CheckResult> {
 	} catch {
 		return {
 			check: 'GitHub Actions',
+			status: 'optional-missing',
+			detail: 'unable to read .github/workflows/',
+		}
+	}
+}
+
+// Detects the broken-release-on-protected-main footgun: a workflow that runs
+// semantic-release but only hands it GITHUB_TOKEN, which can't push the version
+// commit + tag past branch protection. The fix is an admin PAT (RELEASE_TOKEN)
+// with a GITHUB_TOKEN fallback.
+async function checkReleaseToken(dir: string): Promise<CheckResult> {
+	const workflowsDir = path.join(dir, '.github', 'workflows')
+	if (!(await fs.pathExists(workflowsDir))) {
+		return { check: 'Release token', status: 'optional-missing', detail: 'no .github/workflows/' }
+	}
+	try {
+		const files = await fs.readdir(workflowsDir)
+		for (const f of files) {
+			if (!(f.endsWith('.yml') || f.endsWith('.yaml'))) continue
+			const content = await fs.readFile(path.join(workflowsDir, f), 'utf-8')
+			if (!/semantic-release/.test(content)) continue
+			if (/RELEASE_TOKEN/.test(content)) {
+				return {
+					check: 'Release token',
+					status: 'ok',
+					detail: `${f} uses RELEASE_TOKEN (with GITHUB_TOKEN fallback)`,
+				}
+			}
+			return {
+				check: 'Release token',
+				status: 'drift',
+				detail: `${f} runs semantic-release with bare GITHUB_TOKEN`,
+				hint: 'GITHUB_TOKEN cannot push to a protected main. Set the checkout `token:` and the semantic-release `GITHUB_TOKEN` env to `${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}` and add a RELEASE_TOKEN admin PAT secret',
+			}
+		}
+		return {
+			check: 'Release token',
+			status: 'optional-missing',
+			detail: 'no semantic-release workflow found',
+		}
+	} catch {
+		return {
+			check: 'Release token',
 			status: 'optional-missing',
 			detail: 'unable to read .github/workflows/',
 		}
@@ -937,6 +1121,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(checkEnginesNode(pkg))
 	results.push(await checkEditorConfig(targetDir))
 	results.push(await checkNodeVersionPin(targetDir))
+	results.push(await checkNodeVersionConsistency(targetDir, pkg))
 	for (const spec of FILE_CHECKS) {
 		results.push(await checkFile(targetDir, spec))
 	}
@@ -948,6 +1133,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkKnip(targetDir, pkg))
 	results.push(await checkSizeLimit(targetDir, pkg))
 	results.push(await checkGitHubActions(targetDir))
+	results.push(await checkReleaseToken(targetDir))
 	results.push(await checkDependabot(targetDir))
 	results.push(await checkCodeQL(targetDir))
 	results.push(await checkGitLabCI(targetDir))

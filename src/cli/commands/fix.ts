@@ -19,6 +19,7 @@ import {
 	ensureEnginesNode,
 	generateCodeowners,
 	generateEditorConfig,
+	alignNodeVersion,
 	generateKnipConfig,
 	generateNvmrc,
 	generateSizeLimitConfig,
@@ -434,6 +435,18 @@ const FIXERS: Fixer[] = [
 		},
 	},
 	{
+		target: 'node-version',
+		description: 'Point CI workflows at `node-version-file: .nvmrc` (one Node source of truth)',
+		appliesTo: ['Node version consistency'],
+		outputs: ['.nvmrc', '.github/workflows/*.yml (node-version-file)'],
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const filesWritten = await alignNodeVersion(targetDir)
+			return { filesWritten }
+		},
+	},
+	{
 		target: 'engines',
 		description: 'Add engines.node to package.json',
 		appliesTo: ['engines.node'],
@@ -447,7 +460,7 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'knip',
-		description: 'Scaffold knip.json with default entry/project globs',
+		description: 'Scaffold knip.json (entry globs matched to the package.json build model)',
 		appliesTo: ['knip'],
 		outputs: ['knip.json'],
 		canFixDrift: true,
@@ -1060,8 +1073,14 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 			console.log()
 			process.exit(1)
 		}
+		// A fixer can cover several checks (e.g. husky covers Husky + lint-staged +
+		// Husky pre-push). Pick the first that still needs work rather than the
+		// first that merely matches — otherwise an `ok` check (Husky wired) masks a
+		// sibling drift (pre-push not calling verify) and the fixer no-ops.
+		const applicable = results.filter((r) => fixer.appliesTo.includes(r.check))
 		const result =
-			results.find((r) => fixer.appliesTo.includes(r.check)) ??
+			applicable.find((r) => r.status !== 'ok') ??
+			applicable[0] ??
 			({ check: fixer.appliesTo[0] ?? fixer.target, status: 'missing', detail: '' } as CheckResult)
 		// A check that's `ok` because the lockfile records an opt-out should still be
 		// fixable when the user explicitly targets it — treat it as optional-missing

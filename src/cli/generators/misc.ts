@@ -21,12 +21,6 @@ indent_size = 2
 
 const NVMRC_CONTENT = '22\n'
 
-const KNIP_CONFIG = {
-	$schema: 'https://unpkg.com/knip@5/schema.json',
-	entry: ['src/index.ts'],
-	project: ['src/**/*.ts'],
-}
-
 const SIZE_LIMIT_CONFIG = [
 	{
 		name: 'package (default entry)',
@@ -58,6 +52,68 @@ export async function generateNvmrc(targetDir: string) {
 	await fs.writeFile(path.join(targetDir, '.nvmrc'), NVMRC_CONTENT)
 }
 
+const DEFAULT_NODE_MAJOR = 22
+
+/**
+ * Resolve the authoritative Node major: an existing .nvmrc/.node-version wins,
+ * else the `engines.node` floor, else the default. Used to seed .nvmrc when a
+ * repo has no pin yet before pointing workflows at it.
+ */
+async function resolveNodeMajor(targetDir: string): Promise<number> {
+	for (const candidate of ['.nvmrc', '.node-version']) {
+		const p = path.join(targetDir, candidate)
+		if (await fs.pathExists(p)) {
+			const m = (await fs.readFile(p, 'utf-8')).trim().match(/\d+/)
+			if (m) return Number.parseInt(m[0], 10)
+		}
+	}
+	const pkgPath = path.join(targetDir, 'package.json')
+	if (await fs.pathExists(pkgPath)) {
+		const pkg = (await fs.readJson(pkgPath)) as Record<string, unknown>
+		const node = (pkg.engines as Record<string, string> | undefined)?.node
+		const m = node?.match(/\d+/)
+		if (m) return Number.parseInt(m[0], 10)
+	}
+	return DEFAULT_NODE_MAJOR
+}
+
+// A hardcoded scalar `node-version: <major>` line (leading digit after an
+// optional quote). Deliberately does NOT match matrix arrays (`[22, 24]`),
+// `${{ }}` expressions, or bare `node-version:` input keys — those are left as-is.
+const NODE_VERSION_LINE = /^([ \t]*)node-version:[ \t]*['"]?\d[\w.-]*['"]?[ \t]*$/gm
+
+/**
+ * Make .nvmrc the single Node source of truth: ensure it exists (pinned to the
+ * resolved major) and rewrite hardcoded scalar `node-version:` lines in CI
+ * workflows to `node-version-file: .nvmrc`. Returns the files changed.
+ */
+export async function alignNodeVersion(targetDir: string): Promise<string[]> {
+	const written: string[] = []
+	const nvmrcPath = path.join(targetDir, '.nvmrc')
+	if (!(await fs.pathExists(nvmrcPath))) {
+		const major = await resolveNodeMajor(targetDir)
+		await fs.writeFile(nvmrcPath, `${major}\n`)
+		written.push('.nvmrc')
+	}
+
+	const workflowsDir = path.join(targetDir, '.github', 'workflows')
+	if (await fs.pathExists(workflowsDir)) {
+		const files = (await fs.readdir(workflowsDir)).filter(
+			(f) => f.endsWith('.yml') || f.endsWith('.yaml')
+		)
+		for (const file of files) {
+			const p = path.join(workflowsDir, file)
+			const contents = await fs.readFile(p, 'utf-8')
+			const next = contents.replace(NODE_VERSION_LINE, '$1node-version-file: .nvmrc')
+			if (next !== contents) {
+				await fs.writeFile(p, next)
+				written.push(`.github/workflows/${file}`)
+			}
+		}
+	}
+	return written
+}
+
 export type EnsureEnginesResult = 'added' | 'already-set' | 'no-package-json'
 
 export async function ensureEnginesNode(
@@ -77,8 +133,39 @@ export async function ensureEnginesNode(
 	return 'added'
 }
 
+/**
+ * Build a knip config whose `entry` matches the project's build model, read
+ * from package.json `exports`:
+ *   - >1 public subpath export  → per-file/multi-entry lib (e.g. react-common,
+ *     whose build makes every src module its own entry). Every file is a public
+ *     entry, so `entry` covers all of src — flagging none as "unused files"
+ *     while still catching unused exports and dependencies.
+ *   - single root barrel / no exports → narrow `src/index` entry so knip can
+ *     trace and flag genuinely unreachable modules.
+ * `.tsx` is included so React libraries aren't silently skipped.
+ */
+export async function buildKnipConfig(targetDir: string) {
+	const pkgPath = path.join(targetDir, 'package.json')
+	let multiEntry = false
+	if (await fs.pathExists(pkgPath)) {
+		const pkg = (await fs.readJson(pkgPath)) as { exports?: unknown }
+		if (pkg.exports && typeof pkg.exports === 'object') {
+			const subpaths = Object.keys(pkg.exports).filter(
+				(k) => k.startsWith('.') && k !== './package.json'
+			)
+			multiEntry = subpaths.length > 1
+		}
+	}
+	return {
+		$schema: 'https://unpkg.com/knip@6/schema.json',
+		entry: multiEntry ? ['src/**/*.{ts,tsx}'] : ['src/index.{ts,tsx}'],
+		project: ['src/**/*.{ts,tsx}'],
+	}
+}
+
 export async function generateKnipConfig(targetDir: string) {
-	await fs.writeJson(path.join(targetDir, 'knip.json'), KNIP_CONFIG, { spaces: 2 })
+	const config = await buildKnipConfig(targetDir)
+	await fs.writeJson(path.join(targetDir, 'knip.json'), config, { spaces: 2 })
 }
 
 export async function generateSizeLimitConfig(targetDir: string) {

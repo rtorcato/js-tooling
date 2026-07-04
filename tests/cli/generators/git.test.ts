@@ -36,9 +36,14 @@ describe('generateGitConfigs', () => {
 
 		const preCommit = await fs.readFile(join(dir, '.husky', 'pre-commit'), 'utf-8')
 		expect(preCommit).toContain('lint-staged')
+		// husky v10 format: no deprecated v9 bootstrap (shebang + husky.sh source)
+		// which warns in v9 and fails in v10.
+		expect(preCommit).not.toContain('husky.sh')
+		expect(preCommit).not.toContain('#!/usr/bin/env sh')
 
 		const commitMsg = await fs.readFile(join(dir, '.husky', 'commit-msg'), 'utf-8')
 		expect(commitMsg).toContain('commitlint --edit')
+		expect(commitMsg).not.toContain('husky.sh')
 
 		const pkg = await fs.readJson(join(dir, 'package.json'))
 		const lintStaged = pkg['lint-staged']

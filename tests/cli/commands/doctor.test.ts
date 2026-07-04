@@ -166,6 +166,56 @@ describe('doctor extended checks', () => {
 		expect(results.find((r) => r.check === 'Node version pin')?.status).toBe('ok')
 	})
 
+	it('Node version consistency: ok when .nvmrc, engines, and workflow all agree', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			engines: { node: '>=22' },
+		})
+		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
+		await fs.outputFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  build:\n    steps:\n      - uses: actions/setup-node@v6\n        with:\n          node-version: "22"\n'
+		)
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Node version consistency')?.status).toBe('ok')
+	})
+
+	it('Node version consistency: drift when a workflow hardcodes a different major', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			engines: { node: '>=22' },
+		})
+		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
+		await fs.outputFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  build:\n    steps:\n      - uses: actions/setup-node@v6\n        with:\n          node-version: 20\n'
+		)
+		const results = await runDoctor(dir)
+		const c = results.find((r) => r.check === 'Node version consistency')
+		expect(c?.status).toBe('drift')
+		expect(c?.hint).toMatch(/fix node-version/)
+	})
+
+	it('Node version consistency: a matrix array is not flagged as drift', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			engines: { node: '>=22' },
+		})
+		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
+		await fs.outputFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  test:\n    strategy:\n      matrix:\n        node-version: ["22", "24"]\n    steps:\n      - uses: actions/setup-node@v6\n        with:\n          node-version: ${{ matrix.node-version }}\n'
+		)
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Node version consistency')?.status).toBe('ok')
+	})
+
 	it('reports husky drift when .husky/ exists without prepare script', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
@@ -196,6 +246,34 @@ describe('doctor extended checks', () => {
 		})
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'lint-staged')?.status).toBe('ok')
+	})
+
+	it('reports lint-staged ok when a husky hook actually calls it', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			'lint-staged': { '*.ts': 'biome check' },
+		})
+		await fs.ensureDir(join(dir, '.husky'))
+		await fs.writeFile(join(dir, '.husky', 'pre-commit'), 'npx lint-staged\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'lint-staged')?.status).toBe('ok')
+	})
+
+	it('reports lint-staged drift when configured but the husky hook only comments it out', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			'lint-staged': { '*.ts': 'biome check' },
+		})
+		await fs.ensureDir(join(dir, '.husky'))
+		await fs.writeFile(join(dir, '.husky', 'pre-commit'), '# npx lint-staged\npnpm check\n')
+		const results = await runDoctor(dir)
+		const ls = results.find((r) => r.check === 'lint-staged')
+		expect(ls?.status).toBe('drift')
+		expect(ls?.hint).toMatch(/fix husky/)
 	})
 
 	it('detects knip config field', async () => {
@@ -332,6 +410,20 @@ describe('doctor extended checks', () => {
 		const prePush = results.find((r) => r.check === 'Husky pre-push')
 		expect(prePush?.status).toBe('drift')
 		expect(prePush?.hint).toMatch(/fix husky/)
+	})
+
+	it('reports Husky pre-push drift when the verify call is commented out', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			scripts: { verify: 'pnpm typecheck && pnpm check' },
+		})
+		await fs.ensureDir(join(dir, '.husky'))
+		await fs.writeFile(join(dir, '.husky', 'pre-push'), '#!/usr/bin/env sh\n# pnpm verify\n')
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Husky pre-push')?.status).toBe('drift')
 	})
 
 	it('reports Husky pre-push optional-missing when husky is present but the hook is absent', async () => {
@@ -700,5 +792,34 @@ describe('nextStepSuggestions', () => {
 			{ check: 'Node', status: 'drift', detail: '' },
 		])
 		expect(suggestions).toEqual([])
+	})
+
+	it('flags a release workflow that runs semantic-release with bare GITHUB_TOKEN', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  release:\n    steps:\n      - run: npx semantic-release\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n'
+		)
+
+		const results = await runDoctor(dir)
+		const rt = results.find((r) => r.check === 'Release token')
+		expect(rt?.status).toBe('drift')
+		expect(rt?.hint).toMatch(/RELEASE_TOKEN/)
+	})
+
+	it('reports ok when the release workflow uses the RELEASE_TOKEN fallback', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  release:\n    steps:\n      - uses: actions/checkout@v7\n        with:\n          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}\n      - run: npx semantic-release\n        env:\n          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}\n'
+		)
+
+		const results = await runDoctor(dir)
+		const rt = results.find((r) => r.check === 'Release token')
+		expect(rt?.status).toBe('ok')
 	})
 })

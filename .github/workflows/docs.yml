@@ -3,9 +3,19 @@ name: Deploy Docs
 on:
   push:
     branches: [main]
+    # src/**, package.json and README.md so a shipped change or a release's
+    # version bump redeploys — not just edits under apps/docs.
     paths:
       - 'apps/docs/**'
+      - 'src/**'
+      - 'package.json'
+      - 'README.md'
       - '.github/workflows/docs.yml'
+      - '.github/workflows/docs-deploy.yml'
+  # semantic-release publishes a GitHub Release after the version commit lands;
+  # rebuild then so the site always tracks the latest release.
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -13,46 +23,8 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build docs
-        run: pnpm --filter @rtorcato/docs build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: apps/docs/build
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+  docs:
+    uses: ./.github/workflows/docs-deploy.yml
+    with:
+      build-filter: '@rtorcato/docs'

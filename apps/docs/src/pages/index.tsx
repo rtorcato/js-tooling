@@ -1,5 +1,8 @@
 import Link from '@docusaurus/Link'
+import CodeBlock from '@theme/CodeBlock'
 import Layout from '@theme/Layout'
+import TabItem from '@theme/TabItem'
+import Tabs from '@theme/Tabs'
 import clsx from 'clsx'
 import type { ReactElement } from 'react'
 import InstallTabs from '@site/src/components/InstallTabs'
@@ -171,7 +174,19 @@ const CATEGORIES: Category[] = [
 	},
 ]
 
-const HERO_CODE = `$ npx @rtorcato/js-tooling setup
+type Example = {
+	label: string
+	file: string
+	language: string
+	code: string
+}
+
+const EXAMPLES: Example[] = [
+	{
+		label: 'setup',
+		file: 'npx @rtorcato/js-tooling setup',
+		language: 'bash',
+		code: `$ npx @rtorcato/js-tooling setup
 
 🛠️  Welcome to JS Tooling Setup!
 ? Project type:    📚 Library/Package
@@ -181,7 +196,37 @@ const HERO_CODE = `$ npx @rtorcato/js-tooling setup
 ? Git hooks:       ✅ Husky + lint-staged
 ? Releases:        🚀 semantic-release
 
-✅ Setup complete.`
+✅ Setup complete.`,
+	},
+	{
+		label: 'doctor',
+		file: 'npx @rtorcato/js-tooling doctor',
+		language: 'bash',
+		code: `$ npx @rtorcato/js-tooling doctor
+
+⚕️  Checking project health…
+✔ TypeScript      base config extends @rtorcato/js-tooling
+✔ Biome           config present
+⚠ Vitest          coverage thresholds drifted
+⚠ Dependabot      not configured
+✖ CI workflow     missing typecheck job
+
+2 warnings, 1 missing → run \`fix\` to resolve.`,
+	},
+	{
+		label: 'fix',
+		file: 'npx @rtorcato/js-tooling fix --yes',
+		language: 'bash',
+		code: `$ npx @rtorcato/js-tooling fix --yes
+
+🔧 Applying fixes…
+✔ vitest          reset coverage thresholds
+✔ dependabot      scaffolded .github/dependabot.yml
+✔ ci              added typecheck job to ci.yml
+
+3 fixes applied. Re-run \`doctor\` to verify.`,
+	},
+]
 
 /* ------------------------------------------------------------------ */
 /* Sections                                                            */
@@ -228,13 +273,16 @@ function Hero(): ReactElement {
 function CodeWindow(): ReactElement {
 	return (
 		<div className={styles.codeWindow}>
-			<div className={styles.codeBar}>
-				<span className={styles.dot} style={{ background: '#ff5f57' }} />
-				<span className={styles.dot} style={{ background: '#febc2e' }} />
-				<span className={styles.dot} style={{ background: '#28c840' }} />
-				<span className={styles.codeFile}>terminal</span>
-			</div>
-			<pre className={styles.codePre}>{HERO_CODE}</pre>
+			<Tabs className={styles.codeTabs} groupId="hero-command">
+				{EXAMPLES.map((ex) => (
+					<TabItem key={ex.label} value={ex.label} label={ex.label}>
+						<div className={styles.codeFile}>{ex.file}</div>
+						<CodeBlock language={ex.language} className={styles.codePre}>
+							{ex.code}
+						</CodeBlock>
+					</TabItem>
+				))}
+			</Tabs>
 		</div>
 	)
 }
