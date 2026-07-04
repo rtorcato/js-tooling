@@ -1,3 +1,10 @@
+# [2.26.0](https://github.com/rtorcato/js-tooling/compare/v2.25.2...v2.26.0) (2026-07-04)
+
+
+### Features
+
+* unified AI setup (fix ai + setup prompt: AGENTS.md, CLAUDE.md, MCP, doctor) ([#160](https://github.com/rtorcato/js-tooling/issues/160)) ([0e08c14](https://github.com/rtorcato/js-tooling/commit/0e08c1431b6b793059de4be7a9b5f27c3d80c1d6)), closes [#93](https://github.com/rtorcato/js-tooling/issues/93)
+
 ## [2.25.2](https://github.com/rtorcato/js-tooling/compare/v2.25.1...v2.25.2) (2026-07-04)
 
 
