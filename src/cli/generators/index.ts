@@ -2,6 +2,7 @@ import fs from 'fs-extra'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { ProjectConfig } from '../commands/setup.js'
+import { installAiSetup } from './agent-rules.js'
 import { generateBuildConfigs } from './build.js'
 import { generateGitConfigs } from './git.js'
 import { generateGitHubActions } from './github-actions.js'
@@ -70,6 +71,11 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 				forbiddenSubpaths: allCandidates.filter((s) => s !== defaultAllowed),
 			})
 		}
+	}
+
+	// AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example)
+	if (config.aiSetup) {
+		await installAiSetup(targetDir)
 	}
 
 	// Generate README

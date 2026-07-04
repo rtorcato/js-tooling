@@ -40,6 +40,8 @@ export interface ProjectConfig {
 	securityAutomation: boolean
 	bundler: 'tsup' | 'esbuild' | 'vite' | 'none'
 	treeshakeCheck?: boolean
+	/** Scaffold AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example). */
+	aiSetup?: boolean
 }
 
 export interface SetupOptions {
@@ -272,6 +274,12 @@ async function promptForConfig(): Promise<ProjectConfig> {
 			default: true,
 		},
 		{
+			type: 'confirm',
+			name: 'aiSetup',
+			message: '🤖 Add AI agent rules (AGENTS.md, CLAUDE.md, Cursor, Copilot, Claude skill)?',
+			default: true,
+		},
+		{
 			type: 'list',
 			name: 'bundler',
 			message: '📦 Which bundler/build tool?',
@@ -323,6 +331,7 @@ async function promptForConfig(): Promise<ProjectConfig> {
 		securityAutomation: answers.securityAutomation ?? false,
 		bundler: answers.bundler || 'none',
 		treeshakeCheck: answers.treeshakeCheck || false,
+		aiSetup: answers.aiSetup ?? false,
 	}
 }
 

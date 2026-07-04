@@ -227,6 +227,12 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		exports: [],
 		fixTarget: 'codeql',
 	},
+	{
+		name: 'AI Agent Setup',
+		description: 'Scaffold AGENTS.md, CLAUDE.md, Cursor/Copilot rules, Claude skill, MCP example',
+		exports: [],
+		fixTarget: 'ai',
+	},
 ]
 
 program

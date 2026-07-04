@@ -1091,6 +1091,29 @@ async function checkCommunityHealth(dir: string): Promise<CheckResult> {
 	}
 }
 
+async function checkAiSetup(dir: string): Promise<CheckResult> {
+	// Consider AI setup present if AGENTS.md carries the js-tooling block or the
+	// Claude skill is installed — the two primary markers `fix ai` writes.
+	const agentsPath = path.join(dir, 'AGENTS.md')
+	const hasAgentsBlock =
+		(await fs.pathExists(agentsPath)) &&
+		(await fs.readFile(agentsPath, 'utf8')).includes('<!-- js-tooling:start -->')
+	const hasSkill = await fs.pathExists(path.join(dir, '.claude', 'skills', 'js-tooling.md'))
+	if (hasAgentsBlock || hasSkill) {
+		return {
+			check: 'AI setup',
+			status: 'ok',
+			detail: hasAgentsBlock ? 'AGENTS.md has the js-tooling block' : '.claude skill installed',
+		}
+	}
+	return {
+		check: 'AI setup',
+		status: 'optional-missing',
+		detail: 'no AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot rules, Claude skill)',
+		hint: 'Run `npx @rtorcato/js-tooling fix ai` to scaffold agent rules for every AI tool',
+	}
+}
+
 async function checkGitLabCI(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.gitlab-ci.yml', '.gitlab-ci.yaml']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -1139,6 +1162,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkGitLabCI(targetDir))
 	results.push(await checkCodeowners(targetDir))
 	results.push(await checkCommunityHealth(targetDir))
+	results.push(await checkAiSetup(targetDir))
 	results.push(await checkTypedoc(targetDir, pkg))
 	results.push(await checkAreTheTypesWrong(targetDir, pkg))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))

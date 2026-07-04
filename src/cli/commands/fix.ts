@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import { createPatch } from 'diff'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
-import { installAgentRules } from '../generators/agent-rules.js'
+import { installAgentRules, installAiSetup } from '../generators/agent-rules.js'
 import { generateSemanticReleaseConfig } from '../generators/build.js'
 import { generateCommunityHealth } from '../generators/community-health.js'
 import {
@@ -582,6 +582,28 @@ const FIXERS: Fixer[] = [
 
 			await fs.writeJson(pkgPath, updated, { spaces: 2 })
 			return { filesWritten: ['package.json'] }
+		},
+	},
+	{
+		target: 'ai',
+		description:
+			'Install all AI agent files at once (AGENTS.md, CLAUDE.md, Cursor, Copilot, Claude skill, MCP example)',
+		appliesTo: ['AI setup'],
+		outputs: [
+			'AGENTS.md',
+			'CLAUDE.md',
+			'.cursor/rules/js-tooling.mdc',
+			'.github/copilot-instructions.md',
+			'.claude/skills/js-tooling.md',
+			'.mcp.json.example',
+		],
+		// Every output is a delimited-block upsert or a `.example` file — existing
+		// user content is never clobbered.
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const filesWritten = await installAiSetup(targetDir)
+			return { filesWritten }
 		},
 	},
 	{

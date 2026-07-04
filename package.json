@@ -82,6 +82,7 @@
 		"tooling/semantic-release/*.mjs",
 		"tooling/semantic-release/*.d.mts",
 		"tooling/claude/*.md",
+		"tooling/mcp/mcp.json.example",
 		"README.md"
 	],
 	"exports": {

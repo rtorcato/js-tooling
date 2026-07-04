@@ -1,7 +1,13 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 
-export type PresetName = 'biome' | 'changesets' | 'oxlint' | 'tsconfig' | 'claude-skill'
+export type PresetName =
+	| 'biome'
+	| 'changesets'
+	| 'oxlint'
+	| 'tsconfig'
+	| 'claude-skill'
+	| 'mcp-example'
 
 export interface PresetDefinition {
 	source: string
@@ -34,6 +40,11 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		source: 'tooling/claude/js-tooling.md',
 		target: '.claude/skills/js-tooling.md',
 		desc: 'Claude Code skill for driving the js-tooling CLI',
+	},
+	'mcp-example': {
+		source: 'tooling/mcp/mcp.json.example',
+		target: '.mcp.json.example',
+		desc: 'Commented MCP server template (copy to .mcp.json to activate)',
 	},
 }
 

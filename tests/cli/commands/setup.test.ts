@@ -40,6 +40,22 @@ describe('setup-presets', () => {
 		expect(config.linting.eslintConfig).toBe('nextjs')
 		expect(config.bundler).toBe('none')
 	})
+
+	it('enables aiSetup by default and lists AI files when on', () => {
+		const config = buildPresetConfig('library', 'demo')
+		expect(config.aiSetup).toBe(true)
+		const files = computeFileList(config)
+		expect(files).toContain('AGENTS.md')
+		expect(files).toContain('CLAUDE.md')
+		expect(files).toContain('.mcp.json.example')
+	})
+
+	it('omits AI files from the list when aiSetup is off', () => {
+		const config = { ...buildPresetConfig('library', 'demo'), aiSetup: false }
+		const files = computeFileList(config)
+		expect(files).not.toContain('AGENTS.md')
+		expect(files).not.toContain('.mcp.json.example')
+	})
 })
 
 describe('validateProjectConfig', () => {
