@@ -294,6 +294,18 @@ async function checkHusky(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	}
 }
 
+/**
+ * True when a shell hook has an uncommented line matching `pattern`. A
+ * commented-out line (e.g. `# pnpm verify`) doesn't count — the command never
+ * runs, so it isn't real wiring.
+ */
+function hookHasUncommented(contents: string, pattern: RegExp): boolean {
+	return contents.split('\n').some((line) => {
+		const trimmed = line.trim()
+		return trimmed.length > 0 && !trimmed.startsWith('#') && pattern.test(trimmed)
+	})
+}
+
 async function checkHuskyPrePush(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	const huskyDir = await fs.pathExists(path.join(dir, '.husky'))
 	if (!huskyDir) {
@@ -315,7 +327,7 @@ async function checkHuskyPrePush(dir: string, pkg: Pkg | null): Promise<CheckRes
 		}
 	}
 	const contents = await fs.readFile(hookPath, 'utf-8')
-	if (/\bpnpm\s+verify\b/.test(contents)) {
+	if (hookHasUncommented(contents, /\bpnpm\s+verify\b/)) {
 		return {
 			check: 'Husky pre-push',
 			status: 'ok',
@@ -405,6 +417,23 @@ const LINT_STAGED_FILES = [
 	'lint-staged.config.mjs',
 ]
 
+/**
+ * True when any .husky hook has an uncommented line that invokes lint-staged.
+ * A commented-out `# npx lint-staged` line (react-common's repro) does not
+ * count — lint-staged never actually runs.
+ */
+async function huskyHookCallsLintStaged(dir: string): Promise<boolean> {
+	const huskyDir = path.join(dir, '.husky')
+	if (!(await fs.pathExists(huskyDir))) return false
+	for (const name of await fs.readdir(huskyDir)) {
+		const hookPath = path.join(huskyDir, name)
+		if (!(await fs.stat(hookPath)).isFile()) continue
+		const contents = await fs.readFile(hookPath, 'utf-8')
+		if (hookHasUncommented(contents, /\blint-staged\b/)) return true
+	}
+	return false
+}
+
 async function checkLintStaged(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	const inPkg = pkg ? 'lint-staged' in pkg : false
 	let inFile: string | null = null
@@ -416,10 +445,23 @@ async function checkLintStaged(dir: string, pkg: Pkg | null): Promise<CheckResul
 	}
 
 	if (inPkg || inFile) {
+		const where = inPkg ? '`lint-staged` field in package.json' : `${inFile} found`
+		// Config presence isn't enough — verify a husky hook actually runs it.
+		// Only assert wiring when husky is in use; a non-husky setup may invoke
+		// lint-staged another way and shouldn't be flagged.
+		const huskyInUse = await fs.pathExists(path.join(dir, '.husky'))
+		if (huskyInUse && !(await huskyHookCallsLintStaged(dir))) {
+			return {
+				check: 'lint-staged',
+				status: 'drift',
+				detail: `${where} but no husky hook runs it`,
+				hint: 'Run `npx @rtorcato/js-tooling fix husky` to wire lint-staged into the pre-commit hook',
+			}
+		}
 		return {
 			check: 'lint-staged',
 			status: 'ok',
-			detail: inPkg ? '`lint-staged` field in package.json' : `${inFile} found`,
+			detail: where,
 		}
 	}
 	return {
