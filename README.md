@@ -17,6 +17,10 @@ Most tooling libraries give you one piece — just TypeScript configs, or just a
 
 **[Full documentation →](https://rtorcato.github.io/js-tooling/)**
 
+> **Package manager: pnpm, by design.** Every generator scaffolds pnpm
+> workflows, workspace files, and scripts. js-tooling targets pnpm only for
+> now — npm, yarn, and Bun aren't generated.
+
 ## Start a new project
 
 Interactive wizard — answers every prompt, scaffolds the whole project:
@@ -50,6 +54,59 @@ npx @rtorcato/js-tooling fix      # apply scaffolders, prompting per item
 ```
 
 See the [Getting Started guide](https://rtorcato.github.io/js-tooling/guides/getting-started/) for the full walkthrough.
+
+## Commands
+
+| Command | What it does | Example |
+| --- | --- | --- |
+| `setup` | Interactive wizard that scaffolds a whole new project (add `--preset` to run non-interactively). | `npx @rtorcato/js-tooling setup` |
+| `list` | List every tooling configuration this package can scaffold (`--json` for machine output). | `npx @rtorcato/js-tooling list` |
+| `copy <config>` | Copy a single config file into the current project. | `npx @rtorcato/js-tooling copy biome` |
+| `doctor` | Diagnose an existing project for missing or drifted tooling. | `npx @rtorcato/js-tooling doctor` |
+| `fix [target]` | Apply scaffolders for what `doctor` flagged (`--yes`, `--dry-run`, `--diff`). | `npx @rtorcato/js-tooling fix` |
+
+Every command takes `-d, --directory <path>`; run any with `--help` for its full flags.
+
+## The `.js-tooling.json` lockfile
+
+An **optional** manifest that records the tooling choices you adopted. Nothing
+reads it at build/lint/test time — it exists only so `doctor` can tell an
+*intentional opt-out* from *drift*. js-tooling works fine without it, which is
+why `doctor` reports a missing one as `not configured`, not an error.
+
+Generate or refresh it from what's currently on disk:
+
+```bash
+npx @rtorcato/js-tooling fix lockfile
+```
+
+Each `config.*` key mirrors a setup answer — see the
+[schema](https://rtorcato.github.io/js-tooling/schemas/lockfile.json) for the
+full field reference. The keys `doctor` acts on:
+
+- `typescript.enabled` / `typescript.config` — `base` \| `react` \| `next` \| `node` \| `express`
+- `linting.tool` — `biome` \| `eslint` \| `both` \| `none`
+- `formatting.tool` — `biome` \| `prettier` \| `none`
+- `testing.framework` — `vitest` \| `jest` \| `playwright` \| `none`
+- `gitHooks`, `commitLint`, `semanticRelease` — booleans
+- `securityAutomation` — boolean (Dependabot + CodeQL)
+- `bundler` — `tsup` \| `esbuild` \| `vite` \| `none`
+- `aiSetup` — boolean (AGENTS.md, CLAUDE.md, Cursor/Copilot rules)
+
+**How opt-outs actually work.** When the lockfile records that you declined an
+*optional* tool (e.g. `securityAutomation: false`), `doctor` demotes that check
+from `not configured` to `ok — intentionally declined` instead of nagging you to
+add it. This applies only to optional checks — it does **not** silence *drift*:
+if a config you adopted diverges from the shared base (say your `tsconfig.json`
+extends a different preset), `doctor` still flags it, because drift is a mismatch
+in a tool you're using, not an opt-out. There's no field to suppress drift today.
+
+**Adoption vs. standalone.** `fix lockfile` infers adoption from what's on disk,
+so on a repo that deliberately runs standalone configs (no
+`@rtorcato/js-tooling` dependency) it can record `typescript.config: "base"` and
+friends — asserting you extend the shared bases when you don't. If you're not
+adopting js-tooling's configs, skip the lockfile; it won't stop the `extends`
+drift warnings.
 
 ## AI agent rules
 
@@ -85,6 +142,11 @@ See [CHANGELOG.md](CHANGELOG.md) for the full history.
 **v2.0.0** — All 39 tool packages moved from `dependencies` to `peerDependencies`. Add them to your own `devDependencies`. Also ships: `doctor` subcommand, generator unit tests, Dependabot, CI matrix (Node 22 + 24).
 
 **v1.1.0** — Stricter commitlint limits, fix for CLI path resolution when copying configs.
+
+## Related packages
+
+- [@rtorcato/js-common](https://github.com/rtorcato/js-common) — General TypeScript/JS utilities (strings, dates, numbers, async, errors)
+- [@rtorcato/browser-common](https://github.com/rtorcato/browser-common) — Browser Web API wrappers (clipboard, observers, storage, etc.)
 
 ## Contributing
 
