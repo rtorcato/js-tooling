@@ -5,6 +5,7 @@ import { createPatch } from 'diff'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import { installAgentRules, installAiSetup } from '../generators/agent-rules.js'
+import { buildBadgeBlock, parseRepository, upsertBadges } from '../generators/badges.js'
 import { generateRollupConfig, generateSemanticReleaseConfig } from '../generators/build.js'
 import { generateCommunityHealth } from '../generators/community-health.js'
 import {
@@ -624,6 +625,41 @@ const FIXERS: Fixer[] = [
 
 			await fs.writeJson(pkgPath, updated, { spaces: 2 })
 			return { filesWritten: ['package.json'] }
+		},
+	},
+	{
+		target: 'badges',
+		description: 'Add or refresh the status-badge block in README.md (derived from package.json)',
+		appliesTo: ['README badges'],
+		outputs: ['README.md'],
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir, pkg }) {
+			if (!pkg) {
+				console.log(chalk.yellow('   no package.json found — skipping'))
+				return { filesWritten: [] }
+			}
+			const p = pkg as Record<string, unknown>
+			const name = typeof p.name === 'string' ? p.name : undefined
+			const parsed = parseRepository(p.repository)
+			const block = buildBadgeBlock({
+				name,
+				owner: parsed?.owner,
+				repo: parsed?.repo,
+				isPrivate: p.private === true,
+			})
+			if (!block) {
+				console.log(
+					chalk.yellow('   package.json has no name/repository to build badges from — skipping')
+				)
+				return { filesWritten: [] }
+			}
+			const readmePath = path.join(targetDir, 'README.md')
+			const existing = (await fs.pathExists(readmePath))
+				? await fs.readFile(readmePath, 'utf8')
+				: `# ${name ?? 'project'}\n`
+			await fs.writeFile(readmePath, upsertBadges(existing, block))
+			return { filesWritten: ['README.md'] }
 		},
 	},
 	{

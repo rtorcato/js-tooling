@@ -33,6 +33,28 @@ describe('generateReadme', () => {
 		expect(content).toContain('@rtorcato/js-tooling')
 	})
 
+	it('inserts a badge block after the title when badges is enabled', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'my-lib',
+			repository: 'git+https://github.com/rtorcato/my-lib.git',
+		})
+		await generateReadme(baseConfig({ projectName: 'my-lib', badges: true }), dir)
+
+		const content = await fs.readFile(join(dir, 'README.md'), 'utf-8')
+		expect(content).toContain('<!-- js-tooling:badges:start -->')
+		expect(content).toContain('actions/workflows/ci.yml')
+		expect(content).toContain('img.shields.io/npm/v/my-lib')
+	})
+
+	it('omits the badge block when badges is disabled', async () => {
+		const dir = newTmpDir()
+		await generateReadme(baseConfig({ badges: false }), dir)
+
+		const content = await fs.readFile(join(dir, 'README.md'), 'utf-8')
+		expect(content).not.toContain('js-tooling:badges:start')
+	})
+
 	it('includes Biome in the tooling list when linting tool is biome', async () => {
 		const dir = newTmpDir()
 		await generateReadme(baseConfig({ linting: { tool: 'biome' } }), dir)

@@ -1,6 +1,7 @@
 import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
+import { BADGE_START, hasPublicOnlyBadges } from '../generators/badges.js'
 import { type Lockfile, LOCKFILE_VERSION, readLockfile } from '../utils/lockfile.js'
 import { declinedInLock, getFixTargetForCheck } from './fix-targets.js'
 
@@ -1044,6 +1045,42 @@ async function checkPublint(_dir: string, pkg: Pkg | null): Promise<CheckResult>
 	}
 }
 
+async function checkReadmeBadges(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const readmePath = path.join(dir, 'README.md')
+	const readme = (await fs.pathExists(readmePath)) ? await fs.readFile(readmePath, 'utf8') : ''
+	const isPrivate = !pkg || pkg.private === true
+
+	if (isPrivate) {
+		// Only a problem if a private/app repo carries badges that would 404.
+		if (readme && hasPublicOnlyBadges(readme)) {
+			return {
+				check: 'README badges',
+				status: 'drift',
+				detail: 'README has npm/coverage badges but the package is private (they 404)',
+				hint: 'Run `npx @rtorcato/js-tooling fix badges` to rebuild badges for a private repo',
+			}
+		}
+		return { check: 'README badges', status: 'ok', detail: 'not applicable (private package)' }
+	}
+
+	if (!isPublishableLibrary(pkg)) {
+		return { check: 'README badges', status: 'ok', detail: 'not applicable (no published exports)' }
+	}
+
+	const hasBadges =
+		readme.includes(BADGE_START) ||
+		/img\.shields\.io|badge\.svg|badge\.fury\.io|codecov\.io/.test(readme)
+	if (hasBadges) {
+		return { check: 'README badges', status: 'ok', detail: 'README carries status badges' }
+	}
+	return {
+		check: 'README badges',
+		status: 'optional-missing',
+		detail: 'no status badges in README',
+		hint: 'Run `npx @rtorcato/js-tooling fix badges` to add CI/npm/coverage/license badges',
+	}
+}
+
 async function checkTreeshakeSetup(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	const appCheckPath = path.join(dir, 'apps', 'treeshake-check', 'check.mjs')
 	if (await fs.pathExists(appCheckPath)) {
@@ -1209,6 +1246,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkTypedoc(targetDir, pkg))
 	results.push(await checkAreTheTypesWrong(targetDir, pkg))
 	results.push(await checkPublint(targetDir, pkg))
+	results.push(await checkReadmeBadges(targetDir, pkg))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))
 
 	// Lockfile-driven demotion: if the lock records an intentional opt-out for a

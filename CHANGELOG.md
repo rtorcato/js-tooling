@@ -1,3 +1,10 @@
+# [2.29.0](https://github.com/rtorcato/js-tooling/compare/v2.28.0...v2.29.0) (2026-07-06)
+
+
+### Features
+
+* **badges:** generate README status badges (opt-in, visibility-aware) ([#171](https://github.com/rtorcato/js-tooling/issues/171)) ([09d2f28](https://github.com/rtorcato/js-tooling/commit/09d2f28200b0d478bb53dcc385cc64e53acd81e7)), closes [#142](https://github.com/rtorcato/js-tooling/issues/142) [#169](https://github.com/rtorcato/js-tooling/issues/169)
+
 # [2.28.0](https://github.com/rtorcato/js-tooling/compare/v2.27.0...v2.28.0) (2026-07-06)
 
 

@@ -404,6 +404,22 @@ describe('fix targeted', () => {
 		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm publint')
 	})
 
+	it('fix badges --yes inserts a badge block into the README', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			repository: 'git+https://github.com/rtorcato/demo.git',
+			exports: { '.': './dist/index.js' },
+		})
+		await fs.writeFile(join(dir, 'README.md'), '# demo\n\nHello.\n')
+		await fixCommand('badges', { directory: dir, yes: true })
+		const readme = await fs.readFile(join(dir, 'README.md'), 'utf8')
+		expect(readme).toContain('<!-- js-tooling:badges:start -->')
+		expect(readme).toContain('actions/workflows/ci.yml')
+		expect(readme).toContain('img.shields.io/npm/v/demo')
+	})
+
 	it('fix claude-skill --yes installs the skill into .claude/skills/', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

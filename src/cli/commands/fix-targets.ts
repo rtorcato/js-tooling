@@ -30,6 +30,7 @@ export const FIX_TARGETS: Record<string, string> = {
 	'.js-tooling.json': 'lockfile',
 	'are-the-types-wrong': 'attw',
 	publint: 'publint',
+	'README badges': 'badges',
 	TypeDoc: 'typedoc',
 	'AI setup': 'ai',
 }
@@ -78,6 +79,8 @@ export function declinedInLock(lock: Lockfile | null, checkName: string): boolea
 			return c.securityAutomation === false
 		case 'publint':
 			return c.publint === false
+		case 'README badges':
+			return c.badges === false
 		case 'AI setup':
 			return c.aiSetup === false
 		default:
@@ -134,6 +137,8 @@ export function lockfilePatchForTarget(
 			return c.treeshakeCheck ? null : { treeshakeCheck: true }
 		case 'publint':
 			return c.publint ? null : { publint: true }
+		case 'badges':
+			return c.badges ? null : { badges: true }
 		case 'ai':
 			return c.aiSetup ? null : { aiSetup: true }
 		default:

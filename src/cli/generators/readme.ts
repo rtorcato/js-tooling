@@ -1,12 +1,14 @@
 import fs from 'fs-extra'
 import path from 'node:path'
 import type { ProjectConfig } from '../commands/setup.js'
+import { buildBadgeBlock, parseRepository } from './badges.js'
 
 export async function generateReadme(config: ProjectConfig, targetDir: string) {
 	const readmePath = path.join(targetDir, 'README.md')
+	const badges = config.badges ? await buildReadmeBadgeBlock(config, targetDir) : ''
 
 	const readme = `# ${config.projectName}
-
+${badges ? `\n${badges}\n` : ''}
 > Generated with [@rtorcato/js-tooling](https://www.npmjs.com/package/@rtorcato/js-tooling)
 
 ## Description
@@ -104,6 +106,32 @@ This project follows [Conventional Commits](https://conventionalcommits.org/):
 `
 
 	await fs.writeFile(readmePath, readme)
+}
+
+/**
+ * Build the badge block for a generated README. URLs are derived from the
+ * target's package.json (name + repository); visibility falls back to the
+ * project type (libraries are public, apps private) when `private` is unset.
+ */
+export async function buildReadmeBadgeBlock(
+	config: ProjectConfig,
+	targetDir: string
+): Promise<string> {
+	let repository: unknown
+	let isPrivate = config.projectType !== 'library'
+	const pkgPath = path.join(targetDir, 'package.json')
+	if (await fs.pathExists(pkgPath)) {
+		const pkg = (await fs.readJson(pkgPath)) as Record<string, unknown>
+		repository = pkg.repository
+		if (typeof pkg.private === 'boolean') isPrivate = pkg.private
+	}
+	const parsed = parseRepository(repository)
+	return buildBadgeBlock({
+		name: config.projectName,
+		owner: parsed?.owner,
+		repo: parsed?.repo,
+		isPrivate,
+	})
 }
 
 function generateDevelopmentSection(config: ProjectConfig): string {
