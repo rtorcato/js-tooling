@@ -18,6 +18,7 @@ const BASE: Omit<ProjectConfig, 'projectName' | 'projectType' | 'typescript' | '
 	commitLint: true,
 	semanticRelease: false,
 	securityAutomation: true,
+	badges: true,
 	aiSetup: true,
 }
 
@@ -140,6 +141,7 @@ export const CONFIG_SCHEMA = {
 		bundler: { type: 'string', enum: ['tsup', 'esbuild', 'rollup', 'vite', 'none'] },
 		treeshakeCheck: { type: 'boolean' },
 		publint: { type: 'boolean' },
+		badges: { type: 'boolean' },
 		aiSetup: { type: 'boolean' },
 	},
 } as const
