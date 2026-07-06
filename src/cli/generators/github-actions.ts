@@ -211,7 +211,7 @@ ${
 
       - name: 🏗️ Build project
         run: pnpm build
-
+${config.publint ? '\n      - name: 🔍 Validate package with publint\n        run: pnpm exec publint --strict\n' : ''}
       - name: 📦 Upload build artifacts
         uses: actions/upload-artifact@v7
         with:

@@ -39,6 +39,23 @@ describe('generateGitHubActions', () => {
 		expect(content).not.toContain("node-version: '20'")
 	})
 
+	it('adds a publint step to the build job when publint is enabled', async () => {
+		const dir = newTmpDir()
+		await generateGitHubActions(baseConfig({ bundler: 'tsup', publint: true }), dir)
+
+		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
+		expect(content).toContain('Validate package with publint')
+		expect(content).toContain('pnpm exec publint --strict')
+	})
+
+	it('omits the publint step when publint is disabled', async () => {
+		const dir = newTmpDir()
+		await generateGitHubActions(baseConfig({ bundler: 'tsup', publint: false }), dir)
+
+		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
+		expect(content).not.toContain('publint')
+	})
+
 	it('includes typecheck job when TypeScript is enabled', async () => {
 		const dir = newTmpDir()
 		await generateGitHubActions(baseConfig({ typescript: { enabled: true, config: 'base' } }), dir)

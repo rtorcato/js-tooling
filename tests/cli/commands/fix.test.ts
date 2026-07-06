@@ -372,6 +372,38 @@ describe('fix targeted', () => {
 		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm attw')
 	})
 
+	it('fix publint --yes installs publint, adds a script, and appends to verify', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			type: 'module',
+			exports: { '.': { import: './dist/index.js', require: './dist/index.cjs' } },
+			scripts: { verify: 'pnpm typecheck && pnpm check' },
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fixCommand('publint', { directory: dir, yes: true })
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.publint).toBe('publint --strict')
+		expect(pkg.devDependencies['publint']).toBeDefined()
+		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm check && pnpm publint')
+	})
+
+	it('fix publint --yes does not duplicate publint in verify', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			exports: { '.': './dist/index.js' },
+			scripts: { verify: 'pnpm typecheck && pnpm publint' }, // already wired
+			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		})
+		await fixCommand('publint', { directory: dir, yes: true })
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.publint).toBe('publint --strict')
+		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm publint')
+	})
+
 	it('fix claude-skill --yes installs the skill into .claude/skills/', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

@@ -197,6 +197,32 @@ describe('generatePackageJson', () => {
 		const pkg = await fs.readJson(join(dir, 'package.json'))
 		expect(pkg.scripts.verify).toBeUndefined()
 	})
+
+	it('adds publint dep, script, and verify step when publint is enabled', async () => {
+		const dir = newTmpDir()
+		await generatePackageJson(
+			baseConfig({
+				typescript: { enabled: true, config: 'base' },
+				linting: { tool: 'biome' },
+				publint: true,
+			}),
+			dir
+		)
+
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.devDependencies.publint).toBe('^0.3.0')
+		expect(pkg.scripts.publint).toBe('publint --strict')
+		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm check && pnpm publint')
+	})
+
+	it('omits publint when not enabled', async () => {
+		const dir = newTmpDir()
+		await generatePackageJson(baseConfig({ publint: false }), dir)
+
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.publint).toBeUndefined()
+		expect(pkg.devDependencies.publint).toBeUndefined()
+	})
 })
 
 describe('composeVerifyScript', () => {

@@ -31,6 +31,7 @@ export function buildPresetConfig(name: PresetName, projectName: string): Projec
 				typescript: { enabled: true, config: 'base' },
 				semanticRelease: true,
 				bundler: 'tsup',
+				publint: true,
 			}
 		case 'web-app':
 			return {
@@ -136,8 +137,9 @@ export const CONFIG_SCHEMA = {
 		changesets: { type: 'boolean' },
 		oxlint: { type: 'boolean' },
 		securityAutomation: { type: 'boolean' },
-		bundler: { type: 'string', enum: ['tsup', 'esbuild', 'vite', 'none'] },
+		bundler: { type: 'string', enum: ['tsup', 'esbuild', 'rollup', 'vite', 'none'] },
 		treeshakeCheck: { type: 'boolean' },
+		publint: { type: 'boolean' },
 		aiSetup: { type: 'boolean' },
 	},
 } as const
@@ -203,6 +205,7 @@ export function computeFileList(config: ProjectConfig): string[] {
 	}
 	if (config.bundler === 'tsup') files.push('tsup.config.ts')
 	else if (config.bundler === 'esbuild') files.push('build.mjs')
+	else if (config.bundler === 'rollup') files.push('rollup.config.mjs')
 	else if (config.bundler === 'vite') files.push('vite.config.ts')
 	if (config.semanticRelease) files.push('release.config.mjs')
 	if (config.changesets) files.push('.changeset/config.json')
