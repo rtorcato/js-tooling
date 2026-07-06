@@ -850,3 +850,58 @@ describe('nextStepSuggestions', () => {
 		expect(rt?.status).toBe('ok')
 	})
 })
+
+describe('doctor publint check', () => {
+	it('flags a publishable library with no publint as not configured', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			exports: { '.': './dist/index.js' },
+		})
+		const results = await runDoctor(dir)
+		const p = results.find((r) => r.check === 'publint')
+		expect(p?.status).toBe('optional-missing')
+	})
+
+	it('reports ok when publint is installed and wired into a script', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			exports: { '.': './dist/index.js' },
+			scripts: { publint: 'publint --strict' },
+			devDependencies: { publint: '^0.3.0' },
+		})
+		const results = await runDoctor(dir)
+		const p = results.find((r) => r.check === 'publint')
+		expect(p?.status).toBe('ok')
+	})
+
+	it('flags drift when publint is installed but no script runs it', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			exports: { '.': './dist/index.js' },
+			devDependencies: { publint: '^0.3.0' },
+		})
+		const results = await runDoctor(dir)
+		const p = results.find((r) => r.check === 'publint')
+		expect(p?.status).toBe('drift')
+	})
+
+	it('is not applicable for a private package', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			private: true,
+			exports: { '.': './dist/index.js' },
+		})
+		const results = await runDoctor(dir)
+		const p = results.find((r) => r.check === 'publint')
+		expect(p?.status).toBe('ok')
+		expect(p?.detail).toMatch(/not applicable/)
+	})
+})

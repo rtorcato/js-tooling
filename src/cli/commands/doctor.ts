@@ -1001,6 +1001,49 @@ async function checkAreTheTypesWrong(_dir: string, pkg: Pkg | null): Promise<Che
 	}
 }
 
+async function checkPublint(_dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	if (!isPublishableLibrary(pkg)) {
+		return {
+			check: 'publint',
+			status: 'ok',
+			detail: 'not applicable (private or no published exports)',
+		}
+	}
+
+	const deps = {
+		...((pkg?.dependencies as Record<string, string> | undefined) ?? {}),
+		...((pkg?.devDependencies as Record<string, string> | undefined) ?? {}),
+	}
+	const scripts = (pkg?.scripts as Record<string, string> | undefined) ?? {}
+
+	const hasDep = !!deps['publint']
+	const hasScript = Object.values(scripts).some((s) => /\bpublint\b/.test(s))
+
+	if (hasDep && hasScript) {
+		return {
+			check: 'publint',
+			status: 'ok',
+			detail: 'publint installed and wired into a script',
+		}
+	}
+
+	if (hasDep) {
+		return {
+			check: 'publint',
+			status: 'drift',
+			detail: 'publint installed but no script runs it',
+			hint: 'Run `npx @rtorcato/js-tooling fix publint` to add a `publint` script and wire it into verify',
+		}
+	}
+
+	return {
+		check: 'publint',
+		status: 'optional-missing',
+		detail: 'publint not configured',
+		hint: 'Run `npx @rtorcato/js-tooling fix publint` to lint your package before publishing',
+	}
+}
+
 async function checkTreeshakeSetup(dir: string, pkg: Pkg | null): Promise<CheckResult> {
 	const appCheckPath = path.join(dir, 'apps', 'treeshake-check', 'check.mjs')
 	if (await fs.pathExists(appCheckPath)) {
@@ -1165,6 +1208,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkAiSetup(targetDir))
 	results.push(await checkTypedoc(targetDir, pkg))
 	results.push(await checkAreTheTypesWrong(targetDir, pkg))
+	results.push(await checkPublint(targetDir, pkg))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))
 
 	// Lockfile-driven demotion: if the lock records an intentional opt-out for a

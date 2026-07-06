@@ -126,6 +126,11 @@ function getScripts(config: ProjectConfig, opts: GetScriptsOptions = {}): Record
 	// knip is part of the universal baseline (knip.json is always generated).
 	scripts['knip'] = 'knip'
 
+	// publint validates the published package (exports, types, main) against dist.
+	if (config.publint) {
+		scripts['publint'] = 'publint --strict'
+	}
+
 	// Git hooks
 	if (config.gitHooks) {
 		scripts['prepare'] = 'husky'
@@ -168,6 +173,7 @@ export function composeVerifyScript(
 		cmds.push('pnpm test:e2e')
 	}
 	if (opts.includeTreeshake) cmds.push('pnpm treeshake')
+	if (config.publint) cmds.push('pnpm publint')
 	return cmds.length >= 2 ? cmds.join(' && ') : null
 }
 
@@ -193,6 +199,7 @@ export function composeVerifyScriptFromPkg(
 	else if (deps.jest) cmds.push('pnpm test --ci')
 	else if (deps['@playwright/test']) cmds.push('pnpm test:e2e')
 	if (opts.includeTreeshake) cmds.push('pnpm treeshake')
+	if (deps.publint || scripts.publint) cmds.push('pnpm publint')
 	return cmds.length >= 2 ? cmds.join(' && ') : null
 }
 
@@ -242,6 +249,11 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 		deps['tslib'] = '^2.0.0'
 	} else if (config.bundler === 'vite') {
 		deps['vite'] = '^6.0.0'
+	}
+
+	// Publishing hygiene
+	if (config.publint) {
+		deps['publint'] = '^0.3.0'
 	}
 
 	// Git hooks

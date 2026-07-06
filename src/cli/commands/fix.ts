@@ -596,6 +596,37 @@ const FIXERS: Fixer[] = [
 		},
 	},
 	{
+		target: 'publint',
+		description: 'Install publint + add a `publint --strict` script and wire it into verify',
+		appliesTo: ['publint'],
+		outputs: ['package.json (devDependencies + scripts.publint)'],
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir, pkg }) {
+			const pkgPath = path.join(targetDir, 'package.json')
+			if (!pkg) {
+				console.log(chalk.yellow('   no package.json found — skipping'))
+				return { filesWritten: [] }
+			}
+			const updated = { ...pkg }
+			const devDeps = {
+				...((updated.devDependencies as Record<string, string> | undefined) ?? {}),
+			}
+			if (!devDeps['publint']) devDeps['publint'] = '^0.3.0'
+			updated.devDependencies = devDeps
+
+			const scripts = { ...((updated.scripts as Record<string, string> | undefined) ?? {}) }
+			scripts.publint = 'publint --strict'
+			if (scripts.verify && !/\bpublint\b/.test(scripts.verify)) {
+				scripts.verify = `${scripts.verify} && pnpm publint`
+			}
+			updated.scripts = scripts
+
+			await fs.writeJson(pkgPath, updated, { spaces: 2 })
+			return { filesWritten: ['package.json'] }
+		},
+	},
+	{
 		target: 'ai',
 		description:
 			'Install all AI agent files at once (AGENTS.md, CLAUDE.md, Cursor, Copilot, Claude skill, MCP example)',

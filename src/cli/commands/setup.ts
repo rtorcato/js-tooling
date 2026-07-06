@@ -40,6 +40,8 @@ export interface ProjectConfig {
 	securityAutomation: boolean
 	bundler: 'tsup' | 'esbuild' | 'rollup' | 'vite' | 'none'
 	treeshakeCheck?: boolean
+	/** Add publint (validates package.json + dist for publishing mistakes). */
+	publint?: boolean
 	/** Scaffold AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example). */
 	aiSetup?: boolean
 }
@@ -269,6 +271,13 @@ async function promptForConfig(): Promise<ProjectConfig> {
 		},
 		{
 			type: 'confirm',
+			name: 'publint',
+			message: '📦 Add publint to lint your package before publishing?',
+			default: true,
+			when: (answers: any) => answers.projectType === 'library',
+		},
+		{
+			type: 'confirm',
 			name: 'securityAutomation',
 			message: '🛡️  Include security automation (Dependabot + CodeQL)?',
 			default: true,
@@ -332,6 +341,7 @@ async function promptForConfig(): Promise<ProjectConfig> {
 		securityAutomation: answers.securityAutomation ?? false,
 		bundler: answers.bundler || 'none',
 		treeshakeCheck: answers.treeshakeCheck || false,
+		publint: answers.publint ?? false,
 		aiSetup: answers.aiSetup ?? false,
 	}
 }
