@@ -42,6 +42,8 @@ export interface ProjectConfig {
 	treeshakeCheck?: boolean
 	/** Add publint (validates package.json + dist for publishing mistakes). */
 	publint?: boolean
+	/** Add a status-badge block to the generated README. */
+	badges?: boolean
 	/** Scaffold AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example). */
 	aiSetup?: boolean
 }
@@ -278,6 +280,12 @@ async function promptForConfig(): Promise<ProjectConfig> {
 		},
 		{
 			type: 'confirm',
+			name: 'badges',
+			message: '🔖 Add status badges (CI, npm, coverage, license) to the README?',
+			default: true,
+		},
+		{
+			type: 'confirm',
 			name: 'securityAutomation',
 			message: '🛡️  Include security automation (Dependabot + CodeQL)?',
 			default: true,
@@ -342,6 +350,7 @@ async function promptForConfig(): Promise<ProjectConfig> {
 		bundler: answers.bundler || 'none',
 		treeshakeCheck: answers.treeshakeCheck || false,
 		publint: answers.publint ?? false,
+		badges: answers.badges ?? false,
 		aiSetup: answers.aiSetup ?? false,
 	}
 }

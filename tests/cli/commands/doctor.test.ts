@@ -905,3 +905,50 @@ describe('doctor publint check', () => {
 		expect(p?.detail).toMatch(/not applicable/)
 	})
 })
+
+describe('doctor README badges check', () => {
+	it('flags a public library with no badges as not configured', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			exports: { '.': './dist/index.js' },
+		})
+		await fs.writeFile(join(dir, 'README.md'), '# demo\n\nNo badges here.\n')
+		const results = await runDoctor(dir)
+		const b = results.find((r) => r.check === 'README badges')
+		expect(b?.status).toBe('optional-missing')
+	})
+
+	it('reports ok when the README already carries badges', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			exports: { '.': './dist/index.js' },
+		})
+		await fs.writeFile(
+			join(dir, 'README.md'),
+			'# demo\n\n![npm](https://img.shields.io/npm/v/demo)\n'
+		)
+		const results = await runDoctor(dir)
+		const b = results.find((r) => r.check === 'README badges')
+		expect(b?.status).toBe('ok')
+	})
+
+	it('flags drift when a private package carries npm/coverage badges', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			version: '0.0.0',
+			private: true,
+		})
+		await fs.writeFile(
+			join(dir, 'README.md'),
+			'# demo\n\n![npm](https://img.shields.io/npm/v/demo)\n'
+		)
+		const results = await runDoctor(dir)
+		const b = results.find((r) => r.check === 'README badges')
+		expect(b?.status).toBe('drift')
+	})
+})
