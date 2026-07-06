@@ -5,7 +5,7 @@ import { createPatch } from 'diff'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import { installAgentRules, installAiSetup } from '../generators/agent-rules.js'
-import { generateSemanticReleaseConfig } from '../generators/build.js'
+import { generateRollupConfig, generateSemanticReleaseConfig } from '../generators/build.js'
 import { generateCommunityHealth } from '../generators/community-health.js'
 import {
 	generateCommitlintConfig,
@@ -479,6 +479,17 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			await generateSizeLimitConfig(targetDir)
 			return { filesWritten: ['.size-limit.json'] }
+		},
+	},
+	{
+		target: 'rollup',
+		description: 'Scaffold rollup.config.mjs re-exporting the shared library preset',
+		appliesTo: [],
+		outputs: ['rollup.config.mjs'],
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			await generateRollupConfig(targetDir)
+			return { filesWritten: ['rollup.config.mjs'] }
 		},
 	},
 	{

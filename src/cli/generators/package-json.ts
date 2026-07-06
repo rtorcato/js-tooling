@@ -114,6 +114,9 @@ function getScripts(config: ProjectConfig, opts: GetScriptsOptions = {}): Record
 		scripts['build:watch'] = 'tsup --watch'
 	} else if (config.bundler === 'esbuild') {
 		scripts['build'] = 'node build.mjs'
+	} else if (config.bundler === 'rollup') {
+		scripts['build'] = 'rollup -c'
+		scripts['build:watch'] = 'rollup -c --watch'
 	} else if (config.bundler === 'vite') {
 		scripts['build'] = 'vite build'
 		scripts['dev'] = 'vite'
@@ -233,6 +236,10 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 		deps['tsup'] = '^8.0.0'
 	} else if (config.bundler === 'esbuild') {
 		deps['esbuild'] = '^0.25.0'
+	} else if (config.bundler === 'rollup') {
+		deps['rollup'] = '^4.0.0'
+		deps['@rollup/plugin-typescript'] = '^12.0.0'
+		deps['tslib'] = '^2.0.0'
 	} else if (config.bundler === 'vite') {
 		deps['vite'] = '^6.0.0'
 	}

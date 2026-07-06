@@ -38,7 +38,7 @@ export interface ProjectConfig {
 	changesets?: boolean
 	oxlint?: boolean
 	securityAutomation: boolean
-	bundler: 'tsup' | 'esbuild' | 'vite' | 'none'
+	bundler: 'tsup' | 'esbuild' | 'rollup' | 'vite' | 'none'
 	treeshakeCheck?: boolean
 	/** Scaffold AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example). */
 	aiSetup?: boolean
@@ -287,6 +287,7 @@ async function promptForConfig(): Promise<ProjectConfig> {
 				const choices = [
 					{ name: '📦 tsup (TypeScript packages)', value: 'tsup' },
 					{ name: '⚡ esbuild (Fast bundling)', value: 'esbuild' },
+					{ name: '🍣 Rollup (library bundler)', value: 'rollup' },
 					{ name: '❌ None', value: 'none' },
 				]
 
