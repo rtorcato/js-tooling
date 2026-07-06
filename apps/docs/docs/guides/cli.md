@@ -117,7 +117,7 @@ $ npx @rtorcato/js-tooling fix biome --diff
     -  "rules": { "noConsole": "error" }
     -}
     +{
-    +  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+    +  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
     +  "extends": ["@rtorcato/js-tooling/biome"],
     +  …
     +}
