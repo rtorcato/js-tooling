@@ -1,3 +1,10 @@
+# [2.27.0](https://github.com/rtorcato/js-tooling/compare/v2.26.1...v2.27.0) (2026-07-06)
+
+
+### Features
+
+* **bundler:** add Rollup preset as a peer to tsup/esbuild ([#168](https://github.com/rtorcato/js-tooling/issues/168)) ([aa3763c](https://github.com/rtorcato/js-tooling/commit/aa3763c82c76ec6eef230c906d32125d333a170d))
+
 ## [2.26.1](https://github.com/rtorcato/js-tooling/compare/v2.26.0...v2.26.1) (2026-07-06)
 
 
