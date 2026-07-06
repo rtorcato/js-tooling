@@ -1,3 +1,10 @@
+## [2.26.1](https://github.com/rtorcato/js-tooling/compare/v2.26.0...v2.26.1) (2026-07-06)
+
+
+### Bug Fixes
+
+* **deps:** drop duplicated fdir entry from pnpm-lock.yaml (unblocks CI) ([#167](https://github.com/rtorcato/js-tooling/issues/167)) ([22fbd15](https://github.com/rtorcato/js-tooling/commit/22fbd156e922a1dbd4f6dfb18be88ec3ab8ed8d7)), closes [#166](https://github.com/rtorcato/js-tooling/issues/166) [#123](https://github.com/rtorcato/js-tooling/issues/123) [#127](https://github.com/rtorcato/js-tooling/issues/127) [#166](https://github.com/rtorcato/js-tooling/issues/166)
+
 # [2.26.0](https://github.com/rtorcato/js-tooling/compare/v2.25.2...v2.26.0) (2026-07-04)
 
 
