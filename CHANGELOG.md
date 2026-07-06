@@ -1,3 +1,10 @@
+# [2.28.0](https://github.com/rtorcato/js-tooling/compare/v2.27.0...v2.28.0) (2026-07-06)
+
+
+### Features
+
+* **publint:** add publint preset, doctor check, and fix scaffolder ([#170](https://github.com/rtorcato/js-tooling/issues/170)) ([e4a9e41](https://github.com/rtorcato/js-tooling/commit/e4a9e412573c4351fc119a14da0b48fdab8e1762)), closes [#70](https://github.com/rtorcato/js-tooling/issues/70)
+
 # [2.27.0](https://github.com/rtorcato/js-tooling/compare/v2.26.1...v2.27.0) (2026-07-06)
 
 
