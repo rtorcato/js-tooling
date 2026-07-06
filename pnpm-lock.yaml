@@ -15938,10 +15938,6 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.5
 
-  fdir@6.5.0(picomatch@4.0.5):
-    optionalDependencies:
-      picomatch: 4.0.5
-
   feed@4.2.2:
     dependencies:
       xml-js: 1.6.11
