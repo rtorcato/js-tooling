@@ -1,3 +1,10 @@
+## [2.29.1](https://github.com/rtorcato/js-tooling/compare/v2.29.0...v2.29.1) (2026-07-06)
+
+
+### Bug Fixes
+
+* **peers:** allow @commitlint/cli 21 to match config-conventional peer ([#174](https://github.com/rtorcato/js-tooling/issues/174)) ([ebb2d65](https://github.com/rtorcato/js-tooling/commit/ebb2d652158e867a64b45e8251d7d99301d702a2))
+
 # [2.29.0](https://github.com/rtorcato/js-tooling/compare/v2.28.0...v2.29.0) (2026-07-06)
 
 
