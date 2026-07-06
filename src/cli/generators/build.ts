@@ -7,6 +7,8 @@ export async function generateBuildConfigs(config: ProjectConfig, targetDir: str
 		await generateTsupConfig(targetDir)
 	} else if (config.bundler === 'esbuild') {
 		await generateEsbuildConfig(targetDir)
+	} else if (config.bundler === 'rollup') {
+		await generateRollupConfig(targetDir)
 	} else if (config.bundler === 'vite') {
 		await generateViteConfig(config, targetDir)
 	}
@@ -64,6 +66,15 @@ console.log('Build completed!')
 `
 
 	await fs.writeFile(esbuildConfigPath, esbuildConfig)
+}
+
+export async function generateRollupConfig(targetDir: string) {
+	const rollupConfigPath = path.join(targetDir, 'rollup.config.mjs')
+
+	const rollupConfig = `export { default } from '@rtorcato/js-tooling/rollup'
+`
+
+	await fs.writeFile(rollupConfigPath, rollupConfig)
 }
 
 export async function generateViteConfig(config: ProjectConfig, targetDir: string) {

@@ -45,6 +45,16 @@ describe('generateBuildConfigs', () => {
 		expect(await fs.pathExists(join(dir, 'tsup.config.ts'))).toBe(false)
 	})
 
+	it('writes rollup.config.mjs re-exporting the preset', async () => {
+		const dir = newTmpDir()
+		await generateBuildConfigs(baseConfig({ bundler: 'rollup' }), dir)
+
+		const content = await fs.readFile(join(dir, 'rollup.config.mjs'), 'utf-8')
+		expect(content).toContain("from '@rtorcato/js-tooling/rollup'")
+		expect(await fs.pathExists(join(dir, 'tsup.config.ts'))).toBe(false)
+		expect(await fs.pathExists(join(dir, 'build.mjs'))).toBe(false)
+	})
+
 	it('writes vite.config.ts re-exporting the preset', async () => {
 		const dir = newTmpDir()
 		await generateBuildConfigs(baseConfig({ bundler: 'vite' }), dir)
@@ -104,6 +114,7 @@ describe('generateBuildConfigs', () => {
 
 		expect(await fs.pathExists(join(dir, 'tsup.config.ts'))).toBe(false)
 		expect(await fs.pathExists(join(dir, 'build.mjs'))).toBe(false)
+		expect(await fs.pathExists(join(dir, 'rollup.config.mjs'))).toBe(false)
 		expect(await fs.pathExists(join(dir, 'vite.config.ts'))).toBe(false)
 		expect(await fs.pathExists(join(dir, 'release.config.mjs'))).toBe(false)
 		expect(await fs.pathExists(join(dir, '.changeset/config.json'))).toBe(false)

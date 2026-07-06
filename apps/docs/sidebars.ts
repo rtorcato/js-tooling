@@ -53,6 +53,7 @@ const sidebars: SidebarsConfig = {
         'reference/jest',
         'reference/oxlint',
         'reference/prettier',
+        'reference/rollup',
         'reference/semantic-release',
         'reference/tsup',
         'reference/typescript',
