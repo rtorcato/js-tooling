@@ -36,6 +36,8 @@ describe('generatePackageJson', () => {
 		expect(pkg.version).toBe('0.1.0')
 		expect(pkg.type).toBe('module')
 		expect(pkg.devDependencies['@rtorcato/js-tooling']).toBe('latest')
+		// packageManager is the single source of truth for pnpm/action-setup
+		expect(pkg.packageManager).toMatch(/^pnpm@\d+\.\d+\.\d+$/)
 	})
 
 	it('merges into an existing package.json, preserving existing name and version', async () => {
@@ -44,6 +46,7 @@ describe('generatePackageJson', () => {
 			name: 'existing-pkg',
 			version: '1.2.3',
 			description: 'keep me',
+			packageManager: 'pnpm@10.0.0',
 		})
 
 		await generatePackageJson(baseConfig(), dir)
@@ -53,6 +56,7 @@ describe('generatePackageJson', () => {
 		expect(pkg.name).toBe('existing-pkg')
 		expect(pkg.version).toBe('1.2.3')
 		expect(pkg.description).toBe('keep me')
+		expect(pkg.packageManager).toBe('pnpm@10.0.0')
 		// new devDependencies are still injected
 		expect(pkg.devDependencies['@rtorcato/js-tooling']).toBe('latest')
 	})

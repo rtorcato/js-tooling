@@ -144,6 +144,30 @@ export async function ensureEnginesNode(
  *     trace and flag genuinely unreachable modules.
  * `.tsx` is included so React libraries aren't silently skipped.
  */
+/**
+ * Extract package globs from a pnpm-workspace.yaml `packages:` list without a
+ * YAML dependency. Matches `- 'apps/*'` / `- "apps/*"` / `- apps/*` entries
+ * under the `packages:` key, stopping at the next top-level key.
+ */
+function parseWorkspacePackages(yaml: string): string[] {
+	const globs: string[] = []
+	let inPackages = false
+	for (const line of yaml.split('\n')) {
+		if (/^packages:\s*$/.test(line)) {
+			inPackages = true
+			continue
+		}
+		if (!inPackages) continue
+		const item = line.match(/^\s*-\s*['"]?([^'"#]+?)['"]?\s*$/)
+		if (item) {
+			globs.push(item[1].trim())
+			continue
+		}
+		if (/^\S/.test(line)) break // a new top-level key ends the list
+	}
+	return globs
+}
+
 export async function buildKnipConfig(targetDir: string) {
 	const pkgPath = path.join(targetDir, 'package.json')
 	let multiEntry = false
@@ -156,11 +180,25 @@ export async function buildKnipConfig(targetDir: string) {
 			multiEntry = subpaths.length > 1
 		}
 	}
-	return {
-		$schema: 'https://unpkg.com/knip@6/schema.json',
-		entry: multiEntry ? ['src/**/*.{ts,tsx}'] : ['src/index.{ts,tsx}'],
-		project: ['src/**/*.{ts,tsx}'],
+
+	const $schema = 'https://unpkg.com/knip@6/schema.json'
+	const entry = multiEntry ? ['src/**/*.{ts,tsx}'] : ['src/index.{ts,tsx}']
+	const project = ['src/**/*.{ts,tsx}']
+
+	// In a pnpm workspace, the flat entry/project form makes `knip` mis-analyze
+	// the sub-packages (it treats the whole repo as one package). Emit the
+	// `workspaces` form instead: the root keeps the build-model globs, and each
+	// declared package glob gets `{}` so knip auto-detects its entries.
+	const wsPath = path.join(targetDir, 'pnpm-workspace.yaml')
+	if (await fs.pathExists(wsPath)) {
+		const workspaces: Record<string, unknown> = { '.': { entry, project } }
+		for (const glob of parseWorkspacePackages(await fs.readFile(wsPath, 'utf-8'))) {
+			workspaces[glob] = {}
+		}
+		return { $schema, workspaces }
 	}
+
+	return { $schema, entry, project }
 }
 
 export async function generateKnipConfig(targetDir: string) {

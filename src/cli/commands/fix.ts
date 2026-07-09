@@ -502,6 +502,7 @@ const FIXERS: Fixer[] = [
 			'apps/treeshake-check/package.json',
 			'apps/treeshake-check/check.mjs',
 			'apps/treeshake-check/src/entry.ts',
+			'pnpm-workspace.yaml',
 		],
 		riskLevel: 'safe-add',
 		canFixDrift: false,
