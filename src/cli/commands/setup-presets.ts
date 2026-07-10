@@ -216,7 +216,8 @@ export function computeFileList(config: ProjectConfig): string[] {
 		files.push(
 			'apps/treeshake-check/package.json',
 			'apps/treeshake-check/check.mjs',
-			'apps/treeshake-check/src/entry.ts'
+			'apps/treeshake-check/src/entry.ts',
+			'pnpm-workspace.yaml'
 		)
 	}
 	if (config.aiSetup) {

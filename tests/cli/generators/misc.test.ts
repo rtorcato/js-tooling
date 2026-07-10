@@ -110,6 +110,32 @@ describe('generateKnipConfig', () => {
 		expect(knip.entry).toEqual(['src/**/*.{ts,tsx}'])
 		expect(knip.project).toEqual(['src/**/*.{ts,tsx}'])
 	})
+
+	it('emits the workspaces form when a pnpm-workspace.yaml is present', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			exports: { '.': './dist/index.js' },
+		})
+		await fs.writeFile(
+			join(dir, 'pnpm-workspace.yaml'),
+			"packages:\n  - 'apps/*'\n  - 'packages/*'\n\nonlyBuiltDependencies:\n  - esbuild\n"
+		)
+		await generateKnipConfig(dir)
+		const knip = await fs.readJson(join(dir, 'knip.json'))
+		// flat entry/project are dropped in favour of per-workspace config
+		expect(knip.entry).toBeUndefined()
+		expect(knip.project).toBeUndefined()
+		expect(knip.workspaces['.']).toEqual({
+			entry: ['src/index.{ts,tsx}'],
+			project: ['src/**/*.{ts,tsx}'],
+		})
+		// package globs from `packages:` become workspace keys, not the
+		// unrelated onlyBuiltDependencies list below it
+		expect(knip.workspaces['apps/*']).toEqual({})
+		expect(knip.workspaces['packages/*']).toEqual({})
+		expect(knip.workspaces.esbuild).toBeUndefined()
+	})
 })
 
 describe('generateMiscBaseline', () => {

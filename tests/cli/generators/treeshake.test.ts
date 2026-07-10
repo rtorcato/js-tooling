@@ -51,10 +51,42 @@ describe('generateTreeshakeCheck', () => {
 			'apps/treeshake-check/package.json',
 			'apps/treeshake-check/check.mjs',
 			'apps/treeshake-check/src/entry.ts',
+			'pnpm-workspace.yaml',
 		])
 		expect(await fs.pathExists(join(dir, 'apps', 'treeshake-check', 'package.json'))).toBe(true)
 		expect(await fs.pathExists(join(dir, 'apps', 'treeshake-check', 'check.mjs'))).toBe(true)
 		expect(await fs.pathExists(join(dir, 'apps', 'treeshake-check', 'src', 'entry.ts'))).toBe(true)
+	})
+
+	it('writes a pnpm-workspace.yaml globbing apps/* so workspace:* resolves', async () => {
+		const dir = newTmpDir()
+		await generateTreeshakeCheck(dir, {
+			workspaceName: '@my-org/my-lib',
+			allowedSubpath: 'clipboard',
+			forbiddenSubpaths: [],
+		})
+		const ws = await fs.readFile(join(dir, 'pnpm-workspace.yaml'), 'utf-8')
+		expect(ws).toContain("- 'apps/*'")
+		// esbuild must be build-approved workspace-wide (pnpm 11 ERR_PNPM_IGNORED_BUILDS)
+		expect(ws).toContain('onlyBuiltDependencies')
+		expect(ws).toContain('esbuild')
+		// docs-path (apps/docs) build approvals are seeded ahead of need
+		expect(ws).toContain('sharp')
+		expect(ws).toContain('ignoredBuiltDependencies')
+		expect(ws).toContain('core-js')
+	})
+
+	it('does not clobber an existing pnpm-workspace.yaml', async () => {
+		const dir = newTmpDir()
+		await fs.writeFile(join(dir, 'pnpm-workspace.yaml'), "packages:\n  - 'packages/*'\n")
+		const written = await generateTreeshakeCheck(dir, {
+			workspaceName: '@my-org/my-lib',
+			allowedSubpath: 'clipboard',
+			forbiddenSubpaths: [],
+		})
+		expect(written).not.toContain('pnpm-workspace.yaml')
+		const ws = await fs.readFile(join(dir, 'pnpm-workspace.yaml'), 'utf-8')
+		expect(ws).toContain("- 'packages/*'")
 	})
 
 	it('bakes the workspace name + allowed subpath into entry.ts', async () => {
