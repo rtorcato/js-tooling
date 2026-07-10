@@ -2,6 +2,11 @@ import fs from 'fs-extra'
 import path from 'node:path'
 import type { ProjectConfig } from '../commands/setup.js'
 
+// Exact pnpm version for the `packageManager` field — corepack requires a
+// pinned `pnpm@x.y.z` (not a range), and it's the single source of truth for
+// pnpm/action-setup, so the generated workflows drop their `version:` inputs.
+const PNPM_VERSION = '11.1.3'
+
 export async function generatePackageJson(config: ProjectConfig, targetDir: string) {
 	const packageJsonPath = path.join(targetDir, 'package.json')
 
@@ -17,6 +22,7 @@ export async function generatePackageJson(config: ProjectConfig, targetDir: stri
 		version: '0.1.0',
 		description: '',
 		type: 'module',
+		packageManager: `pnpm@${PNPM_VERSION}`,
 		...existingPackageJson,
 		scripts: {
 			...getScripts(config, { includeTreeshake }),

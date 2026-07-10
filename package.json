@@ -1,6 +1,6 @@
 {
 	"name": "@rtorcato/js-tooling",
-	"version": "2.29.0",
+	"version": "2.29.1",
 	"description": "JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.",
 	"type": "module",
 	"keywords": [
@@ -250,7 +250,7 @@
 	},
 	"peerDependencies": {
 		"@biomejs/biome": "^2.0.0",
-		"@commitlint/cli": "^20.0.0",
+		"@commitlint/cli": "^20.0.0 || ^21.0.0",
 		"@commitlint/config-conventional": "^21.0.2",
 		"@commitlint/types": "^21.1.0",
 		"@eslint/js": "^9.0.0",

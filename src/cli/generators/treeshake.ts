@@ -92,6 +92,38 @@ function renderEntry(workspaceName: string, allowedSubpath: string): string {
 	return `export * from '${workspaceName}/${allowedSubpath}'\n`
 }
 
+// The treeshake-check app lives under apps/ and depends on the root package via
+// `workspace:*`, which only resolves when a pnpm-workspace.yaml declares apps/*.
+// pnpm 11 fails install (ERR_PNPM_IGNORED_BUILDS) on any dependency with an
+// unlisted build script, so approve the ones this monorepo shape needs:
+//   - esbuild: the tree-shake check builds with it
+//   - sharp:   pulled in by the common apps/docs (Docusaurus) path; built
+//   - core-js: also pulled by apps/docs, but its postinstall is unwanted → ignore
+// Listing a package that isn't installed is a harmless no-op, so seeding the
+// docs-path entries keeps `pnpm install` green the moment an apps/docs is added.
+const WORKSPACE_YAML = `packages:
+  - 'apps/*'
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+
+ignoredBuiltDependencies:
+  - core-js
+`
+
+/**
+ * Ensure a pnpm-workspace.yaml exists that globs apps/* (needed for the
+ * treeshake-check app's `workspace:*` dep to resolve). Never clobbers an
+ * existing file. Returns the relative path if written, else null.
+ */
+async function ensureWorkspaceYaml(targetDir: string): Promise<string | null> {
+	const wsPath = path.join(targetDir, 'pnpm-workspace.yaml')
+	if (await fs.pathExists(wsPath)) return null
+	await fs.writeFile(wsPath, WORKSPACE_YAML)
+	return 'pnpm-workspace.yaml'
+}
+
 export async function generateTreeshakeCheck(
 	targetDir: string,
 	opts: TreeshakeOptions
@@ -125,9 +157,14 @@ export async function generateTreeshakeCheck(
 	await fs.writeFile(checkPath, renderCheckScript(opts))
 	await fs.writeFile(entryPath, renderEntry(opts.workspaceName, opts.allowedSubpath))
 
-	return [
+	const written = [
 		path.join(appDir, 'package.json'),
 		path.join(appDir, 'check.mjs'),
 		path.join(appDir, 'src', 'entry.ts'),
 	]
+
+	const workspaceFile = await ensureWorkspaceYaml(targetDir)
+	if (workspaceFile) written.push(workspaceFile)
+
+	return written
 }
