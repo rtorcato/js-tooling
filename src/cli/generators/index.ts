@@ -7,7 +7,7 @@ import { generateBuildConfigs } from './build.js'
 import { generateGitConfigs } from './git.js'
 import { generateGitHubActions } from './github-actions.js'
 import { generateLintingConfigs } from './linting.js'
-import { generateMiscBaseline } from './misc.js'
+import { generateKnipConfig, generateMiscBaseline } from './misc.js'
 import { generatePackageJson } from './package-json.js'
 import { generateReadme } from './readme.js'
 import { generateSecurityConfigs } from './security.js'
@@ -70,6 +70,10 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 				allowedSubpath: defaultAllowed,
 				forbiddenSubpaths: allCandidates.filter((s) => s !== defaultAllowed),
 			})
+			// treeshake-check writes pnpm-workspace.yaml; regenerate knip so it
+			// picks up the workspaces form (the baseline pass above ran before the
+			// workspace file existed and emitted the flat single-package form).
+			await generateKnipConfig(targetDir)
 		}
 	}
 

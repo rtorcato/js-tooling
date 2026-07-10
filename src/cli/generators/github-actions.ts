@@ -63,8 +63,6 @@ jobs:
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: latest
 
       - name: 📦 Generate cache key
         id: cache-key
@@ -98,8 +96,6 @@ jobs:
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: latest
 
       - name: 📦 Restore dependencies cache
         uses: actions/cache@v5
@@ -132,8 +128,6 @@ ${
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: latest
 
       - name: 📦 Restore dependencies cache
         uses: actions/cache@v5
@@ -165,8 +159,6 @@ ${
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: latest
 
       - name: 📦 Restore dependencies cache
         uses: actions/cache@v5
@@ -198,8 +190,6 @@ ${
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: latest
 
       - name: 📦 Restore dependencies cache
         uses: actions/cache@v5
@@ -253,8 +243,6 @@ ${
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: latest
 
       - name: 📦 Restore dependencies cache
         uses: actions/cache@v5

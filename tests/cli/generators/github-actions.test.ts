@@ -39,6 +39,15 @@ describe('generateGitHubActions', () => {
 		expect(content).not.toContain("node-version: '20'")
 	})
 
+	it('sets up pnpm without a version input (packageManager is the source of truth)', async () => {
+		const dir = newTmpDir()
+		await generateGitHubActions(baseConfig(), dir)
+
+		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
+		expect(content).toContain('uses: pnpm/action-setup@v6')
+		expect(content).not.toContain('version: latest')
+	})
+
 	it('adds a publint step to the build job when publint is enabled', async () => {
 		const dir = newTmpDir()
 		await generateGitHubActions(baseConfig({ bundler: 'tsup', publint: true }), dir)
