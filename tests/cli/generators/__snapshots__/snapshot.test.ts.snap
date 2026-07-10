@@ -295,11 +295,6 @@ exports[`generator output snapshots > package.json (library) 1`] = `
   ],
   "publishConfig": {
     "access": "public"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }
 "

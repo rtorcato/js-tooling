@@ -2,7 +2,7 @@ import fs from 'fs-extra'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { ProjectConfig } from '../../../src/cli/commands/setup.js'
-import { generateBuildConfigs } from '../../../src/cli/generators/build.js'
+import { ensureBuildApprovals, generateBuildConfigs } from '../../../src/cli/generators/build.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
@@ -118,5 +118,45 @@ describe('generateBuildConfigs', () => {
 		expect(await fs.pathExists(join(dir, 'vite.config.ts'))).toBe(false)
 		expect(await fs.pathExists(join(dir, 'release.config.mjs'))).toBe(false)
 		expect(await fs.pathExists(join(dir, '.changeset/config.json'))).toBe(false)
+	})
+})
+
+describe('ensureBuildApprovals', () => {
+	it('writes pnpm-workspace.yaml with an allowBuilds map for esbuild bundlers', async () => {
+		for (const bundler of ['tsup', 'esbuild', 'vite'] as const) {
+			const dir = newTmpDir()
+			const written = await ensureBuildApprovals(baseConfig({ bundler }), dir)
+			expect(written).toBe('pnpm-workspace.yaml')
+			const ws = await fs.readFile(join(dir, 'pnpm-workspace.yaml'), 'utf-8')
+			// pnpm 11 reads the allowBuilds map, not the onlyBuiltDependencies list.
+			expect(ws).toContain('allowBuilds:')
+			expect(ws).toContain('esbuild: true')
+			expect(ws).not.toContain('onlyBuiltDependencies')
+		}
+	})
+
+	it('does nothing for bundlers without an esbuild build script', async () => {
+		const dir = newTmpDir()
+		expect(await ensureBuildApprovals(baseConfig({ bundler: 'rollup' }), dir)).toBeNull()
+		expect(await ensureBuildApprovals(baseConfig({ bundler: 'none' }), dir)).toBeNull()
+		expect(await fs.pathExists(join(dir, 'pnpm-workspace.yaml'))).toBe(false)
+	})
+
+	it('never clobbers an existing pnpm-workspace.yaml (treeshake path owns it)', async () => {
+		const dir = newTmpDir()
+		await fs.writeFile(join(dir, 'pnpm-workspace.yaml'), "packages:\n  - 'apps/*'\n")
+		const written = await ensureBuildApprovals(baseConfig({ bundler: 'tsup' }), dir)
+		expect(written).toBeNull()
+		const ws = await fs.readFile(join(dir, 'pnpm-workspace.yaml'), 'utf-8')
+		expect(ws).toBe("packages:\n  - 'apps/*'\n")
+	})
+
+	it('the shipped tsup preset applies customOptions (regression: dropped entry)', async () => {
+		const preset = await fs.readFile(join(process.cwd(), 'tooling/tsup/index.mjs'), 'utf-8')
+		// The old `defineConfig((options = customOptions) => ...)` default was
+		// bypassed by tsup and silently dropped the consumer's config; the
+		// callback must take tsup's options and spread customOptions in explicitly.
+		expect(preset).not.toMatch(/defineConfig\(\(options = customOptions\)/)
+		expect(preset).toContain('...customOptions')
 	})
 })
