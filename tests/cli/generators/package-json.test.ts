@@ -77,7 +77,7 @@ describe('generatePackageJson', () => {
 		expect(pkg.publishConfig.access).toBe('public')
 	})
 
-	it('approves esbuild build and installs release plugins for a library', async () => {
+	it('installs release plugins and does NOT write build approvals to package.json', async () => {
 		const dir = newTmpDir()
 		await generatePackageJson(
 			baseConfig({ projectType: 'library', bundler: 'tsup', semanticRelease: true }),
@@ -85,8 +85,9 @@ describe('generatePackageJson', () => {
 		)
 
 		const pkg = await fs.readJson(join(dir, 'package.json'))
-		// pnpm 11 blocks esbuild's build script (pulled via tsup) unless approved.
-		expect(pkg.pnpm.onlyBuiltDependencies).toContain('esbuild')
+		// Build approvals live in pnpm-workspace.yaml (allowBuilds) — pnpm 11
+		// ignores the package.json `pnpm` field — so it must not be written here.
+		expect(pkg.pnpm).toBeUndefined()
 		// The github release preset activates the changelog + git plugins.
 		expect(pkg.devDependencies['@semantic-release/changelog']).toBeDefined()
 		expect(pkg.devDependencies['@semantic-release/git']).toBeDefined()

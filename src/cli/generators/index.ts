@@ -3,7 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { ProjectConfig } from '../commands/setup.js'
 import { installAiSetup } from './agent-rules.js'
-import { generateBuildConfigs } from './build.js'
+import { ensureBuildApprovals, generateBuildConfigs } from './build.js'
 import { generateGitConfigs } from './git.js'
 import { generateGitHubActions } from './github-actions.js'
 import { generateLintingConfigs } from './linting.js'
@@ -76,6 +76,11 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 			await generateKnipConfig(targetDir)
 		}
 	}
+
+	// Approve esbuild's build script for pnpm 11 via pnpm-workspace.yaml. Runs
+	// after the treeshake-check path so its richer workspace file (if written)
+	// is never clobbered.
+	await ensureBuildApprovals(config, targetDir)
 
 	// AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example)
 	if (config.aiSetup) {

@@ -2,6 +2,40 @@ import fs from 'fs-extra'
 import path from 'node:path'
 import type { ProjectConfig } from '../commands/setup.js'
 
+// tsup, esbuild, and vite all pull in esbuild, whose install-time build script
+// pnpm 11 refuses to run until it's approved — otherwise `pnpm install` fails
+// with ERR_PNPM_IGNORED_BUILDS.
+export function bundlerNeedsEsbuild(config: ProjectConfig): boolean {
+	return config.bundler === 'tsup' || config.bundler === 'esbuild' || config.bundler === 'vite'
+}
+
+// pnpm 11 reads build-script approvals from the `allowBuilds` map (package →
+// boolean), NOT the older `onlyBuiltDependencies` list — verified against the
+// pinned pnpm@11.1.3, which ignores the list form and errors with
+// ERR_PNPM_IGNORED_BUILDS.
+const SINGLE_PACKAGE_BUILD_APPROVALS = `allowBuilds:
+  esbuild: true
+`
+
+/**
+ * pnpm 11 no longer reads build-script approvals from package.json's `pnpm`
+ * field — they live in pnpm-workspace.yaml. For a single-package esbuild-backed
+ * build, write a minimal pnpm-workspace.yaml approving esbuild. Never clobbers
+ * an existing file (the treeshake-check path writes a richer one that already
+ * lists esbuild). Must run after that path so its file wins. Returns the
+ * relative path if written, else null.
+ */
+export async function ensureBuildApprovals(
+	config: ProjectConfig,
+	targetDir: string
+): Promise<string | null> {
+	if (!bundlerNeedsEsbuild(config)) return null
+	const wsPath = path.join(targetDir, 'pnpm-workspace.yaml')
+	if (await fs.pathExists(wsPath)) return null
+	await fs.writeFile(wsPath, SINGLE_PACKAGE_BUILD_APPROVALS)
+	return 'pnpm-workspace.yaml'
+}
+
 export async function generateBuildConfigs(config: ProjectConfig, targetDir: string) {
 	if (config.bundler === 'tsup') {
 		await generateTsupConfig(targetDir)

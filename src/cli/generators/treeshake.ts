@@ -95,21 +95,21 @@ function renderEntry(workspaceName: string, allowedSubpath: string): string {
 // The treeshake-check app lives under apps/ and depends on the root package via
 // `workspace:*`, which only resolves when a pnpm-workspace.yaml declares apps/*.
 // pnpm 11 fails install (ERR_PNPM_IGNORED_BUILDS) on any dependency with an
-// unlisted build script, so approve the ones this monorepo shape needs:
+// unapproved build script, approved via the `allowBuilds` map (package →
+// boolean — pnpm 11 ignores the older `onlyBuiltDependencies` list). Approve
+// the ones this monorepo shape needs:
 //   - esbuild: the tree-shake check builds with it
 //   - sharp:   pulled in by the common apps/docs (Docusaurus) path; built
-//   - core-js: also pulled by apps/docs, but its postinstall is unwanted → ignore
-// Listing a package that isn't installed is a harmless no-op, so seeding the
+//   - core-js: also pulled by apps/docs, but its postinstall is unwanted → false
+// Naming a package that isn't installed is a harmless no-op, so seeding the
 // docs-path entries keeps `pnpm install` green the moment an apps/docs is added.
 const WORKSPACE_YAML = `packages:
   - 'apps/*'
 
-onlyBuiltDependencies:
-  - esbuild
-  - sharp
-
-ignoredBuiltDependencies:
-  - core-js
+allowBuilds:
+  esbuild: true
+  sharp: true
+  core-js: false
 `
 
 /**

@@ -62,15 +62,9 @@ export async function generatePackageJson(config: ProjectConfig, targetDir: stri
 		}
 	}
 
-	// pnpm 11 refuses to run a dependency's build script unless it's approved.
-	// esbuild (pulled in by tsup/esbuild/vite) has one, so `pnpm install` exits
-	// 1 with ERR_PNPM_IGNORED_BUILDS until it's whitelisted here.
-	if (config.bundler === 'tsup' || config.bundler === 'esbuild' || config.bundler === 'vite') {
-		packageJson.pnpm = {
-			...(packageJson.pnpm as Record<string, unknown> | undefined),
-			onlyBuiltDependencies: ['esbuild'],
-		}
-	}
+	// Build-script approvals (esbuild etc.) are NOT written here: pnpm 11 ignores
+	// package.json's `pnpm` field and reads them from pnpm-workspace.yaml instead
+	// (see ensureBuildApprovals in build.ts).
 
 	await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 })
 }

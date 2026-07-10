@@ -35,6 +35,7 @@
 		"typecheck": "tsc --noEmit --project src/cli/tsconfig.json",
 		"test": "vitest",
 		"test:watch": "vitest --watch",
+		"test:integration": "pnpm build-cli && node scripts/integration/preset-lifecycle.mjs library",
 		"coverage": "vitest run --coverage",
 		"knip": "knip",
 		"commit": "cz",

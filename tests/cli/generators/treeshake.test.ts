@@ -67,13 +67,13 @@ describe('generateTreeshakeCheck', () => {
 		})
 		const ws = await fs.readFile(join(dir, 'pnpm-workspace.yaml'), 'utf-8')
 		expect(ws).toContain("- 'apps/*'")
-		// esbuild must be build-approved workspace-wide (pnpm 11 ERR_PNPM_IGNORED_BUILDS)
-		expect(ws).toContain('onlyBuiltDependencies')
-		expect(ws).toContain('esbuild')
+		// Build approvals use the allowBuilds map (pnpm 11 ignores the older
+		// onlyBuiltDependencies list → ERR_PNPM_IGNORED_BUILDS).
+		expect(ws).toContain('allowBuilds')
+		expect(ws).toContain('esbuild: true')
 		// docs-path (apps/docs) build approvals are seeded ahead of need
-		expect(ws).toContain('sharp')
-		expect(ws).toContain('ignoredBuiltDependencies')
-		expect(ws).toContain('core-js')
+		expect(ws).toContain('sharp: true')
+		expect(ws).toContain('core-js: false')
 	})
 
 	it('does not clobber an existing pnpm-workspace.yaml', async () => {

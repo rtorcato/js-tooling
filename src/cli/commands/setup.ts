@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import { generateConfigs } from '../generators/index.js'
+import { formatGeneratedFiles } from '../utils/format.js'
 import { installDependencies } from '../utils/install.js'
 import { LOCKFILE_NAME, writeLockfile } from '../utils/lockfile.js'
 import {
@@ -119,6 +120,10 @@ export async function setupProject(options: SetupOptions) {
 		if (!options.skipInstall) {
 			console.log(chalk.cyan('\n📦 Installing dependencies...\n'))
 			await installDependencies(config, targetDir)
+			// Format now that the linter/formatter is installed, so the scaffold
+			// passes its own `pnpm check` out of the box (templates are written by
+			// hand and don't match biome/prettier whitespace).
+			await formatGeneratedFiles(config, targetDir)
 		}
 
 		console.log(chalk.green('\n✅ Setup completed successfully!\n'))
