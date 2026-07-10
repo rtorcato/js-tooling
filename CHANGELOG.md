@@ -1,3 +1,10 @@
+## [2.29.2](https://github.com/rtorcato/js-tooling/compare/v2.29.1...v2.29.2) (2026-07-10)
+
+
+### Bug Fixes
+
+* **setup:** close 4 CI scaffold gaps in generated workflows ([#180](https://github.com/rtorcato/js-tooling/issues/180)) ([#181](https://github.com/rtorcato/js-tooling/issues/181)) ([4ad9c1d](https://github.com/rtorcato/js-tooling/commit/4ad9c1d12f93826c89d642bd23850ca2ff440ea0))
+
 ## [2.29.1](https://github.com/rtorcato/js-tooling/compare/v2.29.0...v2.29.1) (2026-07-06)
 
 
