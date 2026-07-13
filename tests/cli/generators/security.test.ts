@@ -21,6 +21,17 @@ describe('generateDependabotConfig', () => {
 		expect(content).toMatch(/package-ecosystem: "github-actions"/)
 		expect(content).toMatch(/interval: "weekly"/)
 	})
+
+	it('groups react + react-dom and minor/patch bumps, and ignores typescript majors', async () => {
+		const dir = newTmpDir()
+		await generateDependabotConfig(dir)
+		const content = await fs.readFile(join(dir, '.github', 'dependabot.yml'), 'utf-8')
+		expect(content).toMatch(/^\s*groups:/m)
+		expect(content).toMatch(/react-dom/)
+		expect(content).toMatch(/minor-and-patch/)
+		expect(content).toMatch(/dependency-name: "typescript"/)
+		expect(content).toMatch(/version-update:semver-major/)
+	})
 })
 
 describe('generateCodeQLWorkflow', () => {

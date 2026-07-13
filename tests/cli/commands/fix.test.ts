@@ -12,6 +12,11 @@ vi.mock('inquirer', () => ({
 const promptMock = vi.mocked(inquirer.prompt)
 const newTmpDir = useTmpDir()
 
+// A dependabot.yml with a `groups:` block reads as up-to-date (no drift), so the
+// fixer treats it as already-ok and leaves it alone.
+const GROUPED_DEPENDABOT =
+	'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    groups:\n      all:\n        patterns: ["*"]\n'
+
 async function seedPackageJson(dir: string, extra: Record<string, unknown> = {}) {
 	await fs.writeJson(join(dir, 'package.json'), {
 		name: 'demo',
@@ -59,7 +64,9 @@ describe('fix --list', () => {
 			const payload = JSON.parse(lastJson)
 			expect(Array.isArray(payload.targets)).toBe(true)
 			expect(payload.targets.length).toBeGreaterThan(10)
-			expect(payload.targets.find((t: { target: string }) => t.target === 'codeowners')).toBeTruthy()
+			expect(
+				payload.targets.find((t: { target: string }) => t.target === 'codeowners')
+			).toBeTruthy()
 		} finally {
 			logSpy.mockRestore()
 		}
@@ -119,11 +126,21 @@ describe('fix targeted', () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.writeJson(join(dir, 'renovate.json'), { extends: ['config:recommended'] })
-		await fs.outputFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
+		await fs.outputFile(join(dir, '.github', 'dependabot.yml'), GROUPED_DEPENDABOT)
 		await fixCommand('dependabot', { directory: dir, yes: true })
 		// dependabot.yml should remain untouched (no overwrite) and no error thrown.
 		const yaml = await fs.readFile(join(dir, '.github', 'dependabot.yml'), 'utf-8')
-		expect(yaml).toBe('version: 2\n')
+		expect(yaml).toBe(GROUPED_DEPENDABOT)
+	})
+
+	it('fix dependabot upgrades an existing config that lacks grouping', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.outputFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
+		await fixCommand('dependabot', { directory: dir, yes: true })
+		const yaml = await fs.readFile(join(dir, '.github', 'dependabot.yml'), 'utf-8')
+		expect(yaml).toMatch(/^\s*groups:/m)
+		expect(yaml).toMatch(/dependency-name: "typescript"/)
 	})
 
 	it('fix unknown-target exits non-zero', async () => {
@@ -527,9 +544,7 @@ describe('fix targeted', () => {
 			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
 		})
 		await fixCommand('treeshake-check', { directory: dir, yes: true })
-		expect(
-			await fs.pathExists(join(dir, 'apps', 'treeshake-check', 'check.mjs'))
-		).toBe(true)
+		expect(await fs.pathExists(join(dir, 'apps', 'treeshake-check', 'check.mjs'))).toBe(true)
 		const entry = await fs.readFile(
 			join(dir, 'apps', 'treeshake-check', 'src', 'entry.ts'),
 			'utf-8'
@@ -546,9 +561,7 @@ describe('fix targeted', () => {
 			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
 		})
 		await fixCommand('treeshake-check', { directory: dir, yes: true })
-		expect(
-			await fs.pathExists(join(dir, 'apps', 'treeshake-check'))
-		).toBe(false)
+		expect(await fs.pathExists(join(dir, 'apps', 'treeshake-check'))).toBe(false)
 	})
 
 	it('fix verify --yes appends pnpm treeshake when apps/treeshake-check exists', async () => {
@@ -583,7 +596,7 @@ describe('fix targeted', () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.ensureDir(join(dir, '.github'))
-		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
+		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), GROUPED_DEPENDABOT)
 		// Should not call inquirer at all.
 		await fixCommand('dependabot', { directory: dir })
 		expect(promptMock).not.toHaveBeenCalled()
@@ -623,9 +636,9 @@ describe('fix --json', () => {
 			throw new Error('exit')
 		}) as never)
 		try {
-			await expect(
-				fixCommand('not-a-target', { directory: dir, json: true })
-			).rejects.toThrow('exit')
+			await expect(fixCommand('not-a-target', { directory: dir, json: true })).rejects.toThrow(
+				'exit'
+			)
 			const payload = JSON.parse(logSpy.mock.calls.at(-1)?.[0] as string)
 			expect(payload.error).toBe('unknown-target')
 			expect(payload.target).toBe('not-a-target')
@@ -672,7 +685,7 @@ describe('fix --json', () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.ensureDir(join(dir, '.github'))
-		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
+		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), GROUPED_DEPENDABOT)
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 		try {
 			await fixCommand('dependabot', { directory: dir, json: true })
@@ -685,10 +698,7 @@ describe('fix --json', () => {
 })
 
 describe('fix + lockfile', () => {
-	async function writeLock(
-		dir: string,
-		configPatch: Record<string, unknown> = {}
-	): Promise<void> {
+	async function writeLock(dir: string, configPatch: Record<string, unknown> = {}): Promise<void> {
 		const config = {
 			projectName: 'demo',
 			projectType: 'library',
@@ -811,9 +821,7 @@ describe('fix --resync', () => {
 		}) as never)
 		const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		try {
-			await expect(fixCommand(undefined, { directory: dir, resync: true })).rejects.toThrow(
-				'exit'
-			)
+			await expect(fixCommand(undefined, { directory: dir, resync: true })).rejects.toThrow('exit')
 			expect(exitSpy).toHaveBeenCalledWith(1)
 			expect(errSpy.mock.calls.flat().join('\n')).toMatch(/No \.js-tooling\.json/)
 		} finally {
