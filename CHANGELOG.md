@@ -1,3 +1,10 @@
+# [2.30.0](https://github.com/rtorcato/js-tooling/compare/v2.29.2...v2.30.0) (2026-07-13)
+
+
+### Features
+
+* **cli:** grouped dependabot defaults + drift detection ([#194](https://github.com/rtorcato/js-tooling/issues/194)) ([2b45f08](https://github.com/rtorcato/js-tooling/commit/2b45f08deb46385326ad62551fbc86f0a0279b22))
+
 ## [2.29.2](https://github.com/rtorcato/js-tooling/compare/v2.29.1...v2.29.2) (2026-07-10)
 
 
