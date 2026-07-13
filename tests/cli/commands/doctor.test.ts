@@ -60,10 +60,7 @@ describe('doctor', () => {
 	it('detects biome.jsonc and eslint configs that import our presets', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
-		await fs.writeFile(
-			join(dir, 'biome.jsonc'),
-			'{ "extends": ["@rtorcato/js-tooling/biome"] }\n'
-		)
+		await fs.writeFile(join(dir, 'biome.jsonc'), '{ "extends": ["@rtorcato/js-tooling/biome"] }\n')
 		await fs.writeFile(
 			join(dir, 'eslint.config.mjs'),
 			"export { default } from '@rtorcato/js-tooling/eslint/base'\n"
@@ -243,7 +240,10 @@ describe('doctor extended checks', () => {
 		let results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'AI setup')?.status).toBe('optional-missing')
 
-		await fs.writeFile(join(dir, 'AGENTS.md'), '<!-- js-tooling:start -->\nx\n<!-- js-tooling:end -->\n')
+		await fs.writeFile(
+			join(dir, 'AGENTS.md'),
+			'<!-- js-tooling:start -->\nx\n<!-- js-tooling:end -->\n'
+		)
 		results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'AI setup')?.status).toBe('ok')
 	})
@@ -520,10 +520,7 @@ describe('doctor extended checks', () => {
 			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
 		})
 		await fs.ensureDir(join(dir, 'apps', 'treeshake-check'))
-		await fs.writeFile(
-			join(dir, 'apps', 'treeshake-check', 'check.mjs'),
-			'// stub\n'
-		)
+		await fs.writeFile(join(dir, 'apps', 'treeshake-check', 'check.mjs'), '// stub\n')
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'Tree-shake check')?.status).toBe('ok')
 	})
@@ -547,11 +544,25 @@ describe('doctor security checks', () => {
 		expect(dep?.hint).toMatch(/fix dependabot/)
 	})
 
-	it('reports Dependabot ok when .github/dependabot.yml exists', async () => {
+	it('reports Dependabot drift when dependabot.yml exists but has no grouping', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.ensureDir(join(dir, '.github'))
 		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
+		const results = await runDoctor(dir)
+		const dep = results.find((r) => r.check === 'Dependabot')
+		expect(dep?.status).toBe('drift')
+		expect(dep?.hint).toMatch(/fix dependabot/)
+	})
+
+	it('reports Dependabot ok when dependabot.yml has a groups block', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github'))
+		await fs.writeFile(
+			join(dir, '.github', 'dependabot.yml'),
+			'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    groups:\n      all:\n        patterns: ["*"]\n'
+		)
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'Dependabot')?.status).toBe('ok')
 	})
@@ -628,10 +639,7 @@ describe('doctor CODEOWNERS', () => {
 })
 
 describe('doctor + lockfile', () => {
-	async function writeLock(
-		dir: string,
-		configPatch: Record<string, unknown> = {}
-	): Promise<void> {
+	async function writeLock(dir: string, configPatch: Record<string, unknown> = {}): Promise<void> {
 		const config = {
 			projectName: 'demo',
 			projectType: 'library',
@@ -775,12 +783,8 @@ describe('nextStepSuggestions', () => {
 			{ check: 'ESLint', status: 'optional-missing', detail: '' },
 			{ check: 'TypeScript', status: 'missing', detail: '' },
 		])
-		expect(suggestions).toContain(
-			'Run `npx @rtorcato/js-tooling fix biome` to align Biome'
-		)
-		expect(suggestions).toContain(
-			'Run `npx @rtorcato/js-tooling fix eslint` to scaffold ESLint'
-		)
+		expect(suggestions).toContain('Run `npx @rtorcato/js-tooling fix biome` to align Biome')
+		expect(suggestions).toContain('Run `npx @rtorcato/js-tooling fix eslint` to scaffold ESLint')
 		expect(suggestions).toContain(
 			'Run `npx @rtorcato/js-tooling fix tsconfig` to scaffold TypeScript'
 		)
@@ -815,9 +819,7 @@ describe('nextStepSuggestions', () => {
 	})
 
 	it('skips checks with no registered fix target', () => {
-		const suggestions = nextStepSuggestions([
-			{ check: 'Node', status: 'drift', detail: '' },
-		])
+		const suggestions = nextStepSuggestions([{ check: 'Node', status: 'drift', detail: '' }])
 		expect(suggestions).toEqual([])
 	})
 

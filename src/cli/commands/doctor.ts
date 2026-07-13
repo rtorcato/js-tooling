@@ -809,7 +809,20 @@ async function checkReleaseToken(dir: string): Promise<CheckResult> {
 
 async function checkDependabot(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.github/dependabot.yml', '.github/dependabot.yaml']) {
-		if (await fs.pathExists(path.join(dir, candidate))) {
+		const candidatePath = path.join(dir, candidate)
+		if (await fs.pathExists(candidatePath)) {
+			// A config with no `groups:` predates the grouping/ignore defaults — a lone
+			// react-dom or TypeScript-major bump can never pass CI. Flag as drift so
+			// `fix dependabot` can bring it up to standard.
+			const content = await fs.readFile(candidatePath, 'utf8')
+			if (!/^\s*groups:/m.test(content)) {
+				return {
+					check: 'Dependabot',
+					status: 'drift',
+					detail: `${candidate} missing recommended dependency grouping`,
+					hint: 'Run `npx @rtorcato/js-tooling fix dependabot` to add grouping + ignore rules',
+				}
+			}
 			return {
 				check: 'Dependabot',
 				status: 'ok',
