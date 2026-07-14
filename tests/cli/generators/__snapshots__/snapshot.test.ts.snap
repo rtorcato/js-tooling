@@ -175,6 +175,9 @@ jobs:
       - name: 🏗️ Build project
         run: pnpm build
 
+      - name: 🔍 Validate type resolution (are-the-types-wrong)
+        run: pnpm attw
+
       - name: 📦 Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -255,9 +258,10 @@ exports[`generator output snapshots > package.json (library) 1`] = `
     "build": "tsup",
     "build:watch": "tsup --watch",
     "knip": "knip",
+    "attw": "attw --pack",
     "prepare": "husky",
     "release": "semantic-release",
-    "verify": "pnpm typecheck && pnpm check && pnpm exec vitest run"
+    "verify": "pnpm typecheck && pnpm check && pnpm exec vitest run && pnpm attw"
   },
   "dependencies": {},
   "devDependencies": {
@@ -270,6 +274,7 @@ exports[`generator output snapshots > package.json (library) 1`] = `
     "tsup": "^8.0.0",
     "husky": "^9.0.0",
     "lint-staged": "^16.0.0",
+    "@arethetypeswrong/cli": "^0.18.2",
     "@commitlint/cli": "^20.0.0",
     "@commitlint/config-conventional": "^20.0.0",
     "semantic-release": "^25.0.0",

@@ -56,9 +56,12 @@
     "noEmit": true, // Do not emit output files
     "sourceMap": true, // Generate sourcemaps for .ts files
     
+    // ${configDir} anchors paths to the consuming project (TS 5.5+), so
+    // downstream repos no longer need `baseUrl` + a redeclared `paths` block
+    // (baseUrl is deprecated in TS 5.9, removed in TS 7.0). Refs: https://aka.ms/ts6
     "paths": { // Path mapping for module resolution
-      "~/*": ["./src/*"],
-      "@/*": ["./src/*"]
+      "~/*": ["${configDir}/src/*"],
+      "@/*": ["${configDir}/src/*"]
     }
   },
   "include": ["src/**/*", "index.d.ts"], // Include files in the src directory and index.d.ts

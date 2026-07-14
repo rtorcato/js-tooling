@@ -36,12 +36,9 @@ These are base shared `tsconfig.json` files from which all other `tsconfig.json`
 ```jsonc
 {
   "extends": "../tooling/typescript/tsconfig.react.json",
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
-  },
+  // `~/*` and `@/*` → `./src/*` are inherited from the preset, anchored to this
+  // project via ${configDir} — no `baseUrl`/`paths` needed (baseUrl is deprecated
+  // in TS 5.9, removed in TS 7.0).
   "include": ["src"]
 }
 ```
