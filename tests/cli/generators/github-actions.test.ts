@@ -87,7 +87,7 @@ describe('generateGitHubActions', () => {
 
 	it('includes test job when a testing framework is configured', async () => {
 		const dir = newTmpDir()
-		await generateGitHubActions(baseConfig({ testing: { framework: 'vitest' } }), dir)
+		await generateGitHubActions(baseConfig({ testing: { framework: 'jest' } }), dir)
 
 		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
 		expect(content).toContain('test:')
@@ -100,6 +100,26 @@ describe('generateGitHubActions', () => {
 
 		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
 		expect(content).not.toContain('Run tests')
+	})
+
+	it('uploads coverage and emits codecov.yml for Vitest', async () => {
+		const dir = newTmpDir()
+		await generateGitHubActions(baseConfig({ testing: { framework: 'vitest' } }), dir)
+
+		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
+		expect(content).toContain('pnpm coverage')
+		expect(content).toContain('codecov/codecov-action@v5')
+		expect(content).toContain('CODECOV_TOKEN')
+		expect(await fs.pathExists(join(dir, 'codecov.yml'))).toBe(true)
+	})
+
+	it('does not upload coverage or emit codecov.yml when tests are absent', async () => {
+		const dir = newTmpDir()
+		await generateGitHubActions(baseConfig({ testing: { framework: 'none' } }), dir)
+
+		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
+		expect(content).not.toContain('codecov')
+		expect(await fs.pathExists(join(dir, 'codecov.yml'))).toBe(false)
 	})
 
 	it('includes build job when bundler is configured', async () => {

@@ -146,7 +146,13 @@ jobs:
           key: \${{ needs.dependencies.outputs.cache-key }}
 
       - name: 🧪 Run tests
-        run: pnpm test
+        run: pnpm coverage
+
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: \${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
   build:
     runs-on: ubuntu-latest
@@ -257,6 +263,7 @@ exports[`generator output snapshots > package.json (library) 1`] = `
     "coverage": "vitest run --coverage",
     "build": "tsup",
     "build:watch": "tsup --watch",
+    "commit": "cz",
     "knip": "knip",
     "attw": "attw --pack",
     "prepare": "husky",
@@ -271,12 +278,15 @@ exports[`generator output snapshots > package.json (library) 1`] = `
     "@types/node": "^26.0.1",
     "@biomejs/biome": "^2.5.1",
     "vitest": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.9",
     "tsup": "^8.0.0",
     "husky": "^9.0.0",
     "lint-staged": "^16.0.0",
     "@arethetypeswrong/cli": "^0.18.2",
     "@commitlint/cli": "^20.0.0",
     "@commitlint/config-conventional": "^20.0.0",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
     "semantic-release": "^25.0.0",
     "@semantic-release/github": "^12.0.0",
     "@semantic-release/changelog": "^6.0.0",
@@ -300,6 +310,11 @@ exports[`generator output snapshots > package.json (library) 1`] = `
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
 "
@@ -312,7 +327,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    setupFiles: ['./vitest.setup.ts']
+    setupFiles: ['./vitest.setup.ts'],
+    coverage: {
+      provider: 'v8',
+      // lcov feeds Codecov; text is the local console summary.
+      reporter: ['text', 'lcov']
+    }
   }
 })
 "

@@ -96,6 +96,9 @@ This project follows [Conventional Commits](https://conventionalcommits.org/):
 - \`refactor:\` code refactoring
 - \`test:\` adding or updating tests
 - \`chore:\` maintenance tasks
+
+Run \`pnpm commit\` for a guided prompt (commitizen) that builds a compliant
+message; commitlint enforces the same rules on every commit.
 `
 		: ''
 }
@@ -222,6 +225,10 @@ function generateScriptsSection(config: ProjectConfig): string {
 
 	if (config.bundler !== 'none') {
 		scripts.push('- `pnpm build` - Build for production')
+	}
+
+	if (config.commitLint) {
+		scripts.push('- `pnpm commit` - Write a conventional commit via a guided prompt')
 	}
 
 	return scripts.join('\n')
