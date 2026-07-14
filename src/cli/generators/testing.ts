@@ -21,7 +21,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: '${config.testing.environment === 'browser' ? 'jsdom' : 'node'}',
-    setupFiles: ['./vitest.setup.ts']
+    setupFiles: ['./vitest.setup.ts'],
+    coverage: {
+      provider: 'v8',
+      // lcov feeds Codecov; text is the local console summary.
+      reporter: ['text', 'lcov']
+    }
   }
 })
 `
