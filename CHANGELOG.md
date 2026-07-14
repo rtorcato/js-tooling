@@ -1,3 +1,10 @@
+# [2.35.0](https://github.com/rtorcato/js-tooling/compare/v2.34.0...v2.35.0) (2026-07-14)
+
+
+### Features
+
+* **size-limit:** exports-driven budgets for multi-subpath libraries ([#199](https://github.com/rtorcato/js-tooling/issues/199)) ([7f543de](https://github.com/rtorcato/js-tooling/commit/7f543deebc5a456eb39821e5f40387d309ab14f4))
+
 # [2.34.0](https://github.com/rtorcato/js-tooling/compare/v2.33.0...v2.34.0) (2026-07-14)
 
 
