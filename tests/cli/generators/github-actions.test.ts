@@ -132,6 +132,23 @@ describe('generateGitHubActions', () => {
 		expect(content).toContain('upload-artifact')
 	})
 
+	it('adds an attw type-resolution step to the build job for libraries', async () => {
+		const dir = newTmpDir()
+		await generateGitHubActions(baseConfig({ projectType: 'library', bundler: 'tsup' }), dir)
+
+		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
+		expect(content).toContain('are-the-types-wrong')
+		expect(content).toContain('pnpm attw')
+	})
+
+	it('omits the attw step for non-library projects', async () => {
+		const dir = newTmpDir()
+		await generateGitHubActions(baseConfig({ projectType: 'react-app', bundler: 'vite' }), dir)
+
+		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
+		expect(content).not.toContain('pnpm attw')
+	})
+
 	it('omits build job when bundler is none', async () => {
 		const dir = newTmpDir()
 		await generateGitHubActions(baseConfig({ bundler: 'none' }), dir)

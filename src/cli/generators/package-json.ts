@@ -131,6 +131,13 @@ function getScripts(config: ProjectConfig, opts: GetScriptsOptions = {}): Record
 		scripts['publint'] = 'publint --strict'
 	}
 
+	// are-the-types-wrong validates that a consumer's `import` actually resolves
+	// the shipped `.d.ts`. Only meaningful for publishable libraries. The default
+	// profile fits the dual (cjs+esm) exports the library scaffold emits.
+	if (config.projectType === 'library') {
+		scripts['attw'] = 'attw --pack'
+	}
+
 	// Git hooks
 	if (config.gitHooks) {
 		scripts['prepare'] = 'husky'
@@ -174,7 +181,11 @@ export function composeVerifyScript(
 	}
 	if (opts.includeTreeshake) cmds.push('pnpm treeshake')
 	if (config.publint) cmds.push('pnpm publint')
-	return cmds.length >= 2 ? cmds.join(' && ') : null
+	// attw is a publish-safety rider, not a core check — it never justifies a
+	// verify chain on its own, so append it only once we've decided to emit one.
+	if (cmds.length < 2) return null
+	if (config.projectType === 'library') cmds.push('pnpm attw')
+	return cmds.join(' && ')
 }
 
 /**
@@ -262,6 +273,11 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 	if (config.gitHooks) {
 		deps['husky'] = '^9.0.0'
 		deps['lint-staged'] = '^16.0.0'
+	}
+
+	// are-the-types-wrong — validate published type resolution for libraries.
+	if (config.projectType === 'library') {
+		deps['@arethetypeswrong/cli'] = '^0.18.2'
 	}
 
 	// Commit linting

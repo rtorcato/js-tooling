@@ -56,7 +56,7 @@ Each row reports one of:
 | Group | Checks |
 |---|---|
 | Environment | Node version (vs. minimum + LTS patch level), `engines.node` field |
-| Repo baseline | `package.json`, `.editorconfig`, `.nvmrc` / `.node-version` |
+| Repo baseline | `package.json`, `.editorconfig`, `.nvmrc` / `.node-version`, `.vscode/extensions.json` |
 | Tooling presets | TypeScript, Biome, ESLint, Prettier, Vitest, Commitlint |
 | Automation | Husky, `lint-staged`, semantic-release, knip |
 | CI / supply chain | GitHub Actions, coverage upload, Dependabot, CodeQL, GitLab CI |
@@ -140,6 +140,7 @@ Implementation note: the preview is computed by shadow-running the fixer in a te
 | `package-json` | `package.json` | adds `@rtorcato/js-tooling` to `devDependencies` |
 | `engines` | `engines.node` | sets `engines.node` (never overwrites) |
 | `editorconfig` | `EditorConfig` | `.editorconfig` |
+| `vscode-extensions` | `VS Code extensions` | `.vscode/extensions.json` (merge-friendly) |
 | `nvmrc` | `Node version pin` | `.nvmrc` |
 | `tsconfig` | `TypeScript` | `tsconfig.json` |
 | `biome` | `Biome` | `biome.json` |

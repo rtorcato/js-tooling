@@ -7,7 +7,7 @@ import { ensureBuildApprovals, generateBuildConfigs } from './build.js'
 import { generateGitConfigs } from './git.js'
 import { generateGitHubActions } from './github-actions.js'
 import { generateLintingConfigs } from './linting.js'
-import { generateKnipConfig, generateMiscBaseline } from './misc.js'
+import { generateKnipConfig, generateMiscBaseline, generateVscodeExtensions } from './misc.js'
 import { generatePackageJson } from './package-json.js'
 import { generateReadme } from './readme.js'
 import { generateSecurityConfigs } from './security.js'
@@ -25,6 +25,9 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 
 	// Universal baseline: .editorconfig, .nvmrc, engines.node, knip.json
 	await generateMiscBaseline(targetDir)
+
+	// Recommend the editor extensions matching the enabled tools
+	await generateVscodeExtensions(config, targetDir)
 
 	// Generate TypeScript configuration
 	if (config.typescript.enabled) {

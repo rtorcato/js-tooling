@@ -993,4 +993,27 @@ describe('doctor README badges check', () => {
 		const r = results.find((c) => c.check === 'Coverage upload')
 		expect(r?.status).toBe('ok')
 	})
+
+	it('nudges when a tool config lacks its recommended VS Code extension', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeJson(join(dir, 'biome.json'), { $schema: 'x' })
+		const results = await runDoctor(dir)
+		const r = results.find((c) => c.check === 'VS Code extensions')
+		expect(r?.status).toBe('optional-missing')
+		expect(r?.detail).toMatch(/biomejs\.biome/)
+	})
+
+	it('passes when .vscode/extensions.json recommends the matching extension', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeJson(join(dir, 'biome.json'), { $schema: 'x' })
+		await fs.ensureDir(join(dir, '.vscode'))
+		await fs.writeJson(join(dir, '.vscode', 'extensions.json'), {
+			recommendations: ['biomejs.biome'],
+		})
+		const results = await runDoctor(dir)
+		const r = results.find((c) => c.check === 'VS Code extensions')
+		expect(r?.status).toBe('ok')
+	})
 })
