@@ -1,3 +1,10 @@
+# [2.34.0](https://github.com/rtorcato/js-tooling/compare/v2.33.0...v2.34.0) (2026-07-14)
+
+
+### Features
+
+* **scaffold:** add commitizen alongside commitlint ([#198](https://github.com/rtorcato/js-tooling/issues/198)) ([5c902f5](https://github.com/rtorcato/js-tooling/commit/5c902f506a27eb554431b49f32ba13955381ad38))
+
 # [2.33.0](https://github.com/rtorcato/js-tooling/compare/v2.32.0...v2.33.0) (2026-07-14)
 
 
