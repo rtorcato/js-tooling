@@ -1,3 +1,10 @@
+# [2.33.0](https://github.com/rtorcato/js-tooling/compare/v2.32.0...v2.33.0) (2026-07-14)
+
+
+### Features
+
+* **ci:** upload coverage to Codecov so the coverage badge works ([#197](https://github.com/rtorcato/js-tooling/issues/197)) ([26dfcc3](https://github.com/rtorcato/js-tooling/commit/26dfcc34bba72fa282af1377f4c7dc01038ebea2))
+
 # [2.32.0](https://github.com/rtorcato/js-tooling/compare/v2.31.0...v2.32.0) (2026-07-14)
 
 
