@@ -61,6 +61,27 @@ describe('generatePackageJson', () => {
 		expect(pkg.devDependencies['@rtorcato/js-tooling']).toBe('latest')
 	})
 
+	it('wires commitizen alongside commitlint when commitLint is on', async () => {
+		const dir = newTmpDir()
+		await generatePackageJson(baseConfig({ commitLint: true }), dir)
+
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.commit).toBe('cz')
+		expect(pkg.config.commitizen.path).toBe('./node_modules/cz-conventional-changelog')
+		expect(pkg.devDependencies.commitizen).toBeDefined()
+		expect(pkg.devDependencies['cz-conventional-changelog']).toBeDefined()
+	})
+
+	it('omits commitizen wiring when commitLint is off', async () => {
+		const dir = newTmpDir()
+		await generatePackageJson(baseConfig({ commitLint: false }), dir)
+
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.commit).toBeUndefined()
+		expect(pkg.config?.commitizen).toBeUndefined()
+		expect(pkg.devDependencies.commitizen).toBeUndefined()
+	})
+
 	it('wires are-the-types-wrong (attw) for library projects', async () => {
 		const dir = newTmpDir()
 		await generatePackageJson(baseConfig({ projectType: 'library' }), dir)
