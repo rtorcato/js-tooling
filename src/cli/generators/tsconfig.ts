@@ -5,16 +5,12 @@ import type { ProjectConfig } from '../commands/setup.js'
 export async function generateTSConfig(config: ProjectConfig, targetDir: string) {
 	const tsconfigPath = path.join(targetDir, 'tsconfig.json')
 
-	// Base configuration extends our tooling
+	// Base configuration extends our tooling. The shared presets anchor `paths`
+	// with ${configDir}, so no local baseUrl/paths is needed (baseUrl is
+	// deprecated in TS 5.9, removed in TS 7.0). Refs: https://aka.ms/ts6
 	const tsconfig: any = {
 		extends: `@rtorcato/js-tooling/typescript/${config.typescript.config}`,
-		compilerOptions: {
-			baseUrl: '.',
-			paths: {
-				'@/*': ['./src/*'],
-				'~/*': ['./src/*'],
-			},
-		},
+		compilerOptions: {},
 		include: ['src/**/*', 'reset.d.ts'],
 		exclude: ['node_modules', 'dist', 'build'],
 	}
