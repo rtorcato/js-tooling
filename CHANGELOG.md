@@ -1,3 +1,15 @@
+# [2.31.0](https://github.com/rtorcato/js-tooling/compare/v2.30.0...v2.31.0) (2026-07-14)
+
+
+### Bug Fixes
+
+* **tsconfig:** anchor preset paths with ${configDir} to drop deprecated baseUrl ([#195](https://github.com/rtorcato/js-tooling/issues/195)) ([bfad079](https://github.com/rtorcato/js-tooling/commit/bfad0796a6dc144ac7def31f360e427ec0c7234e))
+
+
+### Features
+
+* **generator:** recommend VS Code extensions matching enabled tools ([#196](https://github.com/rtorcato/js-tooling/issues/196)) ([bcf608e](https://github.com/rtorcato/js-tooling/commit/bcf608e922f33cb5599bdb9e2480e4ef61be2bcb))
+
 # [2.30.0](https://github.com/rtorcato/js-tooling/compare/v2.29.2...v2.30.0) (2026-07-13)
 
 
