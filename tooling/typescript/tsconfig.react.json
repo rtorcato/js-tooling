@@ -4,9 +4,10 @@
     "jsx": "react-jsx", // Use the new JSX transform for React 17+
     "lib": ["DOM", "DOM.Iterable", "ESNext"],// Include DOM types for browser APIs
     "types": ["react", "react-dom", "tailwindcss", "vitest"],
+    // ${configDir} anchors paths to the consuming project (drops deprecated baseUrl)
     "paths": {
-      "~/*": ["./src/*"],
-      "@/*": ["./src/*"]
+      "~/*": ["${configDir}/src/*"],
+      "@/*": ["${configDir}/src/*"]
     }
   },
   "include": ["src", "index.d.ts", "types"],
