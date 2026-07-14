@@ -59,7 +59,7 @@ Each row reports one of:
 | Repo baseline | `package.json`, `.editorconfig`, `.nvmrc` / `.node-version` |
 | Tooling presets | TypeScript, Biome, ESLint, Prettier, Vitest, Commitlint |
 | Automation | Husky, `lint-staged`, semantic-release, knip |
-| CI / supply chain | GitHub Actions, Dependabot, CodeQL, GitLab CI |
+| CI / supply chain | GitHub Actions, coverage upload, Dependabot, CodeQL, GitLab CI |
 
 After the per-row results, doctor prints a **Next steps:** footer listing the exact `fix` command to run for each non-ok item:
 
@@ -150,7 +150,7 @@ Implementation note: the preview is computed by shadow-running the fixer in a te
 | `husky` | `Husky` + `lint-staged` | `.husky/pre-commit`, package.json `lint-staged` field (deep-merges) |
 | `semantic-release` | `semantic-release` | `release.config.mjs` (skipped on private packages) |
 | `knip` | `knip` | `knip.json` |
-| `github-actions` | `GitHub Actions` | `.github/workflows/ci.yml` |
+| `github-actions` | `GitHub Actions` + `Coverage upload` | `.github/workflows/ci.yml` (+ `codecov.yml`; Vitest jobs run `pnpm coverage` and upload to Codecov) |
 | `dependabot` | `Dependabot` | `.github/dependabot.yml` |
 | `codeql` | `CodeQL` | `.github/workflows/codeql.yml` |
 | `attw` | `are-the-types-wrong` | adds `@arethetypeswrong/cli` + an `attw` script (esm-only profile when applicable), wires it into `verify` |

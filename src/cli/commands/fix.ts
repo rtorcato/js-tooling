@@ -332,13 +332,15 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'github-actions',
-		description: 'Scaffold .github/workflows/ci.yml',
-		appliesTo: ['GitHub Actions'],
-		outputs: ['.github/workflows/ci.yml'],
+		description: 'Scaffold .github/workflows/ci.yml (+ codecov.yml when tests run)',
+		appliesTo: ['GitHub Actions', 'Coverage upload'],
+		outputs: ['.github/workflows/ci.yml', 'codecov.yml'],
 		canFixDrift: true,
 		async run({ targetDir, pkg }) {
 			await generateGitHubActions(inferProjectConfig(pkg), targetDir)
-			return { filesWritten: ['.github/workflows/ci.yml'] }
+			const filesWritten = ['.github/workflows/ci.yml']
+			if (await fs.pathExists(path.join(targetDir, 'codecov.yml'))) filesWritten.push('codecov.yml')
+			return { filesWritten }
 		},
 	},
 	{

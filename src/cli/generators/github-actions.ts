@@ -2,6 +2,26 @@ import fs from 'fs-extra'
 import path from 'node:path'
 import type { ProjectConfig } from '../commands/setup.js'
 
+// Minimal Codecov config — auto targets keep it from failing a fresh repo that
+// has no baseline yet, while the 1% threshold tolerates rounding noise.
+// https://docs.codecov.com/docs/codecov-yaml
+const CODECOV_YML = `coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+        threshold: 1%
+`
+
+/** Coverage is uploaded when Vitest is the test runner (it emits an lcov report). */
+function usesCoverage(config: ProjectConfig): boolean {
+	return config.testing.framework === 'vitest'
+}
+
 export async function generateGitHubActions(config: ProjectConfig, targetDir: string) {
 	const workflowsDir = path.join(targetDir, '.github', 'workflows')
 	await fs.ensureDir(workflowsDir)
@@ -10,6 +30,12 @@ export async function generateGitHubActions(config: ProjectConfig, targetDir: st
 
 	const workflow = generateWorkflowYAML(config)
 	await fs.writeFile(workflowPath, workflow)
+
+	// codecov.yml is the CI's coverage-upload companion — emit it alongside ci.yml
+	// whenever the workflow uploads coverage, so the codecov badge isn't red.
+	if (usesCoverage(config)) {
+		await fs.writeFile(path.join(targetDir, 'codecov.yml'), CODECOV_YML)
+	}
 }
 
 function generateWorkflowYAML(config: ProjectConfig): string {
@@ -17,6 +43,7 @@ function generateWorkflowYAML(config: ProjectConfig): string {
 	const hasTypeScript = config.typescript.enabled
 	const hasBuild = config.bundler !== 'none'
 	const isLibrary = config.projectType === 'library'
+	const hasCoverage = usesCoverage(config)
 
 	return `name: 🚀 CI/CD Pipeline
 
@@ -169,7 +196,17 @@ ${
           key: \${{ needs.dependencies.outputs.cache-key }}
 
       - name: 🧪 Run tests
-        run: pnpm test`
+        run: ${hasCoverage ? 'pnpm coverage' : 'pnpm test'}
+${
+	hasCoverage
+		? `
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: \${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false`
+		: ''
+}`
 		: ''
 }
 ${
