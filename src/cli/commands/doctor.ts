@@ -246,6 +246,75 @@ async function checkEditorConfig(dir: string): Promise<CheckResult> {
 	}
 }
 
+// Maps a present tool-config file to the VS Code extension that should be
+// recommended for it. Mirrors recommendedExtensions() in the generator, but
+// keyed off files on disk (doctor audits an existing repo, not a config object).
+const EXTENSION_SIGNALS: Array<{ candidates: string[]; ext: string }> = [
+	{ candidates: ['.editorconfig'], ext: 'EditorConfig.EditorConfig' },
+	{ candidates: ['biome.json', 'biome.jsonc'], ext: 'biomejs.biome' },
+	{
+		candidates: ['eslint.config.js', 'eslint.config.mjs', 'eslint.config.cjs'],
+		ext: 'dbaeumer.vscode-eslint',
+	},
+	{
+		candidates: ['prettier.config.js', 'prettier.config.mjs', 'prettier.config.cjs'],
+		ext: 'esbenp.prettier-vscode',
+	},
+	{ candidates: ['.oxlintrc.json', 'oxlintrc.json'], ext: 'oxc.oxc-vscode' },
+	{
+		candidates: ['vitest.config.ts', 'vitest.config.js', 'vitest.config.mjs'],
+		ext: 'vitest.explorer',
+	},
+	{ candidates: ['playwright.config.ts', 'playwright.config.js'], ext: 'ms-playwright.playwright' },
+]
+
+async function checkVscodeExtensions(dir: string): Promise<CheckResult> {
+	const wanted: string[] = []
+	for (const { candidates, ext } of EXTENSION_SIGNALS) {
+		for (const c of candidates) {
+			if (await fs.pathExists(path.join(dir, c))) {
+				wanted.push(ext)
+				break
+			}
+		}
+	}
+	if (wanted.length === 0) {
+		return {
+			check: 'VS Code extensions',
+			status: 'ok',
+			detail: 'no tool configs that map to an editor extension',
+		}
+	}
+
+	let recommended: string[] = []
+	const extPath = path.join(dir, '.vscode', 'extensions.json')
+	if (await fs.pathExists(extPath)) {
+		try {
+			const json = (await fs.readJson(extPath)) as { recommendations?: unknown }
+			if (Array.isArray(json.recommendations)) {
+				recommended = json.recommendations.filter((r): r is string => typeof r === 'string')
+			}
+		} catch {
+			recommended = []
+		}
+	}
+
+	const missing = wanted.filter((ext) => !recommended.includes(ext))
+	if (missing.length === 0) {
+		return {
+			check: 'VS Code extensions',
+			status: 'ok',
+			detail: '.vscode/extensions.json recommends the matching extensions',
+		}
+	}
+	return {
+		check: 'VS Code extensions',
+		status: 'optional-missing',
+		detail: `enabled tools without a recommended extension: ${missing.join(', ')}`,
+		hint: 'Run `npx @rtorcato/js-tooling fix vscode-extensions` to recommend matching editor extensions',
+	}
+}
+
 async function checkNodeVersionPin(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.nvmrc', '.node-version']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -1236,6 +1305,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(checkLockfile(lock))
 	results.push(checkEnginesNode(pkg))
 	results.push(await checkEditorConfig(targetDir))
+	results.push(await checkVscodeExtensions(targetDir))
 	results.push(await checkNodeVersionPin(targetDir))
 	results.push(await checkNodeVersionConsistency(targetDir, pkg))
 	for (const spec of FILE_CHECKS) {
