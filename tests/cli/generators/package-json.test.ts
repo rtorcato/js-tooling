@@ -61,6 +61,24 @@ describe('generatePackageJson', () => {
 		expect(pkg.devDependencies['@rtorcato/js-tooling']).toBe('latest')
 	})
 
+	it('wires are-the-types-wrong (attw) for library projects', async () => {
+		const dir = newTmpDir()
+		await generatePackageJson(baseConfig({ projectType: 'library' }), dir)
+
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.attw).toBe('attw --pack')
+		expect(pkg.devDependencies['@arethetypeswrong/cli']).toBeDefined()
+	})
+
+	it('omits attw for non-library projects', async () => {
+		const dir = newTmpDir()
+		await generatePackageJson(baseConfig({ projectType: 'react-app' }), dir)
+
+		const pkg = await fs.readJson(join(dir, 'package.json'))
+		expect(pkg.scripts.attw).toBeUndefined()
+		expect(pkg.devDependencies['@arethetypeswrong/cli']).toBeUndefined()
+	})
+
 	it('adds library fields for library project type', async () => {
 		const dir = newTmpDir()
 		await generatePackageJson(baseConfig({ projectType: 'library' }), dir)
@@ -185,7 +203,9 @@ describe('generatePackageJson', () => {
 		)
 
 		const pkg = await fs.readJson(join(dir, 'package.json'))
-		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm check && pnpm exec vitest run')
+		expect(pkg.scripts.verify).toBe(
+			'pnpm typecheck && pnpm check && pnpm exec vitest run && pnpm attw'
+		)
 	})
 
 	it('omits the verify script when only one tool is enabled', async () => {
@@ -217,7 +237,7 @@ describe('generatePackageJson', () => {
 		const pkg = await fs.readJson(join(dir, 'package.json'))
 		expect(pkg.devDependencies.publint).toBe('^0.3.0')
 		expect(pkg.scripts.publint).toBe('publint --strict')
-		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm check && pnpm publint')
+		expect(pkg.scripts.verify).toBe('pnpm typecheck && pnpm check && pnpm publint && pnpm attw')
 	})
 
 	it('omits publint when not enabled', async () => {
@@ -238,7 +258,7 @@ describe('composeVerifyScript', () => {
 				testing: { framework: 'vitest' },
 			})
 		)
-		expect(result).toBe('pnpm typecheck && pnpm lint && pnpm exec vitest run')
+		expect(result).toBe('pnpm typecheck && pnpm lint && pnpm exec vitest run && pnpm attw')
 	})
 
 	it('uses pnpm test --ci for jest projects', () => {
@@ -248,7 +268,7 @@ describe('composeVerifyScript', () => {
 				testing: { framework: 'jest' },
 			})
 		)
-		expect(result).toBe('pnpm typecheck && pnpm check && pnpm test --ci')
+		expect(result).toBe('pnpm typecheck && pnpm check && pnpm test --ci && pnpm attw')
 	})
 
 	it('returns null when fewer than two tools are enabled', () => {
