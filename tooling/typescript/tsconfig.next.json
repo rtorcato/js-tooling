@@ -9,9 +9,10 @@
     "esModuleInterop": true, // Interop for CommonJS/ESM
     "types": ["react", "tailwindcss", "vitest"],
     "plugins": [ { "name": "next" } ], // Next.js plugin for TypeScript
+    // ${configDir} anchors paths to the consuming project (drops deprecated baseUrl)
     "paths": {
-      "~/*": ["./src/*"],
-      "@/*": ["./src/*"]
+      "~/*": ["${configDir}/src/*"],
+      "@/*": ["${configDir}/src/*"]
     }
   },
   "include": ["next-env.d.ts", "src", "pages", "app", "components", "types", "index.d.ts"],

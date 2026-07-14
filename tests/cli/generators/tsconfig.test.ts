@@ -30,7 +30,10 @@ describe('generateTSConfig', () => {
 
 		const tsconfig = await fs.readJson(join(dir, 'tsconfig.json'))
 		expect(tsconfig.extends).toBe('@rtorcato/js-tooling/typescript/react')
-		expect(tsconfig.compilerOptions.paths['@/*']).toEqual(['./src/*'])
+		// paths/baseUrl are inherited from the shared preset (anchored via ${configDir}),
+		// not redeclared per project — baseUrl is deprecated in TS 7.0.
+		expect(tsconfig.compilerOptions.baseUrl).toBeUndefined()
+		expect(tsconfig.compilerOptions.paths).toBeUndefined()
 		expect(tsconfig.include).toContain('reset.d.ts')
 	})
 
