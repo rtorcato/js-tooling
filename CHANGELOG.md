@@ -1,3 +1,10 @@
+# [2.32.0](https://github.com/rtorcato/js-tooling/compare/v2.31.0...v2.32.0) (2026-07-14)
+
+
+### Features
+
+* **scaffold:** ship are-the-types-wrong in library verify + release ([#200](https://github.com/rtorcato/js-tooling/issues/200)) ([568a2d6](https://github.com/rtorcato/js-tooling/commit/568a2d6590bf2da51ef723f401bab57e480b50e3)), closes [#27](https://github.com/rtorcato/js-tooling/issues/27)
+
 # [2.31.0](https://github.com/rtorcato/js-tooling/compare/v2.30.0...v2.31.0) (2026-07-14)
 
 
