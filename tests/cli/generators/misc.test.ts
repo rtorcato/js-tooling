@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module'
 import { join } from 'node:path'
 import fs from 'fs-extra'
 import { describe, expect, it } from 'vitest'
@@ -7,9 +8,11 @@ import {
 	generateKnipConfig,
 	generateMiscBaseline,
 	generateNvmrc,
+	generateSizeLimitConfig,
 } from '../../../src/cli/generators/misc.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
+const require = createRequire(import.meta.url)
 const newTmpDir = useTmpDir()
 
 describe('generateEditorConfig', () => {
@@ -29,6 +32,59 @@ describe('generateNvmrc', () => {
 		await generateNvmrc(dir)
 		const content = await fs.readFile(join(dir, '.nvmrc'), 'utf-8')
 		expect(content.trim()).toBe('22')
+	})
+})
+
+describe('generateSizeLimitConfig', () => {
+	it('emits an exports-driven .size-limit.cjs for multi-subpath libraries', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			exports: {
+				'.': { import: './dist/index.js' },
+				'./hooks': { import: './dist/hooks/index.js' },
+				'./providers': { import: { types: './x.d.ts', default: './dist/providers/index.js' } },
+				'./package.json': './package.json',
+			},
+		})
+
+		const written = await generateSizeLimitConfig(dir)
+		expect(written).toBe('.size-limit.cjs')
+
+		// The generated config computes one budget per subpath from package.json
+		// at run time — the root '.' barrel and ./package.json are skipped.
+		const config = require(join(dir, '.size-limit.cjs')) as Array<{
+			name: string
+			path: string
+			limit: string
+		}>
+		expect(config).toHaveLength(2)
+		expect(config).toContainEqual({ name: 'demo/hooks', path: 'dist/hooks/index.js', limit: '10 kB' })
+		expect(config).toContainEqual({
+			name: 'demo/providers',
+			path: 'dist/providers/index.js',
+			limit: '10 kB',
+		})
+	})
+
+	it('falls back to a static .size-limit.json for a single-export package', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), {
+			name: 'demo',
+			exports: { '.': { import: './dist/index.js' } },
+		})
+
+		const written = await generateSizeLimitConfig(dir)
+		expect(written).toBe('.size-limit.json')
+		const config = await fs.readJson(join(dir, '.size-limit.json'))
+		expect(config[0].path).toBe('dist/index.js')
+	})
+
+	it('falls back to the static form when there is no package.json', async () => {
+		const dir = newTmpDir()
+		const written = await generateSizeLimitConfig(dir)
+		expect(written).toBe('.size-limit.json')
+		expect(await fs.pathExists(join(dir, '.size-limit.json'))).toBe(true)
 	})
 })
 

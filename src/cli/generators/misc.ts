@@ -29,6 +29,40 @@ const SIZE_LIMIT_CONFIG = [
 	},
 ]
 
+// Exports-driven size-limit config for multi-subpath libraries: one budget per
+// exported subpath, computed from package.json at run time so newly added
+// modules are covered automatically. The static-array form silently drifts as
+// modules ship without a budget (#165). The root '.' barrel is skipped — it
+// re-exports everything and grows legitimately. Tighten individual modules via
+// OVERRIDES.
+const SIZE_LIMIT_CJS = `const pkg = require('./package.json')
+
+// Per-subpath budget overrides, e.g. { './clipboard': '500 B' }.
+const OVERRIDES = {}
+const DEFAULT_LIMIT = '10 kB'
+
+// Resolve the ESM entry file for an exports condition (string, or an object
+// with a string \`import\`, or a nested \`import.default\`).
+function importPath(cond) {
+  if (typeof cond === 'string') return cond
+  if (cond && typeof cond === 'object') {
+    if (typeof cond.import === 'string') return cond.import
+    if (cond.import && typeof cond.import === 'object') return cond.import.default
+  }
+  return undefined
+}
+
+module.exports = Object.entries(pkg.exports || {})
+  .filter(([sub]) => sub !== '.' && sub !== './package.json')
+  .map(([sub, cond]) => [sub, importPath(cond)])
+  .filter(([, file]) => typeof file === 'string')
+  .map(([sub, file]) => ({
+    name: \`\${pkg.name}\${sub.slice(1)}\`,
+    path: file.replace(/^\\.\\//, ''),
+    limit: OVERRIDES[sub] || DEFAULT_LIMIT,
+  }))
+`
+
 const CODEOWNERS_CONTENT = `# .github/CODEOWNERS
 # Each line is a file pattern followed by one or more owners.
 # Owners can be GitHub usernames (@user) or team names (@org/team).
@@ -206,8 +240,31 @@ export async function generateKnipConfig(targetDir: string) {
 	await fs.writeJson(path.join(targetDir, 'knip.json'), config, { spaces: 2 })
 }
 
-export async function generateSizeLimitConfig(targetDir: string) {
+/**
+ * Scaffold a size-limit budget. Multi-subpath libraries (≥1 subpath export
+ * beyond the root barrel) get an exports-driven `.size-limit.cjs` that emits one
+ * budget per subpath from package.json at run time — so new modules are covered
+ * automatically. Everything else gets a static `.size-limit.json` for the root
+ * bundle. Returns the written filename.
+ */
+export async function generateSizeLimitConfig(targetDir: string): Promise<string> {
+	const pkgPath = path.join(targetDir, 'package.json')
+	let subpathCount = 0
+	if (await fs.pathExists(pkgPath)) {
+		const pkg = (await fs.readJson(pkgPath)) as { exports?: unknown }
+		if (pkg.exports && typeof pkg.exports === 'object') {
+			subpathCount = Object.keys(pkg.exports).filter(
+				(k) => k.startsWith('./') && k !== './package.json'
+			).length
+		}
+	}
+
+	if (subpathCount >= 1) {
+		await fs.writeFile(path.join(targetDir, '.size-limit.cjs'), SIZE_LIMIT_CJS)
+		return '.size-limit.cjs'
+	}
 	await fs.writeJson(path.join(targetDir, '.size-limit.json'), SIZE_LIMIT_CONFIG, { spaces: 2 })
+	return '.size-limit.json'
 }
 
 export async function generateCodeowners(targetDir: string): Promise<string> {

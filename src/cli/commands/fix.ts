@@ -474,13 +474,13 @@ const FIXERS: Fixer[] = [
 	{
 		target: 'size-limit',
 		description:
-			'Scaffold .size-limit.json with a default 10 kB budget (customize per-subpath for libraries)',
+			'Scaffold a size-limit budget — exports-driven .size-limit.cjs for multi-subpath libraries, else a static .size-limit.json',
 		appliesTo: ['size-limit'],
-		outputs: ['.size-limit.json'],
+		outputs: ['.size-limit.cjs', '.size-limit.json'],
 		canFixDrift: true,
 		async run({ targetDir }) {
-			await generateSizeLimitConfig(targetDir)
-			return { filesWritten: ['.size-limit.json'] }
+			const written = await generateSizeLimitConfig(targetDir)
+			return { filesWritten: [written] }
 		},
 	},
 	{
