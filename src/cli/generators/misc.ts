@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import type { ProjectConfig } from '../commands/setup.js'
 
 const EDITORCONFIG_CONTENT = `root = true
 
@@ -50,6 +51,52 @@ export async function generateEditorConfig(targetDir: string) {
 
 export async function generateNvmrc(targetDir: string) {
 	await fs.writeFile(path.join(targetDir, '.nvmrc'), NVMRC_CONTENT)
+}
+
+/**
+ * The VS Code extension IDs recommended for the tools this config enables.
+ * EditorConfig is always included — the baseline always writes .editorconfig.
+ */
+export function recommendedExtensions(config: ProjectConfig): string[] {
+	const ids = new Set<string>(['EditorConfig.EditorConfig'])
+	const lint = config.linting.tool
+	if (lint === 'biome' || lint === 'both' || config.formatting.tool === 'biome') {
+		ids.add('biomejs.biome')
+	}
+	if (lint === 'eslint' || lint === 'both') ids.add('dbaeumer.vscode-eslint')
+	if (config.formatting.tool === 'prettier') ids.add('esbenp.prettier-vscode')
+	if (config.oxlint) ids.add('oxc.oxc-vscode')
+	if (config.testing.framework === 'vitest') ids.add('vitest.explorer')
+	if (config.testing.framework === 'playwright') ids.add('ms-playwright.playwright')
+	return [...ids]
+}
+
+/**
+ * Emit .vscode/extensions.json recommending the editor extensions that match the
+ * enabled tools. Merge-friendly: preserves any recommendations already present
+ * and never clobbers a hand-authored file it can't parse as JSON (e.g. JSONC
+ * with comments) — returns null in that case. Returns the written path otherwise.
+ */
+export async function generateVscodeExtensions(
+	config: ProjectConfig,
+	targetDir: string
+): Promise<string | null> {
+	const filepath = path.join(targetDir, '.vscode', 'extensions.json')
+	let existing: string[] = []
+	if (await fs.pathExists(filepath)) {
+		try {
+			const current = (await fs.readJson(filepath)) as { recommendations?: unknown }
+			if (Array.isArray(current.recommendations)) {
+				existing = current.recommendations.filter((r): r is string => typeof r === 'string')
+			}
+		} catch {
+			return null
+		}
+	}
+	const merged = [...new Set([...existing, ...recommendedExtensions(config)])]
+	await fs.ensureDir(path.dirname(filepath))
+	await fs.writeJson(filepath, { recommendations: merged }, { spaces: 2 })
+	return '.vscode/extensions.json'
 }
 
 const DEFAULT_NODE_MAJOR = 22
