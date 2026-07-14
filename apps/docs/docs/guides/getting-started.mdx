@@ -81,7 +81,7 @@ Running `setup` (or its alias `init`) launches an interactive wizard:
 | Security automation (Dependabot + CodeQL)? | yes/no |
 | Bundler | `tsup`, `esbuild`, `vite` *(web apps)*, `none` |
 
-A universal baseline (`.editorconfig`, `.nvmrc`, `engines.node`, `knip.json`) is scaffolded automatically — no prompt — because these are safe defaults for every project.
+A universal baseline (`.editorconfig`, `.nvmrc`, `engines.node`, `knip.json`, `.vscode/extensions.json`) is scaffolded automatically — no prompt — because these are safe defaults for every project.
 
 ## Non-interactive setup (CI / scripts)
 
@@ -105,6 +105,7 @@ npx @rtorcato/js-tooling setup --config project.json -d ./my-lib --skip-install
 
 - `package.json` — merged with chosen devDependencies, scripts, and `engines.node`
 - `.editorconfig`, `.nvmrc`, `knip.json` — universal baseline
+- `.vscode/extensions.json` — recommends the editor extensions matching your enabled tools (merge-friendly)
 - `tsconfig.json` — extends the matching preset
 - `biome.json` / `eslint.config.js` + `prettier.config.js` — based on linting choice
 - `vitest.config.js` / `jest.config.js` — testing config

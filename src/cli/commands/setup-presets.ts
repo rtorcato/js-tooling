@@ -173,7 +173,7 @@ export function validateProjectConfig(input: unknown): ConfigValidationResult {
 
 export function computeFileList(config: ProjectConfig): string[] {
 	const files: string[] = ['package.json', '.js-tooling.json']
-	files.push('.editorconfig', '.nvmrc', 'knip.json')
+	files.push('.editorconfig', '.nvmrc', 'knip.json', '.vscode/extensions.json')
 	if (config.typescript.enabled) {
 		files.push('tsconfig.json', 'reset.d.ts')
 	}

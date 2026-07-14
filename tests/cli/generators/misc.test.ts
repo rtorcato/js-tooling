@@ -7,10 +7,29 @@ import {
 	generateKnipConfig,
 	generateMiscBaseline,
 	generateNvmrc,
+	generateVscodeExtensions,
+	recommendedExtensions,
 } from '../../../src/cli/generators/misc.js'
+import type { ProjectConfig } from '../../../src/cli/commands/setup.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
+
+function cfg(overrides: Partial<ProjectConfig> = {}): ProjectConfig {
+	return {
+		projectName: 'demo',
+		projectType: 'library',
+		typescript: { enabled: true, config: 'base' },
+		linting: { tool: 'biome' },
+		formatting: { tool: 'biome' },
+		testing: { framework: 'vitest' },
+		gitHooks: false,
+		commitLint: false,
+		semanticRelease: false,
+		bundler: 'none',
+		...overrides,
+	}
+}
 
 describe('generateEditorConfig', () => {
 	it('writes .editorconfig with utf-8 and lf', async () => {
@@ -29,6 +48,63 @@ describe('generateNvmrc', () => {
 		await generateNvmrc(dir)
 		const content = await fs.readFile(join(dir, '.nvmrc'), 'utf-8')
 		expect(content.trim()).toBe('22')
+	})
+})
+
+describe('recommendedExtensions', () => {
+	it('always recommends EditorConfig and derives the rest from enabled tools', () => {
+		const ids = recommendedExtensions(
+			cfg({
+				linting: { tool: 'eslint' },
+				formatting: { tool: 'prettier' },
+				testing: { framework: 'vitest' },
+				oxlint: true,
+			})
+		)
+		expect(ids).toContain('EditorConfig.EditorConfig')
+		expect(ids).toContain('dbaeumer.vscode-eslint')
+		expect(ids).toContain('esbenp.prettier-vscode')
+		expect(ids).toContain('vitest.explorer')
+		expect(ids).toContain('oxc.oxc-vscode')
+		expect(ids).not.toContain('biomejs.biome')
+	})
+
+	it('recommends Biome when it is the linter or formatter', () => {
+		expect(recommendedExtensions(cfg({ linting: { tool: 'biome' } }))).toContain('biomejs.biome')
+	})
+})
+
+describe('generateVscodeExtensions', () => {
+	it('writes .vscode/extensions.json with the matching recommendations', async () => {
+		const dir = newTmpDir()
+		const written = await generateVscodeExtensions(cfg(), dir)
+		expect(written).toBe('.vscode/extensions.json')
+		const json = await fs.readJson(join(dir, '.vscode', 'extensions.json'))
+		expect(json.recommendations).toContain('biomejs.biome')
+		expect(json.recommendations).toContain('vitest.explorer')
+		expect(json.recommendations).toContain('EditorConfig.EditorConfig')
+	})
+
+	it('preserves existing recommendations and dedupes', async () => {
+		const dir = newTmpDir()
+		await fs.ensureDir(join(dir, '.vscode'))
+		await fs.writeJson(join(dir, '.vscode', 'extensions.json'), {
+			recommendations: ['some.user-extension', 'biomejs.biome'],
+		})
+		await generateVscodeExtensions(cfg(), dir)
+		const json = await fs.readJson(join(dir, '.vscode', 'extensions.json'))
+		expect(json.recommendations).toContain('some.user-extension')
+		expect(json.recommendations.filter((r: string) => r === 'biomejs.biome')).toHaveLength(1)
+	})
+
+	it('does not clobber an unparseable (commented) extensions.json', async () => {
+		const dir = newTmpDir()
+		await fs.ensureDir(join(dir, '.vscode'))
+		const original = '{\n  // keep my comments\n  "recommendations": ["a.b"]\n}\n'
+		await fs.writeFile(join(dir, '.vscode', 'extensions.json'), original)
+		const written = await generateVscodeExtensions(cfg(), dir)
+		expect(written).toBeNull()
+		expect(await fs.readFile(join(dir, '.vscode', 'extensions.json'), 'utf-8')).toBe(original)
 	})
 })
 

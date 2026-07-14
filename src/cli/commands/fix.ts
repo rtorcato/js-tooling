@@ -24,6 +24,7 @@ import {
 	generateKnipConfig,
 	generateNvmrc,
 	generateSizeLimitConfig,
+	generateVscodeExtensions,
 } from '../generators/misc.js'
 import { generateConfigs } from '../generators/index.js'
 import { composeVerifyScriptFromPkg } from '../generators/package-json.js'
@@ -423,6 +424,20 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			await generateEditorConfig(targetDir)
 			return { filesWritten: ['.editorconfig'] }
+		},
+	},
+	{
+		target: 'vscode-extensions',
+		description:
+			'Recommend the VS Code extensions matching the enabled tools (.vscode/extensions.json)',
+		appliesTo: ['VS Code extensions'],
+		outputs: ['.vscode/extensions.json'],
+		// Preserves any recommendations already present; only appends ours.
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir, pkg }) {
+			const written = await generateVscodeExtensions(inferProjectConfig(pkg), targetDir)
+			return { filesWritten: written ? [written] : [] }
 		},
 	},
 	{

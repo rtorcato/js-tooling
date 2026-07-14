@@ -41,6 +41,12 @@ describe('fix registry', () => {
 		}
 	})
 
+	it('registers the vscode-extensions fixer for the VS Code extensions check', () => {
+		const fixer = getFixers().find((f) => f.target === 'vscode-extensions')
+		expect(fixer).toBeTruthy()
+		expect(fixer?.appliesTo).toContain('VS Code extensions')
+	})
+
 	it('listFixers returns a flat summary of every registered target', () => {
 		const summary = listFixers()
 		expect(summary.length).toBe(getFixers().length)
