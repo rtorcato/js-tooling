@@ -79,6 +79,10 @@ export function declinedInLock(lock: Lockfile | null, checkName: string): boolea
 			return c.semanticRelease === false
 		case 'Dependabot':
 		case 'CodeQL':
+		// GitHub repo-settings checks (#137) share the securityAutomation opt-out.
+		case 'Branch protection':
+		case 'Merge settings':
+		case 'Workflow permissions':
 			return c.securityAutomation === false
 		case 'publint':
 			return c.publint === false

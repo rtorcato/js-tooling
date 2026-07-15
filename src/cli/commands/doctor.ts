@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import fs from 'fs-extra'
 import { BADGE_START, hasPublicOnlyBadges } from '../generators/badges.js'
 import { detectLanguage } from '../utils/detect-language.js'
+import { checkGitHubSettings } from '../utils/github-settings.js'
 import { type Lockfile, LOCKFILE_VERSION, readLockfile } from '../utils/lockfile.js'
 import { declinedInLock, getFixTargetForCheck } from './fix-targets.js'
 
@@ -1397,6 +1398,9 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkReleaseToken(targetDir))
 	results.push(await checkDependabot(targetDir))
 	results.push(await checkCodeQL(targetDir))
+	// GitHub repo-settings drift (branch protection, merge settings, workflow
+	// permissions). Read-only; self-skips as `ok` outside a live GitHub repo.
+	results.push(...(await checkGitHubSettings(targetDir)))
 	results.push(await checkGitLabCI(targetDir))
 	results.push(await checkCodeowners(targetDir))
 	results.push(await checkCommunityHealth(targetDir))
