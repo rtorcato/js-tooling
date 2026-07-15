@@ -732,7 +732,7 @@ describe('fix + lockfile', () => {
 		await seedPackageJson(dir)
 		await fixCommand('lockfile', { directory: dir, yes: true })
 		const lock = await fs.readJson(join(dir, '.js-tooling.json'))
-		expect(lock.version).toBe(1)
+		expect(lock.version).toBe(2)
 		expect(lock.config.projectName).toBe('demo')
 		expect(lock.config.linting.tool).toBe('biome')
 	})

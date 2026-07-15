@@ -1,3 +1,10 @@
+# [2.36.0](https://github.com/rtorcato/js-tooling/compare/v2.35.0...v2.36.0) (2026-07-15)
+
+
+### Features
+
+* **cli:** add Turborepo preset for pnpm workspaces ([#68](https://github.com/rtorcato/js-tooling/issues/68)) ([#203](https://github.com/rtorcato/js-tooling/issues/203)) ([253740c](https://github.com/rtorcato/js-tooling/commit/253740cc2a8b7eb4c9fccb5bf1336c471e9392d8))
+
 # [2.35.0](https://github.com/rtorcato/js-tooling/compare/v2.34.0...v2.35.0) (2026-07-14)
 
 

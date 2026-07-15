@@ -11,6 +11,7 @@ export const PRESET_NAMES: readonly PresetName[] = [
 ] as const
 
 const BASE: Omit<ProjectConfig, 'projectName' | 'projectType' | 'typescript' | 'bundler'> = {
+	language: 'js',
 	linting: { tool: 'biome' },
 	formatting: { tool: 'biome' },
 	testing: { framework: 'vitest', environment: 'node' },
@@ -95,6 +96,7 @@ export const CONFIG_SCHEMA = {
 	],
 	properties: {
 		projectName: { type: 'string', minLength: 1 },
+		language: { type: 'string', enum: ['js', 'swift', 'perl', 'python'] },
 		projectType: {
 			type: 'string',
 			enum: ['library', 'web-app', 'node-api', 'nextjs-app', 'react-app'],
@@ -143,6 +145,7 @@ export const CONFIG_SCHEMA = {
 		publint: { type: 'boolean' },
 		badges: { type: 'boolean' },
 		aiSetup: { type: 'boolean' },
+		turborepo: { type: 'boolean' },
 	},
 } as const
 
@@ -236,6 +239,7 @@ export function computeFileList(config: ProjectConfig): string[] {
 			'.mcp.json.example'
 		)
 	}
+	if (config.turborepo) files.push('turbo.json')
 	files.push('README.md')
 	return files
 }
