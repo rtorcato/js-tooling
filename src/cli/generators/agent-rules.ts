@@ -23,8 +23,8 @@ async function readSkill(): Promise<Skill> {
 	const raw = await fs.readFile(path.join(getPackageRoot(), SOURCE), 'utf8')
 	const match = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
 	if (!match) return { description: '', body: raw.trim() }
-	const description = (match[1].match(/^description:\s*(.+)$/m)?.[1] ?? '').trim()
-	return { description, body: match[2].trim() }
+	const description = ((match[1] ?? '').match(/^description:\s*(.+)$/m)?.[1] ?? '').trim()
+	return { description, body: (match[2] ?? '').trim() }
 }
 
 /**
