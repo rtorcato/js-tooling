@@ -14,6 +14,7 @@ import { generateSecurityConfigs } from './security.js'
 import { generateTestingConfigs } from './testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from './treeshake.js'
 import { generateTSConfig } from './tsconfig.js'
+import { generateTurborepo } from './turborepo.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -84,6 +85,11 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 	// after the treeshake-check path so its richer workspace file (if written)
 	// is never clobbered.
 	await ensureBuildApprovals(config, targetDir)
+
+	// Turborepo task pipeline (pnpm-workspace monorepos, when opted-in)
+	if (config.turborepo) {
+		await generateTurborepo(targetDir)
+	}
 
 	// AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example)
 	if (config.aiSetup) {

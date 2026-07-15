@@ -5,7 +5,9 @@ import { validateProjectConfig } from '../commands/setup-presets.js'
 import type { ProjectConfig } from '../commands/setup.js'
 
 export const LOCKFILE_NAME = '.js-tooling.json'
-export const LOCKFILE_VERSION = 1
+// v2 added ProjectConfig.language (multi-language seam, #140). v1 files are
+// migrated to v2 on read, defaulting language to 'js'.
+export const LOCKFILE_VERSION = 2
 const LOCKFILE_SCHEMA_URL = 'https://rtorcato.github.io/js-tooling/schemas/lockfile.json'
 
 export interface Lockfile {
@@ -14,6 +16,20 @@ export interface Lockfile {
 	config: ProjectConfig
 	writtenBy: string
 	writtenAt: string
+}
+
+/**
+ * Upgrade an older lockfile in-memory. Only touches files older than the
+ * current version, so a newer-than-supported file is left as-is for
+ * checkLockfile to flag. The file is rewritten to v2 next time it's saved.
+ */
+function migrate(lock: Lockfile): Lockfile {
+	if (lock.version >= LOCKFILE_VERSION) return lock
+	return {
+		...lock,
+		version: LOCKFILE_VERSION,
+		config: { language: 'js', ...lock.config },
+	}
 }
 
 export async function readLockfile(dir: string): Promise<Lockfile | null> {
@@ -25,7 +41,7 @@ export async function readLockfile(dir: string): Promise<Lockfile | null> {
 		const obj = raw as Record<string, unknown>
 		if (typeof obj.version !== 'number') return null
 		if (typeof obj.config !== 'object' || obj.config === null) return null
-		return obj as unknown as Lockfile
+		return migrate(obj as unknown as Lockfile)
 	} catch {
 		return null
 	}

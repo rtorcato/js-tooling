@@ -1,6 +1,6 @@
 {
 	"name": "@rtorcato/js-tooling",
-	"version": "2.35.0",
+	"version": "2.37.0",
 	"description": "JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.",
 	"type": "module",
 	"keywords": [
@@ -86,6 +86,7 @@
 		"tooling/semantic-release/*.d.mts",
 		"tooling/claude/*.md",
 		"tooling/mcp/mcp.json.example",
+		"tooling/github-actions/workflows/*.yml",
 		"README.md"
 	],
 	"exports": {

@@ -2,6 +2,8 @@ import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
 import { BADGE_START, hasPublicOnlyBadges } from '../generators/badges.js'
+import { detectLanguage } from '../utils/detect-language.js'
+import { checkGitHubSettings } from '../utils/github-settings.js'
 import { type Lockfile, LOCKFILE_VERSION, readLockfile } from '../utils/lockfile.js'
 import { declinedInLock, getFixTargetForCheck } from './fix-targets.js'
 
@@ -1319,6 +1321,20 @@ async function checkAiSetup(dir: string): Promise<CheckResult> {
 	}
 }
 
+// Only called for pnpm-workspace monorepos (see runDoctor) — a single-package
+// repo has no use for turbo.json, so the check would be noise there.
+async function checkTurborepo(dir: string): Promise<CheckResult> {
+	if (await fs.pathExists(path.join(dir, 'turbo.json'))) {
+		return { check: 'Turborepo', status: 'ok', detail: 'turbo.json found' }
+	}
+	return {
+		check: 'Turborepo',
+		status: 'optional-missing',
+		detail: 'pnpm workspace without turbo.json',
+		hint: 'Run `npx @rtorcato/js-tooling fix turborepo` to scaffold a task pipeline',
+	}
+}
+
 async function checkGitLabCI(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.gitlab-ci.yml', '.gitlab-ci.yaml']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -1339,6 +1355,23 @@ async function checkGitLabCI(dir: string): Promise<CheckResult> {
 
 export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	const targetDir = path.resolve(dir)
+
+	// Seam: gate the whole JS check suite by detected language. A Swift/Perl/
+	// Python repo gets a single informative result instead of ~26 JS "missing"
+	// findings. 'unknown' (bare dir) still runs the JS suite — that's a fresh
+	// repo mid-setup. ponytail: per-check language tagging is the umbrella (#139)
+	// follow-up; today the whole suite is JS, so a top-level guard is enough.
+	const language = await detectLanguage(targetDir)
+	if (language !== 'js' && language !== 'unknown') {
+		return [
+			{
+				check: 'language',
+				status: 'ok',
+				detail: `detected ${language} project — ${PACKAGE} checks are JavaScript-focused and were skipped`,
+			},
+		]
+	}
+
 	const pkg = await readPackageJson(targetDir)
 	const lock = await readLockfile(targetDir)
 	const results: CheckResult[] = []
@@ -1365,6 +1398,9 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkReleaseToken(targetDir))
 	results.push(await checkDependabot(targetDir))
 	results.push(await checkCodeQL(targetDir))
+	// GitHub repo-settings drift (branch protection, merge settings, workflow
+	// permissions). Read-only; self-skips as `ok` outside a live GitHub repo.
+	results.push(...(await checkGitHubSettings(targetDir)))
 	results.push(await checkGitLabCI(targetDir))
 	results.push(await checkCodeowners(targetDir))
 	results.push(await checkCommunityHealth(targetDir))
@@ -1375,6 +1411,10 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkReadmeBadges(targetDir, pkg))
 	results.push(await checkCoverageUpload(targetDir))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))
+	// Turborepo is monorepo-only — only surface the check when a workspace exists.
+	if (await fs.pathExists(path.join(targetDir, 'pnpm-workspace.yaml'))) {
+		results.push(await checkTurborepo(targetDir))
+	}
 
 	// Lockfile-driven demotion: if the lock records an intentional opt-out for a
 	// check that's currently optional-missing, demote it to ok with a clear detail.
