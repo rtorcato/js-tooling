@@ -23,10 +23,12 @@ export const FIX_TARGETS: Record<string, string> = {
 	'size-limit': 'size-limit',
 	'Tree-shake check': 'treeshake-check',
 	'GitHub Actions': 'github-actions',
+	'Coverage upload': 'github-actions',
 	Dependabot: 'dependabot',
 	CodeQL: 'codeql',
 	CODEOWNERS: 'codeowners',
 	'GitLab CI': 'gitlab-ci',
+	Turborepo: 'turborepo',
 	lockfile: 'lockfile',
 	'.js-tooling.json': 'lockfile',
 	'are-the-types-wrong': 'attw',
@@ -84,6 +86,8 @@ export function declinedInLock(lock: Lockfile | null, checkName: string): boolea
 			return c.badges === false
 		case 'AI setup':
 			return c.aiSetup === false
+		case 'Turborepo':
+			return c.turborepo === false
 		default:
 			return false
 	}
@@ -142,6 +146,8 @@ export function lockfilePatchForTarget(
 			return c.badges ? null : { badges: true }
 		case 'ai':
 			return c.aiSetup ? null : { aiSetup: true }
+		case 'turborepo':
+			return c.turborepo ? null : { turborepo: true }
 		default:
 			return null
 	}

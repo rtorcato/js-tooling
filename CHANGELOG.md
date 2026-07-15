@@ -1,3 +1,31 @@
+# [2.36.0](https://github.com/rtorcato/js-tooling/compare/v2.35.0...v2.36.0) (2026-07-15)
+
+
+### Features
+
+* **cli:** add Turborepo preset for pnpm workspaces ([#68](https://github.com/rtorcato/js-tooling/issues/68)) ([#203](https://github.com/rtorcato/js-tooling/issues/203)) ([253740c](https://github.com/rtorcato/js-tooling/commit/253740cc2a8b7eb4c9fccb5bf1336c471e9392d8))
+
+# [2.35.0](https://github.com/rtorcato/js-tooling/compare/v2.34.0...v2.35.0) (2026-07-14)
+
+
+### Features
+
+* **size-limit:** exports-driven budgets for multi-subpath libraries ([#199](https://github.com/rtorcato/js-tooling/issues/199)) ([7f543de](https://github.com/rtorcato/js-tooling/commit/7f543deebc5a456eb39821e5f40387d309ab14f4))
+
+# [2.34.0](https://github.com/rtorcato/js-tooling/compare/v2.33.0...v2.34.0) (2026-07-14)
+
+
+### Features
+
+* **scaffold:** add commitizen alongside commitlint ([#198](https://github.com/rtorcato/js-tooling/issues/198)) ([5c902f5](https://github.com/rtorcato/js-tooling/commit/5c902f506a27eb554431b49f32ba13955381ad38))
+
+# [2.33.0](https://github.com/rtorcato/js-tooling/compare/v2.32.0...v2.33.0) (2026-07-14)
+
+
+### Features
+
+* **ci:** upload coverage to Codecov so the coverage badge works ([#197](https://github.com/rtorcato/js-tooling/issues/197)) ([26dfcc3](https://github.com/rtorcato/js-tooling/commit/26dfcc34bba72fa282af1377f4c7dc01038ebea2))
+
 # [2.32.0](https://github.com/rtorcato/js-tooling/compare/v2.31.0...v2.32.0) (2026-07-14)
 
 

@@ -53,6 +53,8 @@ export interface ProjectConfig {
 	badges?: boolean
 	/** Scaffold AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example). */
 	aiSetup?: boolean
+	/** Scaffold a turbo.json task pipeline (pnpm-workspace monorepos). */
+	turborepo?: boolean
 }
 
 export interface SetupOptions {
@@ -87,7 +89,7 @@ async function resolveConfig(options: SetupOptions): Promise<ProjectConfig> {
 		const projectName = path.basename(path.resolve(options.directory))
 		return buildPresetConfig(options.preset as PresetName, projectName)
 	}
-	return promptForConfig()
+	return promptForConfig(path.resolve(options.directory))
 }
 
 export async function setupProject(options: SetupOptions) {
@@ -140,7 +142,10 @@ export async function setupProject(options: SetupOptions) {
 	}
 }
 
-async function promptForConfig(): Promise<ProjectConfig> {
+async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
+	// Turborepo only makes sense in a pnpm-workspace monorepo, so the prompt is
+	// only offered when one is already present in the target dir.
+	const hasWorkspace = await fs.pathExists(path.join(targetDir, 'pnpm-workspace.yaml'))
 	const answers = await inquirer.prompt([
 		{
 			type: 'input',
@@ -308,6 +313,13 @@ async function promptForConfig(): Promise<ProjectConfig> {
 			default: true,
 		},
 		{
+			type: 'confirm',
+			name: 'turborepo',
+			message: '🚀 Add a Turborepo task pipeline (turbo.json)?',
+			default: true,
+			when: () => hasWorkspace,
+		},
+		{
 			type: 'list',
 			name: 'bundler',
 			message: '📦 Which bundler/build tool?',
@@ -366,6 +378,7 @@ async function promptForConfig(): Promise<ProjectConfig> {
 		publint: answers.publint ?? false,
 		badges: answers.badges ?? false,
 		aiSetup: answers.aiSetup ?? false,
+		turborepo: answers.turborepo ?? false,
 	}
 }
 

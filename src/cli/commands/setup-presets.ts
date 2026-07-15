@@ -145,6 +145,7 @@ export const CONFIG_SCHEMA = {
 		publint: { type: 'boolean' },
 		badges: { type: 'boolean' },
 		aiSetup: { type: 'boolean' },
+		turborepo: { type: 'boolean' },
 	},
 } as const
 
@@ -189,7 +190,7 @@ export function computeFileList(config: ProjectConfig): string[] {
 		files.push('prettier.config.mjs')
 	}
 	if (config.testing.framework === 'vitest') {
-		files.push('vitest.config.ts', 'vitest.setup.ts')
+		files.push('vitest.config.ts', 'vitest.setup.ts', 'codecov.yml')
 	}
 	if (config.testing.framework === 'jest') {
 		files.push('jest.config.mjs')
@@ -238,6 +239,7 @@ export function computeFileList(config: ProjectConfig): string[] {
 			'.mcp.json.example'
 		)
 	}
+	if (config.turborepo) files.push('turbo.json')
 	files.push('README.md')
 	return files
 }

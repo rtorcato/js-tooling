@@ -57,6 +57,7 @@ const sidebars: SidebarsConfig = {
         'reference/rollup',
         'reference/semantic-release',
         'reference/tsup',
+        'reference/turborepo',
         'reference/typescript',
         'reference/vitest',
       ],

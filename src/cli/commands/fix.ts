@@ -35,6 +35,7 @@ import {
 } from '../generators/security.js'
 import { generateVitestConfig } from '../generators/testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/treeshake.js'
+import { generateTurborepo } from '../generators/turborepo.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../generators/typedoc.js'
 import { copyPreset } from '../utils/copy-preset.js'
 import {
@@ -333,13 +334,15 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'github-actions',
-		description: 'Scaffold .github/workflows/ci.yml',
-		appliesTo: ['GitHub Actions'],
-		outputs: ['.github/workflows/ci.yml'],
+		description: 'Scaffold .github/workflows/ci.yml (+ codecov.yml when tests run)',
+		appliesTo: ['GitHub Actions', 'Coverage upload'],
+		outputs: ['.github/workflows/ci.yml', 'codecov.yml'],
 		canFixDrift: true,
 		async run({ targetDir, pkg }) {
 			await generateGitHubActions(inferProjectConfig(pkg), targetDir)
-			return { filesWritten: ['.github/workflows/ci.yml'] }
+			const filesWritten = ['.github/workflows/ci.yml']
+			if (await fs.pathExists(path.join(targetDir, 'codecov.yml'))) filesWritten.push('codecov.yml')
+			return { filesWritten }
 		},
 	},
 	{
@@ -412,6 +415,18 @@ const FIXERS: Fixer[] = [
 		canFixDrift: true,
 		async run({ targetDir, pkg }) {
 			const written = await generateGitLabCI(inferProjectConfig(pkg), targetDir)
+			return { filesWritten: [written] }
+		},
+	},
+	{
+		target: 'turborepo',
+		description: 'Scaffold turbo.json task pipeline (pnpm-workspace monorepos)',
+		appliesTo: ['Turborepo'],
+		outputs: ['turbo.json'],
+		// safe-add: never clobber a hand-tuned turbo.json.
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			const written = await generateTurborepo(targetDir)
 			return { filesWritten: [written] }
 		},
 	},
@@ -489,13 +504,13 @@ const FIXERS: Fixer[] = [
 	{
 		target: 'size-limit',
 		description:
-			'Scaffold .size-limit.json with a default 10 kB budget (customize per-subpath for libraries)',
+			'Scaffold a size-limit budget — exports-driven .size-limit.cjs for multi-subpath libraries, else a static .size-limit.json',
 		appliesTo: ['size-limit'],
-		outputs: ['.size-limit.json'],
+		outputs: ['.size-limit.cjs', '.size-limit.json'],
 		canFixDrift: true,
 		async run({ targetDir }) {
-			await generateSizeLimitConfig(targetDir)
-			return { filesWritten: ['.size-limit.json'] }
+			const written = await generateSizeLimitConfig(targetDir)
+			return { filesWritten: [written] }
 		},
 	},
 	{

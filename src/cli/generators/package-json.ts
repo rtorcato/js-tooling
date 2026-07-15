@@ -62,6 +62,15 @@ export async function generatePackageJson(config: ProjectConfig, targetDir: stri
 		}
 	}
 
+	// Commitizen adapter path — makes `pnpm commit` launch the conventional
+	// changelog prompt. Merged so an existing `config` block is preserved.
+	if (config.commitLint) {
+		packageJson.config = {
+			...(packageJson.config ?? {}),
+			commitizen: { path: './node_modules/cz-conventional-changelog' },
+		}
+	}
+
 	// Build-script approvals (esbuild etc.) are NOT written here: pnpm 11 ignores
 	// package.json's `pnpm` field and reads them from pnpm-workspace.yaml instead
 	// (see ensureBuildApprovals in build.ts).
@@ -121,6 +130,12 @@ function getScripts(config: ProjectConfig, opts: GetScriptsOptions = {}): Record
 		scripts['build'] = 'vite build'
 		scripts['dev'] = 'vite'
 		scripts['preview'] = 'vite preview'
+	}
+
+	// Commitizen assistant — `pnpm commit` guides a conventional commit that
+	// then passes the commitlint enforcement layer.
+	if (config.commitLint) {
+		scripts['commit'] = 'cz'
 	}
 
 	// knip is part of the universal baseline (knip.json is always generated).
@@ -236,6 +251,8 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 	// Testing frameworks
 	if (config.testing.framework === 'vitest') {
 		deps['vitest'] = '^4.1.9'
+		// Coverage provider so `pnpm coverage` (and the CI Codecov upload) works.
+		deps['@vitest/coverage-v8'] = '^4.1.9'
 		if (config.testing.environment === 'browser' || config.testing.environment === 'both') {
 			deps['@vitest/ui'] = '^4.1.9'
 			deps['jsdom'] = '^25.0.0'
@@ -278,10 +295,12 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 		deps['@arethetypeswrong/cli'] = '^0.18.2'
 	}
 
-	// Commit linting
+	// Commit linting (enforcement) + commitizen (assistance)
 	if (config.commitLint) {
 		deps['@commitlint/cli'] = '^20.0.0'
 		deps['@commitlint/config-conventional'] = '^20.0.0'
+		deps['commitizen'] = '^4.3.1'
+		deps['cz-conventional-changelog'] = '^3.3.0'
 	}
 
 	// Semantic release. The shipped github preset activates the changelog and
