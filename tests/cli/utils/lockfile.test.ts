@@ -47,6 +47,22 @@ describe('readLockfile', () => {
 		await fs.writeJson(join(dir, LOCKFILE_NAME), { writtenBy: 'x' })
 		expect(await readLockfile(dir)).toBeNull()
 	})
+
+	it('migrates a v1 file to v2, defaulting language to js', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, LOCKFILE_NAME), {
+			version: 1,
+			config: baseConfig(), // baseConfig predates the language field
+			writtenBy: 'old',
+			writtenAt: '2024-01-01T00:00:00.000Z',
+		})
+
+		const lock = await readLockfile(dir)
+		expect(lock?.version).toBe(2)
+		expect(lock?.config.language).toBe('js')
+		// Existing fields survive the migration untouched.
+		expect(lock?.config.projectName).toBe('demo')
+	})
 })
 
 describe('writeLockfile', () => {
