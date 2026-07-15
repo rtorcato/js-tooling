@@ -1,3 +1,10 @@
+# [2.38.0](https://github.com/rtorcato/js-tooling/compare/v2.37.0...v2.38.0) (2026-07-15)
+
+
+### Features
+
+* **doctor:** GitHub repo-settings drift checks via gh ([#137](https://github.com/rtorcato/js-tooling/issues/137)) ([#206](https://github.com/rtorcato/js-tooling/issues/206)) ([c177ba5](https://github.com/rtorcato/js-tooling/commit/c177ba5d782249c7741530cd9c653b7a198a53d2)), closes [#138](https://github.com/rtorcato/js-tooling/issues/138) [#109](https://github.com/rtorcato/js-tooling/issues/109) [#138](https://github.com/rtorcato/js-tooling/issues/138) [#missing](https://github.com/rtorcato/js-tooling/issues/missing)
+
 # [2.37.0](https://github.com/rtorcato/js-tooling/compare/v2.36.0...v2.37.0) (2026-07-15)
 
 
