@@ -1,19 +1,26 @@
 {
+  "extends": "../../tooling/typescript/tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022"],
+    // CLI-specific deltas over the published base. The base owns strictness so
+    // a breaking change to it surfaces here (the point of #80); these only cover
+    // what a Node CLI build needs differently.
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "../../dist/cli",
+    "target": "ES2022",
+    "lib": ["ES2022"],
     "rootDir": ".",
-    "declaration": false,
+    "outDir": "../../dist/cli",
     "noEmit": false,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "types": ["node"]
+    "declaration": false,
+    "sourceMap": false,
+    "incremental": false,
+    "types": ["node"],
+    // The CLI reads arbitrary package.json / JSON blobs typed as index
+    // signatures, so dot access is idiomatic here; noUncheckedIndexedAccess
+    // (inherited) still catches the real undefined bugs. ponytail: opt out of
+    // this one stylistic rule rather than churn 140 call sites to bracket
+    // access; adopt it fully in a follow-up if we want the last mile.
+    "noPropertyAccessFromIndexSignature": false
   },
   "include": ["./**/*.ts"],
   "exclude": ["node_modules", "../../dist"]

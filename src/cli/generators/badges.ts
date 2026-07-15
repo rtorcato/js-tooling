@@ -34,11 +34,11 @@ export function parseRepository(repository: unknown): { owner: string; repo: str
 	// `owner/repo` or `github:owner/repo` shorthand (no scheme, no host).
 	if (!url.includes('://') && !url.includes('@')) {
 		const short = url.replace(/^github:/, '').match(/^([\w.-]+)\/([\w.-]+?)(?:\.git)?$/)
-		if (short) return { owner: short[1], repo: short[2] }
+		if (short?.[1] && short[2]) return { owner: short[1], repo: short[2] }
 	}
 
 	const m = url.match(/github\.com[/:]([\w.-]+)\/([\w.-]+?)(?:\.git)?(?:$|[/#?])/)
-	return m ? { owner: m[1], repo: m[2] } : null
+	return m?.[1] && m[2] ? { owner: m[1], repo: m[2] } : null
 }
 
 /**

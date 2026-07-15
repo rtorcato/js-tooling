@@ -240,7 +240,7 @@ function parseWorkspacePackages(yaml: string): string[] {
 		}
 		if (!inPackages) continue
 		const item = line.match(/^\s*-\s*['"]?([^'"#]+?)['"]?\s*$/)
-		if (item) {
+		if (item?.[1]) {
 			globs.push(item[1].trim())
 			continue
 		}
