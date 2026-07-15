@@ -1,3 +1,11 @@
+# [2.37.0](https://github.com/rtorcato/js-tooling/compare/v2.36.0...v2.37.0) (2026-07-15)
+
+
+### Features
+
+* **cli:** add optional deploy workflow templates via fix ([#66](https://github.com/rtorcato/js-tooling/issues/66)) ([#204](https://github.com/rtorcato/js-tooling/issues/204)) ([a12646b](https://github.com/rtorcato/js-tooling/commit/a12646bceada39545042d59d66a0efac302d1c7e)), closes [#workflow](https://github.com/rtorcato/js-tooling/issues/workflow)
+* **doctor:** language field + detectLanguage() detector ([#140](https://github.com/rtorcato/js-tooling/issues/140)) ([#202](https://github.com/rtorcato/js-tooling/issues/202)) ([008aeb0](https://github.com/rtorcato/js-tooling/commit/008aeb0d585dd03655c97fda01549e2ec934588e)), closes [#139](https://github.com/rtorcato/js-tooling/issues/139) [#139](https://github.com/rtorcato/js-tooling/issues/139)
+
 # [2.36.0](https://github.com/rtorcato/js-tooling/compare/v2.35.0...v2.36.0) (2026-07-15)
 
 
