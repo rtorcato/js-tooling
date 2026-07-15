@@ -15,6 +15,7 @@ import {
 } from '../generators/git.js'
 import { generateGitHubActions } from '../generators/github-actions.js'
 import { generateGitLabCI } from '../generators/gitlab-ci.js'
+import { GH_WORKFLOWS, generateGhWorkflow } from '../generators/github-workflows.js'
 import { generateESLintConfig, generatePrettierConfig } from '../generators/linting.js'
 import {
 	ensureEnginesNode,
@@ -157,6 +158,40 @@ function hasRequireCondition(exports: unknown): boolean {
 function isEsmOnly(pkg: Record<string, unknown>): boolean {
 	return pkg.type === 'module' && !hasRequireCondition(pkg.exports)
 }
+
+// Optional deploy workflows (issue #66). One flat fix target each, no doctor
+// check and no setup prompt — they're opt-in and too deploy-specific to nag.
+const GH_WORKFLOW_META: Record<(typeof GH_WORKFLOWS)[number], { check: string; desc: string }> = {
+	'docker-publish': {
+		check: 'Docker publish workflow',
+		desc: 'Scaffold .github/workflows/docker-publish.yml (build + push image to GHCR on tag)',
+	},
+	'vercel-deploy': {
+		check: 'Vercel deploy workflow',
+		desc: 'Scaffold .github/workflows/vercel-deploy.yml (production deploy to Vercel on main)',
+	},
+	'cloudflare-pages': {
+		check: 'Cloudflare Pages workflow',
+		desc: 'Scaffold .github/workflows/cloudflare-pages.yml (static-site deploy to Cloudflare Pages)',
+	},
+	'preview-deployments': {
+		check: 'Preview deployments workflow',
+		desc: 'Scaffold .github/workflows/preview-deployments.yml (per-PR preview deploy)',
+	},
+}
+
+const GH_WORKFLOW_FIXERS: Fixer[] = GH_WORKFLOWS.map((name) => ({
+	target: name,
+	description: GH_WORKFLOW_META[name].desc,
+	appliesTo: [GH_WORKFLOW_META[name].check],
+	outputs: [`.github/workflows/${name}.yml`],
+	// safe-add: never clobber an existing workflow of the same name.
+	riskLevel: 'safe-add',
+	async run({ targetDir }) {
+		const written = await generateGhWorkflow(name, targetDir)
+		return { filesWritten: [written] }
+	},
+}))
 
 const FIXERS: Fixer[] = [
 	{
@@ -418,6 +453,7 @@ const FIXERS: Fixer[] = [
 			return { filesWritten: [written] }
 		},
 	},
+	...GH_WORKFLOW_FIXERS,
 	{
 		target: 'turborepo',
 		description: 'Scaffold turbo.json task pipeline (pnpm-workspace monorepos)',
