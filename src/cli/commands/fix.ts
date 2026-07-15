@@ -35,6 +35,7 @@ import {
 } from '../generators/security.js'
 import { generateVitestConfig } from '../generators/testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/treeshake.js'
+import { generateTurborepo } from '../generators/turborepo.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../generators/typedoc.js'
 import { copyPreset } from '../utils/copy-preset.js'
 import {
@@ -414,6 +415,18 @@ const FIXERS: Fixer[] = [
 		canFixDrift: true,
 		async run({ targetDir, pkg }) {
 			const written = await generateGitLabCI(inferProjectConfig(pkg), targetDir)
+			return { filesWritten: [written] }
+		},
+	},
+	{
+		target: 'turborepo',
+		description: 'Scaffold turbo.json task pipeline (pnpm-workspace monorepos)',
+		appliesTo: ['Turborepo'],
+		outputs: ['turbo.json'],
+		// safe-add: never clobber a hand-tuned turbo.json.
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			const written = await generateTurborepo(targetDir)
 			return { filesWritten: [written] }
 		},
 	},
