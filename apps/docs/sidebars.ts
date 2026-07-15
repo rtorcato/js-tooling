@@ -50,6 +50,7 @@ const sidebars: SidebarsConfig = {
         'reference/commitlint',
         'reference/esbuild',
         'reference/eslint',
+        'reference/github-actions',
         'reference/jest',
         'reference/oxlint',
         'reference/prettier',

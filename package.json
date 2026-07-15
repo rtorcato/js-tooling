@@ -86,6 +86,7 @@
 		"tooling/semantic-release/*.d.mts",
 		"tooling/claude/*.md",
 		"tooling/mcp/mcp.json.example",
+		"tooling/github-actions/workflows/*.yml",
 		"README.md"
 	],
 	"exports": {
