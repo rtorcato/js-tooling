@@ -17,6 +17,12 @@ import {
 
 export interface ProjectConfig {
 	projectName: string
+	/**
+	 * Primary language of the repo. Optional for backward compat — lockfiles
+	 * written before v2 lack it and are migrated to 'js' on read. New setups
+	 * always record it. Part of the multi-language seam (#139/#140).
+	 */
+	language?: 'js' | 'swift' | 'perl' | 'python'
 	projectType: 'library' | 'web-app' | 'node-api' | 'nextjs-app' | 'react-app'
 	typescript: {
 		enabled: boolean
@@ -337,6 +343,9 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 
 	return {
 		projectName: answers.projectName,
+		// v1 of the setup wizard scaffolds JS/TS repos only; the field exists so
+		// doctor/fix can gate by language (#139). No prompt yet — always 'js'.
+		language: 'js',
 		projectType: answers.projectType,
 		typescript: {
 			enabled: answers.useTypeScript || false,

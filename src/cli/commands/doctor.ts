@@ -2,6 +2,7 @@ import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
 import { BADGE_START, hasPublicOnlyBadges } from '../generators/badges.js'
+import { detectLanguage } from '../utils/detect-language.js'
 import { type Lockfile, LOCKFILE_VERSION, readLockfile } from '../utils/lockfile.js'
 import { declinedInLock, getFixTargetForCheck } from './fix-targets.js'
 
@@ -1353,6 +1354,23 @@ async function checkGitLabCI(dir: string): Promise<CheckResult> {
 
 export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	const targetDir = path.resolve(dir)
+
+	// Seam: gate the whole JS check suite by detected language. A Swift/Perl/
+	// Python repo gets a single informative result instead of ~26 JS "missing"
+	// findings. 'unknown' (bare dir) still runs the JS suite — that's a fresh
+	// repo mid-setup. ponytail: per-check language tagging is the umbrella (#139)
+	// follow-up; today the whole suite is JS, so a top-level guard is enough.
+	const language = await detectLanguage(targetDir)
+	if (language !== 'js' && language !== 'unknown') {
+		return [
+			{
+				check: 'language',
+				status: 'ok',
+				detail: `detected ${language} project — ${PACKAGE} checks are JavaScript-focused and were skipped`,
+			},
+		]
+	}
+
 	const pkg = await readPackageJson(targetDir)
 	const lock = await readLockfile(targetDir)
 	const results: CheckResult[] = []
