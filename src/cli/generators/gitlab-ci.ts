@@ -44,7 +44,7 @@ function renderGitLabCI(config: ProjectConfig): string {
 		const testCmd =
 			config.testing.framework === 'vitest'
 				? 'pnpm exec vitest run'
-				: config.testing.framework === 'playwright'
+				: config.testing.framework === 'playwright' || config.testing.framework === 'cypress'
 					? 'pnpm test:e2e'
 					: 'pnpm test'
 		jobs.push(`test:

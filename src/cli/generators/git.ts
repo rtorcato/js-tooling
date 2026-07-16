@@ -174,5 +174,14 @@ coverage/
 `
 	}
 
+	if (config.testing.framework === 'cypress') {
+		gitignoreContent += `
+# Cypress
+/cypress/screenshots/
+/cypress/videos/
+/cypress/downloads/
+`
+	}
+
 	await fs.writeFile(gitignorePath, gitignoreContent)
 }

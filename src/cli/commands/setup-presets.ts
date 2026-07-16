@@ -130,7 +130,7 @@ export const CONFIG_SCHEMA = {
 			additionalProperties: false,
 			required: ['framework'],
 			properties: {
-				framework: { type: 'string', enum: ['vitest', 'jest', 'playwright', 'none'] },
+				framework: { type: 'string', enum: ['vitest', 'jest', 'playwright', 'cypress', 'none'] },
 				environment: { type: 'string', enum: ['node', 'browser', 'both'] },
 			},
 		},
@@ -197,6 +197,14 @@ export function computeFileList(config: ProjectConfig): string[] {
 	}
 	if (config.testing.framework === 'playwright') {
 		files.push('playwright.config.ts')
+	}
+	if (config.testing.framework === 'cypress') {
+		files.push(
+			'cypress.config.ts',
+			'cypress/support/e2e.ts',
+			'cypress/support/commands.ts',
+			'tests/e2e/example.cy.ts'
+		)
 	}
 	if (config.gitHooks) {
 		files.push('.husky/pre-commit', '.gitignore')

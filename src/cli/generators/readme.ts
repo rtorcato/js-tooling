@@ -60,6 +60,7 @@ ${config.linting.tool === 'eslint' ? '├── prettier.config.mjs  # Prettier 
 ${config.testing.framework === 'vitest' ? '├── vitest.config.ts     # Vitest configuration' : ''}
 ${config.testing.framework === 'jest' ? '├── jest.config.mjs     # Jest configuration' : ''}
 ${config.testing.framework === 'playwright' ? '├── playwright.config.ts # Playwright configuration' : ''}
+${config.testing.framework === 'cypress' ? '├── cypress.config.ts   # Cypress configuration' : ''}
 ${config.bundler === 'tsup' ? '├── tsup.config.ts       # tsup configuration' : ''}
 ${config.bundler === 'esbuild' ? '├── build.mjs           # esbuild configuration' : ''}
 ${config.bundler === 'vite' ? '├── vite.config.ts       # Vite configuration' : ''}
@@ -180,6 +181,9 @@ function generateTestingSection(config: ProjectConfig): string {
 	} else if (config.testing.framework === 'playwright') {
 		commands.push('pnpm test:e2e      # Run E2E tests')
 		commands.push('pnpm test:e2e:ui   # Run E2E tests with UI')
+	} else if (config.testing.framework === 'cypress') {
+		commands.push('pnpm test:e2e      # Run E2E tests headless')
+		commands.push('pnpm test:e2e:ui   # Open the Cypress runner')
 	}
 
 	return `\`\`\`bash\n${commands.join('\n')}\n\`\`\``
@@ -257,6 +261,8 @@ function generateToolingList(config: ProjectConfig): string {
 		tools.push('- **Jest** - Testing framework')
 	} else if (config.testing.framework === 'playwright') {
 		tools.push('- **Playwright** - End-to-end testing')
+	} else if (config.testing.framework === 'cypress') {
+		tools.push('- **Cypress** - End-to-end testing')
 	}
 
 	if (config.bundler === 'tsup') {

@@ -34,7 +34,7 @@ import {
 	generateDependabotConfig,
 	generateRenovateConfig,
 } from '../generators/security.js'
-import { generateVitestConfig } from '../generators/testing.js'
+import { generateCypressConfig, generateVitestConfig } from '../generators/testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/treeshake.js'
 import { generateTurborepo } from '../generators/turborepo.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../generators/typedoc.js'
@@ -253,6 +253,23 @@ const FIXERS: Fixer[] = [
 				await fs.writeFile(setupPath, savedSetup)
 			}
 			return { filesWritten: ['vitest.config.ts'] }
+		},
+	},
+	{
+		target: 'cypress',
+		description: 'Scaffold Cypress E2E config + support/ boilerplate + a starter spec',
+		appliesTo: ['Cypress'],
+		outputs: [
+			'cypress.config.ts',
+			'cypress/support/e2e.ts',
+			'cypress/support/commands.ts',
+			'tests/e2e/example.cy.ts',
+		],
+		// safe-add: re-writes only the deterministic config; never clobbers specs.
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			const written = await generateCypressConfig(targetDir)
+			return { filesWritten: written }
 		},
 	},
 	{

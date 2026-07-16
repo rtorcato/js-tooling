@@ -115,6 +115,9 @@ function getScripts(config: ProjectConfig, opts: GetScriptsOptions = {}): Record
 	} else if (config.testing.framework === 'playwright') {
 		scripts['test:e2e'] = 'playwright test'
 		scripts['test:e2e:ui'] = 'playwright test --ui'
+	} else if (config.testing.framework === 'cypress') {
+		scripts['test:e2e'] = 'cypress run'
+		scripts['test:e2e:ui'] = 'cypress open'
 	}
 
 	// Build scripts
@@ -191,7 +194,7 @@ export function composeVerifyScript(
 		cmds.push('pnpm exec vitest run')
 	} else if (config.testing.framework === 'jest') {
 		cmds.push('pnpm test --ci')
-	} else if (config.testing.framework === 'playwright') {
+	} else if (config.testing.framework === 'playwright' || config.testing.framework === 'cypress') {
 		cmds.push('pnpm test:e2e')
 	}
 	if (opts.includeTreeshake) cmds.push('pnpm treeshake')
@@ -223,7 +226,7 @@ export function composeVerifyScriptFromPkg(
 	else if (scripts.lint && !scripts.check) cmds.push('pnpm lint')
 	if (deps.vitest) cmds.push('pnpm exec vitest run')
 	else if (deps.jest) cmds.push('pnpm test --ci')
-	else if (deps['@playwright/test']) cmds.push('pnpm test:e2e')
+	else if (deps['@playwright/test'] || deps.cypress) cmds.push('pnpm test:e2e')
 	if (opts.includeTreeshake) cmds.push('pnpm treeshake')
 	if (deps.publint || scripts.publint) cmds.push('pnpm publint')
 	return cmds.length >= 2 ? cmds.join(' && ') : null
@@ -264,6 +267,8 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 		}
 	} else if (config.testing.framework === 'playwright') {
 		deps['@playwright/test'] = '^1.60.0'
+	} else if (config.testing.framework === 'cypress') {
+		deps['cypress'] = '^14.0.0'
 	}
 
 	// Build tools
