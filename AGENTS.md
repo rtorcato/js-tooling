@@ -101,6 +101,29 @@ npx @rtorcato/js-tooling fix engines --yes --json
 - Tests live alongside source in `tests/`; vitest with no separate config
 - semantic-release runs on push to `main`; `fix:` → patch, `feat:` → minor, `chore:` / `docs:` → no release
 
+## Releasing — never publish by hand
+
+Releases are fully automated by semantic-release on merge to `main`. **You don't
+publish, commits do** — the version is derived from Conventional Commit messages:
+
+- `fix:` → patch, `feat:` → minor, `feat!:` / `BREAKING CHANGE:` → major
+- `chore:` / `docs:` / `refactor:` / `test:` / `ci:` → no release
+
+Never run `npm publish`, `npm version`, or `git tag`, and never hand-edit the
+`version` field — semantic-release owns it, and editing it causes drift and
+merge conflicts. Run `pnpm verify` before pushing; a red CI blocks the release.
+(This mirrors the `npm-publish` Claude skill in `skills/npm-publish/`.)
+
+## Claude Code plugin
+
+This repo self-hosts a Claude Code plugin with two skills (`js-tooling`,
+`npm-publish`). Install it:
+
+```
+/plugin marketplace add rtorcato/js-tooling
+/plugin install js-tooling@js-tooling
+```
+
 ## Pointers
 
 - Site index for LLMs: https://rtorcato.github.io/js-tooling/llms.txt

@@ -1,0 +1,14 @@
+{
+  "name": "js-tooling",
+  "version": "1.0.0",
+  "description": "Teaches Claude to use @rtorcato/js-tooling correctly: the setup/doctor/fix CLI, extending the shared config bases, and the release automation (never publish by hand).",
+  "author": {
+    "name": "Richard Torcato",
+    "email": "rtorcato@me.com",
+    "url": "https://github.com/rtorcato"
+  },
+  "homepage": "https://rtorcato.github.io/js-tooling/",
+  "repository": "https://github.com/rtorcato/js-tooling",
+  "license": "MIT",
+  "keywords": ["tooling", "typescript", "biome", "vitest", "semantic-release", "monorepo"]
+}

@@ -36,6 +36,23 @@ npx @rtorcato/js-tooling setup
 - **Supply-chain security** — Dependabot for weekly dep updates and CodeQL for security scanning, scaffolded as opt-in workflows.
 - **CLI** — `setup` wizard for new projects, `doctor` drift checker, `fix` for incremental upgrades, and `copy` for individual files.
 
+## Use with AI
+
+**Claude Code.** This repo self-hosts a Claude plugin with two skills —
+`js-tooling` (drive the CLI + adopt the config bases) and `npm-publish` (how
+releases work):
+
+```
+/plugin marketplace add rtorcato/js-tooling
+/plugin install js-tooling@js-tooling
+```
+
+**Other AI tools (Cursor / Copilot / Codex).** The same guidance ships in
+[`AGENTS.md`](https://github.com/rtorcato/js-tooling/blob/main/AGENTS.md) inside
+the npm tarball — most agents read it directly. See the
+[For AI agents](./guides/for-ai-agents.md) guide for the non-interactive CLI
+contract.
+
 ## Next steps
 
 - [Get started](./guides/getting-started.mdx) — install and scaffold a project.

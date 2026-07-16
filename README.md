@@ -110,7 +110,21 @@ drift warnings.
 
 ## AI agent rules
 
-The package ships rules that teach AI coding agents to drive the CLI
+**Use with Claude Code.** This repo self-hosts a Claude plugin with two skills —
+`js-tooling` (drive the CLI + adopt the config bases) and `npm-publish` (how
+releases work):
+
+```
+/plugin marketplace add rtorcato/js-tooling
+/plugin install js-tooling@js-tooling
+```
+
+**Use with other AI tools.** The same guidance lives in [`AGENTS.md`](AGENTS.md)
+(shipped in the npm tarball) — Cursor, Copilot, and Codex read it directly.
+
+### Generate rules for *your* project
+
+The package also ships rules that teach AI coding agents to drive the CLI
 (`doctor` / `fix` / `setup`) non-interactively. Install for your agent — all
 generated from one source, so guidance never drifts between them:
 

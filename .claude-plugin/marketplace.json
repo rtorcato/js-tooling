@@ -1,0 +1,15 @@
+{
+  "name": "js-tooling",
+  "owner": {
+    "name": "Richard Torcato",
+    "email": "rtorcato@me.com"
+  },
+  "description": "Claude Code plugin for @rtorcato/js-tooling — the JavaScript/TypeScript tooling distribution (setup/doctor/fix CLI + shared config bases). Ships two skills: js-tooling and npm-publish.",
+  "plugins": [
+    {
+      "name": "js-tooling",
+      "source": "./",
+      "description": "Two skills in one plugin: how to adopt the shared presets + CLI, and how releases work (semantic-release owns the version — never publish by hand)."
+    }
+  ]
+}
