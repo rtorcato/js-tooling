@@ -211,7 +211,7 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 	},
 	{
 		name: 'Dependabot',
-		description: 'Weekly automated dependency updates',
+		description: 'Monthly grouped dependency updates + safe-tier auto-merge',
 		exports: [],
 		fixTarget: 'dependabot',
 	},

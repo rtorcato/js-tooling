@@ -555,13 +555,29 @@ describe('doctor security checks', () => {
 		expect(dep?.hint).toMatch(/fix dependabot/)
 	})
 
-	it('reports Dependabot ok when dependabot.yml has a groups block', async () => {
+	it('reports Dependabot drift when the config has non-canonical grouping', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.ensureDir(join(dir, '.github'))
 		await fs.writeFile(
 			join(dir, '.github', 'dependabot.yml'),
-			'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    groups:\n      all:\n        patterns: ["*"]\n'
+			'version: 2\nupdates:\n  - package-ecosystem: npm\n    groups:\n      all:\n        patterns: ["*"]\n'
+		)
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Dependabot')?.status).toBe('drift')
+	})
+
+	it('reports Dependabot ok with canonical groups + the auto-merge workflow', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'dependabot.yml'),
+			'version: 2\nupdates:\n  - package-ecosystem: npm\n    groups:\n      production-minor:\n        dependency-type: production\n      dev-minor:\n        dependency-type: development\n      major-updates:\n        update-types: [major]\n'
+		)
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'dependabot-automerge.yml'),
+			'name: Dependabot auto-merge\n'
 		)
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'Dependabot')?.status).toBe('ok')

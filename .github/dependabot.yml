@@ -7,25 +7,27 @@ updates:
       day: 1
       time: "06:00"
       timezone: Etc/UTC
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     versioning-strategy: increase
     commit-message:
       prefix: chore
       include: scope
     groups:
-      eslint:
-        patterns:
-          - "eslint"
-          - "eslint-*"
-          - "@typescript-eslint/*"
-          - "typescript-eslint"
-      semantic-release:
-        patterns:
-          - "semantic-release"
-          - "@semantic-release/*"
-      types:
-        patterns:
-          - "@types/*"
+      # minor + patch, split prod/dev — the auto-merge tier (green-gated).
+      production-minor:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+      dev-minor:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      # one PR per ecosystem for all majors — triaged monthly, never auto-merged.
+      major-updates:
+        update-types:
+          - major
 
   - package-ecosystem: github-actions
     directory: /

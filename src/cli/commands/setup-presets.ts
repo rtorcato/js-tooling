@@ -207,7 +207,11 @@ export function computeFileList(config: ProjectConfig): string[] {
 	}
 	files.push('.github/workflows/ci.yml')
 	if (config.securityAutomation) {
-		files.push('.github/dependabot.yml', '.github/workflows/codeql.yml')
+		files.push(
+			'.github/dependabot.yml',
+			'.github/workflows/dependabot-automerge.yml',
+			'.github/workflows/codeql.yml'
+		)
 	}
 	if (config.bundler === 'tsup') files.push('tsup.config.ts')
 	else if (config.bundler === 'esbuild') files.push('build.mjs')

@@ -12,10 +12,20 @@ vi.mock('inquirer', () => ({
 const promptMock = vi.mocked(inquirer.prompt)
 const newTmpDir = useTmpDir()
 
-// A dependabot.yml with a `groups:` block reads as up-to-date (no drift), so the
-// fixer treats it as already-ok and leaves it alone.
+// The canonical dependabot.yml — with the canonical groups AND the auto-merge
+// workflow present (see seedDependabotStandard), doctor reads it as up-to-date,
+// so the fixer treats it as already-ok and leaves it alone.
 const GROUPED_DEPENDABOT =
-	'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    groups:\n      all:\n        patterns: ["*"]\n'
+	'version: 2\nupdates:\n  - package-ecosystem: npm\n    groups:\n      production-minor:\n        dependency-type: production\n      dev-minor:\n        dependency-type: development\n      major-updates:\n        update-types: [major]\n'
+
+/** Write the canonical config + auto-merge workflow so doctor reports Dependabot ok. */
+async function seedDependabotStandard(dir: string): Promise<void> {
+	await fs.outputFile(join(dir, '.github', 'dependabot.yml'), GROUPED_DEPENDABOT)
+	await fs.outputFile(
+		join(dir, '.github', 'workflows', 'dependabot-automerge.yml'),
+		'name: Dependabot auto-merge\n'
+	)
+}
 
 async function seedPackageJson(dir: string, extra: Record<string, unknown> = {}) {
 	await fs.writeJson(join(dir, 'package.json'), {
@@ -132,21 +142,24 @@ describe('fix targeted', () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.writeJson(join(dir, 'renovate.json'), { extends: ['config:recommended'] })
-		await fs.outputFile(join(dir, '.github', 'dependabot.yml'), GROUPED_DEPENDABOT)
+		await seedDependabotStandard(dir)
 		await fixCommand('dependabot', { directory: dir, yes: true })
 		// dependabot.yml should remain untouched (no overwrite) and no error thrown.
 		const yaml = await fs.readFile(join(dir, '.github', 'dependabot.yml'), 'utf-8')
 		expect(yaml).toBe(GROUPED_DEPENDABOT)
 	})
 
-	it('fix dependabot upgrades an existing config that lacks grouping', async () => {
+	it('fix dependabot upgrades a non-canonical config to the standard + workflow', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.outputFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
 		await fixCommand('dependabot', { directory: dir, yes: true })
 		const yaml = await fs.readFile(join(dir, '.github', 'dependabot.yml'), 'utf-8')
-		expect(yaml).toMatch(/^\s*groups:/m)
-		expect(yaml).toMatch(/dependency-name: "typescript"/)
+		expect(yaml).toMatch(/production-minor/)
+		expect(yaml).toMatch(/major-updates/)
+		expect(await fs.pathExists(join(dir, '.github', 'workflows', 'dependabot-automerge.yml'))).toBe(
+			true
+		)
 	})
 
 	it('fix unknown-target exits non-zero', async () => {
@@ -601,8 +614,7 @@ describe('fix targeted', () => {
 	it('returns early when check is already ok', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
-		await fs.ensureDir(join(dir, '.github'))
-		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), GROUPED_DEPENDABOT)
+		await seedDependabotStandard(dir)
 		// Should not call inquirer at all.
 		await fixCommand('dependabot', { directory: dir })
 		expect(promptMock).not.toHaveBeenCalled()
@@ -627,7 +639,7 @@ describe('fix --json', () => {
 				target: 'dependabot',
 				check: 'Dependabot',
 				status: 'applied',
-				filesWritten: ['.github/dependabot.yml'],
+				filesWritten: ['.github/dependabot.yml', '.github/workflows/dependabot-automerge.yml'],
 			})
 		} finally {
 			logSpy.mockRestore()
@@ -690,8 +702,7 @@ describe('fix --json', () => {
 	it('reports already-ok for a check that passes', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
-		await fs.ensureDir(join(dir, '.github'))
-		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), GROUPED_DEPENDABOT)
+		await seedDependabotStandard(dir)
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 		try {
 			await fixCommand('dependabot', { directory: dir, json: true })

@@ -32,6 +32,7 @@ import { composeVerifyScriptFromPkg } from '../generators/package-json.js'
 import { generatePostcss } from '../generators/postcss.js'
 import {
 	generateCodeQLWorkflow,
+	generateDependabotAutomerge,
 	generateDependabotConfig,
 	generateRenovateConfig,
 } from '../generators/security.js'
@@ -384,13 +385,17 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'dependabot',
-		description: 'Scaffold .github/dependabot.yml (weekly npm + actions updates, grouped)',
+		description:
+			'Scaffold the canonical .github/dependabot.yml + dependabot-automerge.yml (monthly, grouped, safe-tier auto-merge)',
 		appliesTo: ['Dependabot'],
-		outputs: ['.github/dependabot.yml'],
+		outputs: ['.github/dependabot.yml', '.github/workflows/dependabot-automerge.yml'],
 		canFixDrift: true,
 		async run({ targetDir }) {
 			await generateDependabotConfig(targetDir)
-			return { filesWritten: ['.github/dependabot.yml'] }
+			await generateDependabotAutomerge(targetDir)
+			return {
+				filesWritten: ['.github/dependabot.yml', '.github/workflows/dependabot-automerge.yml'],
+			}
 		},
 	},
 	{
