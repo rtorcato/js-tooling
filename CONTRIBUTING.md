@@ -203,6 +203,16 @@ Releases are automated using semantic-release:
 3. **Changelog generation:** Automatic based on commits
 4. **npm publication:** Automated via GitHub Actions
 
+Version bumps are automated, but **public-API changes carry a manual checklist**.
+If a PR changes a public API — a `ProjectConfig` field, a `doctor` check name, a
+`fix` target, or an export subpath — it must also:
+
+- [ ] Update the docs site (`apps/docs/`)
+- [ ] Update the README (examples / reference)
+- [ ] Tick the relevant [`ROADMAP.md`](ROADMAP.md) / milestone item
+
+See [`ROADMAP.md`](ROADMAP.md) for the milestone phases (Shipped → Beta → v1.0).
+
 ## 📝 Pull Request Guidelines
 
 ### Before Submitting
