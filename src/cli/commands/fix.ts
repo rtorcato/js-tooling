@@ -41,6 +41,7 @@ import { generateTailwind } from '../generators/tailwind.js'
 import { generateTurborepo } from '../generators/turborepo.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../generators/typedoc.js'
 import { copyPreset } from '../utils/copy-preset.js'
+import { applyGitHubSettings } from '../utils/github-settings.js'
 import {
 	type Lockfile,
 	LOCKFILE_NAME,
@@ -104,6 +105,13 @@ export interface Fixer {
 	 */
 	riskLevel?: FixRiskLevel
 	canFixDrift?: boolean
+	/**
+	 * Mutates a remote (e.g. GitHub repo settings via `gh api`) instead of files.
+	 * Such a fixer writes nothing to disk, so the `--diff` preview — which
+	 * shadow-runs the fixer in a temp copy — must be skipped, otherwise the
+	 * "preview" would perform the real remote mutation.
+	 */
+	remote?: boolean
 	run(ctx: FixerContext): Promise<{ filesWritten: string[] }>
 }
 
@@ -412,6 +420,30 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			await generateCodeQLWorkflow(targetDir)
 			return { filesWritten: ['.github/workflows/codeql.yml'] }
+		},
+	},
+	{
+		target: 'github-settings',
+		description:
+			'Apply GitHub repo settings via gh api (branch protection, merge settings, workflow perms)',
+		appliesTo: ['Branch protection', 'Merge settings', 'Workflow permissions'],
+		outputs: ['GitHub repo settings (branch protection, merge settings, workflow permissions)'],
+		// safe-merge: aligns settings to the standard without touching unrelated
+		// repo config. remote: mutates GitHub, not files — skips the diff preview.
+		riskLevel: 'safe-merge',
+		remote: true,
+		canFixDrift: true,
+		async run({ targetDir }) {
+			// Remote-mutating: log each setting's outcome directly and return no
+			// files (the standard "✅ wrote …" line would misread for repo settings).
+			const results = await applyGitHubSettings(targetDir)
+			for (const r of results) {
+				const icon = r.status === 'applied' ? '✅' : r.status === 'failed' ? '❌' : '➖'
+				const paint =
+					r.status === 'applied' ? chalk.green : r.status === 'failed' ? chalk.red : chalk.gray
+				console.log(paint(`  ${icon} ${r.setting} — ${r.detail}`))
+			}
+			return { filesWritten: [] }
 		},
 	},
 	{
@@ -1303,7 +1335,7 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 			)
 		}
 		const conflict = noteLockConflict(result.check)
-		if (showDiff && (fixer.riskLevel ?? 'destructive') !== 'safe-add') {
+		if (showDiff && !fixer.remote && (fixer.riskLevel ?? 'destructive') !== 'safe-add') {
 			const previews = await previewFixer(fixer, effectiveResult, targetDir, pkg, lock)
 			printPreviews(previews)
 		}
@@ -1347,6 +1379,11 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 	let skippedCount = 0
 	let unsupportedCount = 0
 
+	// A single fixer can cover several checks (e.g. github-settings covers all
+	// three GitHub checks; husky covers Husky + lint-staged + pre-push). Run each
+	// fixer at most once per pass — its first run already addresses the siblings.
+	const handledTargets = new Set<string>()
+
 	for (const result of fixable) {
 		const fixer = findFixerForCheck(result.check)
 		if (!fixer) {
@@ -1355,22 +1392,28 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 			unsupportedCount++
 			continue
 		}
+		if (handledTargets.has(fixer.target)) {
+			actions.push(recordFor(fixer.target, result.check, result.status, 'already-ok', []))
+			continue
+		}
 		if (!silent) {
 			console.log(`  ${chalk.bold(result.check)} (${result.status}) → ${fixer.target}`)
 		}
 		const conflict = noteLockConflict(result.check)
-		if (showDiff && (fixer.riskLevel ?? 'destructive') !== 'safe-add') {
+		if (showDiff && !fixer.remote && (fixer.riskLevel ?? 'destructive') !== 'safe-add') {
 			const previews = await previewFixer(fixer, result, targetDir, pkg, lock)
 			printPreviews(previews)
 		}
 		const ok = await confirmApply(fixer, result, assumeYes)
 		if (!ok) {
+			handledTargets.add(fixer.target)
 			actions.push(recordFor(fixer.target, result.check, result.status, 'skipped', [], conflict))
 			if (!silent) console.log(chalk.gray('    skipped'))
 			skippedCount++
 			continue
 		}
 		const outcome = await applyFixer(fixer, result, targetDir, pkg, lock, dryRun, silent)
+		handledTargets.add(fixer.target)
 		actions.push(
 			recordFor(
 				fixer.target,
