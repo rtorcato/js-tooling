@@ -279,6 +279,12 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 		deps['vite'] = '^6.0.0'
 	}
 
+	// Tailwind CSS v4 — CSS-first, wired via the PostCSS plugin.
+	if (config.tailwind) {
+		deps['tailwindcss'] = '^4.0.0'
+		deps['@tailwindcss/postcss'] = '^4.0.0'
+	}
+
 	// Publishing hygiene
 	if (config.publint) {
 		deps['publint'] = '^0.3.0'

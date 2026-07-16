@@ -174,6 +174,15 @@ async function checkFile(dir: string, spec: FileCheck): Promise<CheckResult> {
 
 type Pkg = Record<string, unknown>
 
+/** Merged dependencies + devDependencies of a package.json, for presence checks. */
+function allDeps(pkg: Pkg | null): Record<string, string> {
+	if (!pkg) return {}
+	return {
+		...((pkg.dependencies as Record<string, string> | undefined) ?? {}),
+		...((pkg.devDependencies as Record<string, string> | undefined) ?? {}),
+	}
+}
+
 async function readPackageJson(dir: string): Promise<Pkg | null> {
 	const filepath = path.join(dir, 'package.json')
 	if (!(await fs.pathExists(filepath))) return null
@@ -1335,6 +1344,39 @@ async function checkTurborepo(dir: string): Promise<CheckResult> {
 	}
 }
 
+// Only called when `tailwindcss` is a dependency (see runDoctor) — Tailwind is
+// opt-in per project, so nudging repos that don't use it would be noise. v4 is
+// CSS-first: the wiring is a PostCSS plugin (or the Vite plugin), not a config
+// file, so that's what we look for.
+async function checkTailwind(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const hasVitePlugin = '@tailwindcss/vite' in allDeps(pkg)
+	let postcssWired = false
+	for (const candidate of ['postcss.config.mjs', 'postcss.config.js', 'postcss.config.cjs']) {
+		const p = path.join(dir, candidate)
+		if (
+			(await fs.pathExists(p)) &&
+			(await fs.readFile(p, 'utf8')).includes('@tailwindcss/postcss')
+		) {
+			postcssWired = true
+			break
+		}
+	}
+
+	if (hasVitePlugin || postcssWired) {
+		return {
+			check: 'Tailwind',
+			status: 'ok',
+			detail: hasVitePlugin ? '@tailwindcss/vite configured' : '@tailwindcss/postcss configured',
+		}
+	}
+	return {
+		check: 'Tailwind',
+		status: 'optional-missing',
+		detail: 'tailwindcss installed without a PostCSS (or Vite) plugin',
+		hint: 'Run `npx @rtorcato/js-tooling fix tailwind` to scaffold the v4 PostCSS wiring',
+	}
+}
+
 async function checkGitLabCI(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.gitlab-ci.yml', '.gitlab-ci.yaml']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -1414,6 +1456,10 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	// Turborepo is monorepo-only — only surface the check when a workspace exists.
 	if (await fs.pathExists(path.join(targetDir, 'pnpm-workspace.yaml'))) {
 		results.push(await checkTurborepo(targetDir))
+	}
+	// Tailwind is opt-in — only surface the check when the repo actually depends on it.
+	if ('tailwindcss' in allDeps(pkg)) {
+		results.push(await checkTailwind(targetDir, pkg))
 	}
 
 	// Lockfile-driven demotion: if the lock records an intentional opt-out for a

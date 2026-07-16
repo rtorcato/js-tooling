@@ -57,6 +57,7 @@ const sidebars: SidebarsConfig = {
         'reference/publint',
         'reference/rollup',
         'reference/semantic-release',
+        'reference/tailwind',
         'reference/tsup',
         'reference/turborepo',
         'reference/typescript',

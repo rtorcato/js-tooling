@@ -36,6 +36,7 @@ import {
 } from '../generators/security.js'
 import { generateVitestConfig } from '../generators/testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/treeshake.js'
+import { generateTailwind } from '../generators/tailwind.js'
 import { generateTurborepo } from '../generators/turborepo.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../generators/typedoc.js'
 import { copyPreset } from '../utils/copy-preset.js'
@@ -464,6 +465,18 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			const written = await generateTurborepo(targetDir)
 			return { filesWritten: [written] }
+		},
+	},
+	{
+		target: 'tailwind',
+		description: 'Scaffold Tailwind CSS v4 (postcss.config.mjs + src/styles/globals.css)',
+		appliesTo: ['Tailwind'],
+		outputs: ['postcss.config.mjs', 'src/styles/globals.css'],
+		// safe-add: never clobber an existing PostCSS config or CSS entry.
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			const written = await generateTailwind(targetDir)
+			return { filesWritten: written }
 		},
 	},
 	{

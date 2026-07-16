@@ -14,6 +14,7 @@ import { generateSecurityConfigs } from './security.js'
 import { generateTestingConfigs } from './testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from './treeshake.js'
 import { generateTSConfig } from './tsconfig.js'
+import { generateTailwind } from './tailwind.js'
 import { generateTurborepo } from './turborepo.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -89,6 +90,11 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 	// Turborepo task pipeline (pnpm-workspace monorepos, when opted-in)
 	if (config.turborepo) {
 		await generateTurborepo(targetDir)
+	}
+
+	// Tailwind CSS v4 (frontend projects, when opted-in)
+	if (config.tailwind) {
+		await generateTailwind(targetDir)
 	}
 
 	// AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example)
