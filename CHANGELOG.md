@@ -1,3 +1,10 @@
+# [2.40.0](https://github.com/rtorcato/js-tooling/compare/v2.39.0...v2.40.0) (2026-07-16)
+
+
+### Features
+
+* **cli:** add PostCSS preset ([#65](https://github.com/rtorcato/js-tooling/issues/65)) ([#209](https://github.com/rtorcato/js-tooling/issues/209)) ([efc9f41](https://github.com/rtorcato/js-tooling/commit/efc9f41d64a277fdc8f5ba1fc3eabdbf94fa7a0c))
+
 # [2.39.0](https://github.com/rtorcato/js-tooling/compare/v2.38.0...v2.39.0) (2026-07-16)
 
 
