@@ -1,3 +1,10 @@
+# [2.39.0](https://github.com/rtorcato/js-tooling/compare/v2.38.0...v2.39.0) (2026-07-16)
+
+
+### Features
+
+* **cli:** add Tailwind CSS v4 preset ([#63](https://github.com/rtorcato/js-tooling/issues/63)) ([#207](https://github.com/rtorcato/js-tooling/issues/207)) ([ac9249a](https://github.com/rtorcato/js-tooling/commit/ac9249ae82a78c9690be42164ad426f0f6a0c98e)), closes [#68](https://github.com/rtorcato/js-tooling/issues/68)
+
 # [2.38.0](https://github.com/rtorcato/js-tooling/compare/v2.37.0...v2.38.0) (2026-07-15)
 
 
