@@ -147,6 +147,7 @@ export const CONFIG_SCHEMA = {
 		aiSetup: { type: 'boolean' },
 		turborepo: { type: 'boolean' },
 		tailwind: { type: 'boolean' },
+		docsSite: { type: 'boolean' },
 	},
 } as const
 
@@ -238,6 +239,18 @@ export function computeFileList(config: ProjectConfig): string[] {
 			'.github/copilot-instructions.md',
 			'.claude/skills/js-tooling.md',
 			'.mcp.json.example'
+		)
+	}
+	if (config.docsSite) {
+		files.push(
+			'apps/docs/package.json',
+			'apps/docs/docusaurus.config.ts',
+			'apps/docs/sidebars.ts',
+			'apps/docs/tsconfig.json',
+			'apps/docs/docs/intro.md',
+			'apps/docs/static/.nojekyll',
+			'.github/workflows/docs.yml',
+			'pnpm-workspace.yaml'
 		)
 	}
 	if (config.turborepo) files.push('turbo.json')

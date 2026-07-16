@@ -27,6 +27,7 @@ import {
 	generateSizeLimitConfig,
 	generateVscodeExtensions,
 } from '../generators/misc.js'
+import { generateDocsSite } from '../generators/docs-site.js'
 import { generateConfigs } from '../generators/index.js'
 import { composeVerifyScriptFromPkg } from '../generators/package-json.js'
 import { generatePostcss } from '../generators/postcss.js'
@@ -441,6 +442,27 @@ const FIXERS: Fixer[] = [
 		canFixDrift: false,
 		async run({ targetDir }) {
 			const filesWritten = await generateCommunityHealth(targetDir)
+			return { filesWritten }
+		},
+	},
+	{
+		target: 'docs-site',
+		description: 'Scaffold a Docusaurus docs site (apps/docs) + pnpm workspace + Pages deploy',
+		appliesTo: ['Docs site'],
+		outputs: [
+			'apps/docs/package.json',
+			'apps/docs/docusaurus.config.ts',
+			'apps/docs/sidebars.ts',
+			'apps/docs/tsconfig.json',
+			'apps/docs/docs/intro.md',
+			'apps/docs/static/.nojekyll',
+			'.github/workflows/docs.yml',
+			'pnpm-workspace.yaml',
+		],
+		// safe-add: only writes missing files; never clobbers a hand-tuned site.
+		riskLevel: 'safe-add',
+		async run({ targetDir, pkg }) {
+			const filesWritten = await generateDocsSite(targetDir, pkg)
 			return { filesWritten }
 		},
 	},

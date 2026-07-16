@@ -14,6 +14,7 @@ import { generateSecurityConfigs } from './security.js'
 import { generateTestingConfigs } from './testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from './treeshake.js'
 import { generateTSConfig } from './tsconfig.js'
+import { generateDocsSite } from './docs-site.js'
 import { generateTailwind } from './tailwind.js'
 import { generateTurborepo } from './turborepo.js'
 
@@ -95,6 +96,15 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 	// Tailwind CSS v4 (frontend projects, when opted-in)
 	if (config.tailwind) {
 		await generateTailwind(targetDir)
+	}
+
+	// Docusaurus docs site (apps/docs + workspace + Pages deploy, when opted-in)
+	if (config.docsSite) {
+		const pkgPath = path.join(targetDir, 'package.json')
+		const pkg = (await fs.pathExists(pkgPath))
+			? ((await fs.readJson(pkgPath)) as Record<string, unknown>)
+			: null
+		await generateDocsSite(targetDir, pkg)
 	}
 
 	// AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example)

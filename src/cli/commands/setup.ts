@@ -57,6 +57,8 @@ export interface ProjectConfig {
 	turborepo?: boolean
 	/** Scaffold Tailwind CSS v4 (PostCSS plugin + CSS entry) for frontend projects. */
 	tailwind?: boolean
+	/** Scaffold a Docusaurus docs site (apps/docs) + pnpm workspace + Pages deploy. */
+	docsSite?: boolean
 }
 
 export interface SetupOptions {

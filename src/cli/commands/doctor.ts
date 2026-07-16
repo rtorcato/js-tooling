@@ -1377,6 +1377,24 @@ async function checkTailwind(dir: string, pkg: Pkg | null): Promise<CheckResult>
 	}
 }
 
+// Optional docs site (#100/#106). A repo with apps/doc(s)/docusaurus.config.*
+// has one; otherwise nudge. Optional — most repos don't publish a docs site.
+async function checkDocsSite(dir: string): Promise<CheckResult> {
+	for (const folder of ['apps/docs', 'apps/doc']) {
+		for (const cfg of ['docusaurus.config.ts', 'docusaurus.config.js']) {
+			if (await fs.pathExists(path.join(dir, folder, cfg))) {
+				return { check: 'Docs site', status: 'ok', detail: `${folder}/${cfg} found` }
+			}
+		}
+	}
+	return {
+		check: 'Docs site',
+		status: 'optional-missing',
+		detail: 'no Docusaurus docs site',
+		hint: 'Run `npx @rtorcato/js-tooling fix docs-site` to scaffold apps/docs + a Pages deploy',
+	}
+}
+
 async function checkGitLabCI(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.gitlab-ci.yml', '.gitlab-ci.yaml']) {
 		if (await fs.pathExists(path.join(dir, candidate))) {
@@ -1444,6 +1462,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	// permissions). Read-only; self-skips as `ok` outside a live GitHub repo.
 	results.push(...(await checkGitHubSettings(targetDir)))
 	results.push(await checkGitLabCI(targetDir))
+	results.push(await checkDocsSite(targetDir))
 	results.push(await checkCodeowners(targetDir))
 	results.push(await checkCommunityHealth(targetDir))
 	results.push(await checkAiSetup(targetDir))

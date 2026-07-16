@@ -233,6 +233,12 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		exports: [],
 		fixTarget: 'ai',
 	},
+	{
+		name: 'Docs site',
+		description: 'Scaffold a Docusaurus docs site (apps/docs) + pnpm workspace + Pages deploy',
+		exports: [],
+		fixTarget: 'docs-site',
+	},
 ]
 
 program

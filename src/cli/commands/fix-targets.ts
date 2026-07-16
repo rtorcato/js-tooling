@@ -28,6 +28,7 @@ export const FIX_TARGETS: Record<string, string> = {
 	CodeQL: 'codeql',
 	CODEOWNERS: 'codeowners',
 	'GitLab CI': 'gitlab-ci',
+	'Docs site': 'docs-site',
 	Turborepo: 'turborepo',
 	Tailwind: 'tailwind',
 	lockfile: 'lockfile',
@@ -93,6 +94,8 @@ export function declinedInLock(lock: Lockfile | null, checkName: string): boolea
 			return c.aiSetup === false
 		case 'Turborepo':
 			return c.turborepo === false
+		case 'Docs site':
+			return c.docsSite === false
 		case 'Tailwind':
 			return c.tailwind === false
 		default:
@@ -155,6 +158,8 @@ export function lockfilePatchForTarget(
 			return c.aiSetup ? null : { aiSetup: true }
 		case 'turborepo':
 			return c.turborepo ? null : { turborepo: true }
+		case 'docs-site':
+			return c.docsSite ? null : { docsSite: true }
 		case 'tailwind':
 			return c.tailwind ? null : { tailwind: true }
 		default:
