@@ -29,6 +29,7 @@ import {
 } from '../generators/misc.js'
 import { generateConfigs } from '../generators/index.js'
 import { composeVerifyScriptFromPkg } from '../generators/package-json.js'
+import { generatePostcss } from '../generators/postcss.js'
 import {
 	generateCodeQLWorkflow,
 	generateDependabotConfig,
@@ -476,6 +477,18 @@ const FIXERS: Fixer[] = [
 		riskLevel: 'safe-add',
 		async run({ targetDir }) {
 			const written = await generateTailwind(targetDir)
+			return { filesWritten: written }
+		},
+	},
+	{
+		target: 'postcss',
+		description: 'Scaffold postcss.config.mjs with autoprefixer (non-Tailwind CSS pipelines)',
+		appliesTo: ['PostCSS'],
+		outputs: ['postcss.config.mjs'],
+		// safe-add: never clobber an existing config (incl. one written by `fix tailwind`).
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			const written = await generatePostcss(targetDir)
 			return { filesWritten: written }
 		},
 	},

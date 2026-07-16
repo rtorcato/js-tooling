@@ -53,6 +53,7 @@ const sidebars: SidebarsConfig = {
         'reference/github-actions',
         'reference/jest',
         'reference/oxlint',
+        'reference/postcss',
         'reference/prettier',
         'reference/publint',
         'reference/rollup',
