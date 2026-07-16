@@ -751,24 +751,38 @@ async function checkSemanticRelease(dir: string, pkg: Pkg | null): Promise<Check
 	}
 
 	const hasChangesets = await fs.pathExists(path.join(dir, '.changeset', 'config.json'))
+	const hasReleasePlease = await fs.pathExists(path.join(dir, 'release-please-config.json'))
+	const hasSemanticRelease = inPkg || configFile !== null
 
-	// Conflict: both semantic-release and Changesets configured.
-	if ((inPkg || configFile) && hasChangesets) {
+	// Conflict: more than one of {semantic-release, Changesets, Release Please}.
+	const configured = [
+		hasSemanticRelease && 'semantic-release',
+		hasChangesets && 'Changesets',
+		hasReleasePlease && 'Release Please',
+	].filter(Boolean) as string[]
+	if (configured.length > 1) {
 		return {
 			check: 'semantic-release',
 			status: 'drift',
-			detail: 'both semantic-release and Changesets are configured',
-			hint: 'Pick one release tool — remove either the semantic-release config or the .changeset/ directory',
+			detail: `multiple release tools configured (${configured.join(', ')})`,
+			hint: 'Pick one release tool — keep a single release config and remove the others',
 		}
 	}
 
-	if (!inPkg && !configFile) {
-		// Changesets present — treat semantic-release as intentionally not used.
+	if (!hasSemanticRelease) {
+		// An alternative tool present — treat semantic-release as intentionally not used.
 		if (hasChangesets) {
 			return {
 				check: 'semantic-release',
 				status: 'ok',
 				detail: 'using Changesets (.changeset/config.json) instead',
+			}
+		}
+		if (hasReleasePlease) {
+			return {
+				check: 'semantic-release',
+				status: 'ok',
+				detail: 'using Release Please (release-please-config.json) instead',
 			}
 		}
 		return {

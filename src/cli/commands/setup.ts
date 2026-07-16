@@ -43,6 +43,8 @@ export interface ProjectConfig {
 	commitLint: boolean
 	semanticRelease: boolean
 	changesets?: boolean
+	/** Scaffold Release Please (Google's changelog/PR-driven release tool, runs as a GitHub Action). */
+	releasePlease?: boolean
 	oxlint?: boolean
 	securityAutomation: boolean
 	bundler: 'tsup' | 'esbuild' | 'rollup' | 'vite' | 'none'
@@ -277,6 +279,7 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 			choices: [
 				{ name: '📦 semantic-release (commit-message-driven)', value: 'semantic-release' },
 				{ name: '📝 Changesets (changeset-file-driven, monorepo-friendly)', value: 'changesets' },
+				{ name: '🙏 Release Please (changelog/PR-driven, GitHub Action)', value: 'release-please' },
 				{ name: '❌ None', value: 'none' },
 			],
 			default: 'semantic-release',
@@ -384,6 +387,7 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 		commitLint: answers.commitLint || false,
 		semanticRelease: answers.releaseTool === 'semantic-release',
 		changesets: answers.releaseTool === 'changesets',
+		releasePlease: answers.releaseTool === 'release-please',
 		oxlint: answers.oxlint || false,
 		securityAutomation: answers.securityAutomation ?? false,
 		bundler: answers.bundler || 'none',
@@ -452,7 +456,12 @@ function collectSkippedFixSuggestions(config: ProjectConfig): string[] {
 			'Run `npx @rtorcato/js-tooling fix commitlint` to add conventional-commit linting'
 		)
 	}
-	if (!config.semanticRelease && config.projectType === 'library') {
+	if (
+		!config.semanticRelease &&
+		!config.changesets &&
+		!config.releasePlease &&
+		config.projectType === 'library'
+	) {
 		suggestions.push(
 			'Run `npx @rtorcato/js-tooling fix semantic-release` to add automated releases'
 		)

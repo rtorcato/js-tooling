@@ -19,6 +19,7 @@ export const FIX_TARGETS: Record<string, string> = {
 	'Husky pre-push': 'husky',
 	'verify script': 'verify',
 	'semantic-release': 'semantic-release',
+	'Release Please': 'release-please',
 	knip: 'knip',
 	'size-limit': 'size-limit',
 	'Tree-shake check': 'treeshake-check',
@@ -78,6 +79,8 @@ export function declinedInLock(lock: Lockfile | null, checkName: string): boolea
 			)
 		case 'semantic-release':
 			return c.semanticRelease === false
+		case 'Release Please':
+			return c.releasePlease === false
 		case 'Dependabot':
 		case 'CodeQL':
 		// GitHub repo-settings checks (#137) share the securityAutomation opt-out.
@@ -139,6 +142,8 @@ export function lockfilePatchForTarget(
 			return c.gitHooks ? null : { gitHooks: true }
 		case 'semantic-release':
 			return c.semanticRelease ? null : { semanticRelease: true }
+		case 'release-please':
+			return c.releasePlease ? null : { releasePlease: true }
 		case 'dependabot':
 		case 'renovate':
 		case 'codeql':

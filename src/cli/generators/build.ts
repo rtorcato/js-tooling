@@ -1,6 +1,7 @@
 import fs from 'fs-extra'
 import path from 'node:path'
 import type { ProjectConfig } from '../commands/setup.js'
+import { generateReleasePlease } from './release-please.js'
 
 // tsup, esbuild, and vite all pull in esbuild, whose install-time build script
 // pnpm 11 refuses to run until it's approved — otherwise `pnpm install` fails
@@ -55,6 +56,11 @@ export async function generateBuildConfigs(config: ProjectConfig, targetDir: str
 	// Generate Changesets config (alternative to semantic-release)
 	if (config.changesets) {
 		await generateChangesetsConfig(targetDir)
+	}
+
+	// Generate Release Please config + workflow (alternative to semantic-release)
+	if (config.releasePlease) {
+		await generateReleasePlease(targetDir)
 	}
 }
 

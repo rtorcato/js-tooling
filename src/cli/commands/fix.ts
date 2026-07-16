@@ -30,6 +30,7 @@ import {
 import { generateConfigs } from '../generators/index.js'
 import { composeVerifyScriptFromPkg } from '../generators/package-json.js'
 import { generatePostcss } from '../generators/postcss.js'
+import { generateReleasePlease } from '../generators/release-please.js'
 import {
 	generateCodeQLWorkflow,
 	generateDependabotConfig,
@@ -356,6 +357,23 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			const result = await copyPreset('changesets', targetDir)
 			return { filesWritten: [result.target] }
+		},
+	},
+	{
+		target: 'release-please',
+		description:
+			'Scaffold Release Please config + manifest + GitHub Action (alternative to semantic-release)',
+		appliesTo: ['Release Please'],
+		outputs: [
+			'release-please-config.json',
+			'.release-please-manifest.json',
+			'.github/workflows/release-please.yml',
+		],
+		// safe-add: never clobber a hand-tuned config, manifest, or workflow.
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			const written = await generateReleasePlease(targetDir)
+			return { filesWritten: written }
 		},
 	},
 	{

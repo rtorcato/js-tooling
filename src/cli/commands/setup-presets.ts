@@ -138,6 +138,7 @@ export const CONFIG_SCHEMA = {
 		commitLint: { type: 'boolean' },
 		semanticRelease: { type: 'boolean' },
 		changesets: { type: 'boolean' },
+		releasePlease: { type: 'boolean' },
 		oxlint: { type: 'boolean' },
 		securityAutomation: { type: 'boolean' },
 		bundler: { type: 'string', enum: ['tsup', 'esbuild', 'rollup', 'vite', 'none'] },
@@ -215,6 +216,13 @@ export function computeFileList(config: ProjectConfig): string[] {
 	else if (config.bundler === 'vite') files.push('vite.config.ts')
 	if (config.semanticRelease) files.push('release.config.mjs')
 	if (config.changesets) files.push('.changeset/config.json')
+	if (config.releasePlease) {
+		files.push(
+			'release-please-config.json',
+			'.release-please-manifest.json',
+			'.github/workflows/release-please.yml'
+		)
+	}
 	if (config.oxlint) files.push('.oxlintrc.json')
 	if (config.treeshakeCheck && config.projectType === 'library') {
 		files.push(
