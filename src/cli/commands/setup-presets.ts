@@ -146,6 +146,7 @@ export const CONFIG_SCHEMA = {
 		badges: { type: 'boolean' },
 		aiSetup: { type: 'boolean' },
 		turborepo: { type: 'boolean' },
+		tailwind: { type: 'boolean' },
 	},
 } as const
 
@@ -240,6 +241,7 @@ export function computeFileList(config: ProjectConfig): string[] {
 		)
 	}
 	if (config.turborepo) files.push('turbo.json')
+	if (config.tailwind) files.push('postcss.config.mjs', 'src/styles/globals.css')
 	files.push('README.md')
 	return files
 }

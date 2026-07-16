@@ -55,6 +55,8 @@ export interface ProjectConfig {
 	aiSetup?: boolean
 	/** Scaffold a turbo.json task pipeline (pnpm-workspace monorepos). */
 	turborepo?: boolean
+	/** Scaffold Tailwind CSS v4 (PostCSS plugin + CSS entry) for frontend projects. */
+	tailwind?: boolean
 }
 
 export interface SetupOptions {
@@ -320,6 +322,17 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 			when: () => hasWorkspace,
 		},
 		{
+			type: 'confirm',
+			name: 'tailwind',
+			message: '🎨 Add Tailwind CSS v4 (PostCSS plugin + globals.css)?',
+			default: true,
+			// Only meaningful for frontend project types.
+			when: (answers: any) =>
+				answers.projectType === 'web-app' ||
+				answers.projectType === 'react-app' ||
+				answers.projectType === 'nextjs-app',
+		},
+		{
 			type: 'list',
 			name: 'bundler',
 			message: '📦 Which bundler/build tool?',
@@ -379,6 +392,7 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 		badges: answers.badges ?? false,
 		aiSetup: answers.aiSetup ?? false,
 		turborepo: answers.turborepo ?? false,
+		tailwind: answers.tailwind ?? false,
 	}
 }
 
