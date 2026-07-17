@@ -56,6 +56,8 @@ export interface ProjectConfig {
 	aiSetup?: boolean
 	/** Scaffold a turbo.json task pipeline (pnpm-workspace monorepos). */
 	turborepo?: boolean
+	/** Scaffold an nx.json task orchestrator (Turborepo alternative). */
+	nx?: boolean
 	/** Scaffold Tailwind CSS v4 (PostCSS plugin + CSS entry) for frontend projects. */
 	tailwind?: boolean
 }
@@ -318,10 +320,15 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 			default: true,
 		},
 		{
-			type: 'confirm',
-			name: 'turborepo',
-			message: '🚀 Add a Turborepo task pipeline (turbo.json)?',
-			default: true,
+			type: 'list',
+			name: 'orchestrator',
+			message: '🚀 Monorepo task orchestrator?',
+			choices: [
+				{ name: '⚡ Turborepo (turbo.json)', value: 'turbo' },
+				{ name: '🔷 Nx (nx.json)', value: 'nx' },
+				{ name: '❌ None', value: 'none' },
+			],
+			default: 'turbo',
 			when: () => hasWorkspace,
 		},
 		{
@@ -395,7 +402,8 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 		publint: answers.publint ?? false,
 		badges: answers.badges ?? false,
 		aiSetup: answers.aiSetup ?? false,
-		turborepo: answers.turborepo ?? false,
+		turborepo: answers.orchestrator === 'turbo',
+		nx: answers.orchestrator === 'nx',
 		tailwind: answers.tailwind ?? false,
 	}
 }

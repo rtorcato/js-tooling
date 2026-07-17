@@ -81,6 +81,7 @@
 		"tooling/docusaurus/index.mjs",
 		"tooling/docusaurus/index.d.mts",
 		"tooling/biome/biome.json",
+		"tooling/nx/nx.json",
 		"tooling/changesets/config.json",
 		"tooling/release-please/release-please-config.json",
 		"tooling/release-please/.release-please-manifest.json",
@@ -176,6 +177,7 @@
 			"import": "./tooling/docusaurus/index.mjs"
 		},
 		"./biome": "./tooling/biome/biome.json",
+		"./nx": "./tooling/nx/nx.json",
 		"./changesets": "./tooling/changesets/config.json",
 		"./release-please": "./tooling/release-please/release-please-config.json",
 		"./oxlint": "./tooling/oxlint/oxlintrc.json",

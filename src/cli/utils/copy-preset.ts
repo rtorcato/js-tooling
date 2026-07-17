@@ -3,6 +3,7 @@ import fs from 'fs-extra'
 
 export type PresetName =
 	| 'biome'
+	| 'nx'
 	| 'changesets'
 	| 'release-please'
 	| 'oxlint'
@@ -21,6 +22,11 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		source: 'tooling/biome/biome.json',
 		target: 'biome.json',
 		desc: 'Biome formatter and linter configuration',
+	},
+	nx: {
+		source: 'tooling/nx/nx.json',
+		target: 'nx.json',
+		desc: 'Nx monorepo task-orchestrator configuration',
 	},
 	changesets: {
 		source: 'tooling/changesets/config.json',
