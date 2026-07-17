@@ -53,6 +53,8 @@
 		"tooling/jest-presets/**",
 		"tooling/playwright/playwright.config.mjs",
 		"tooling/playwright/playwright.config.d.mts",
+		"tooling/cypress/cypress.config.mjs",
+		"tooling/cypress/cypress.config.d.mts",
 		"tooling/prettier/index.mjs",
 		"tooling/prettier/index.d.mts",
 		"tooling/typescript/*.json",
@@ -117,6 +119,10 @@
 		"./playwright": {
 			"types": "./tooling/playwright/playwright.config.d.mts",
 			"import": "./tooling/playwright/playwright.config.mjs"
+		},
+		"./cypress": {
+			"types": "./tooling/cypress/cypress.config.d.mts",
+			"import": "./tooling/cypress/cypress.config.mjs"
 		},
 		"./prettier": {
 			"types": "./tooling/prettier/index.d.mts",

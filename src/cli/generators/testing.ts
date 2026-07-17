@@ -9,6 +9,8 @@ export async function generateTestingConfigs(config: ProjectConfig, targetDir: s
 		await generateJestConfig(config, targetDir)
 	} else if (config.testing.framework === 'playwright') {
 		await generatePlaywrightConfig(targetDir)
+	} else if (config.testing.framework === 'cypress') {
+		await generateCypressConfig(targetDir)
 	}
 }
 
@@ -57,4 +59,43 @@ export async function generatePlaywrightConfig(targetDir: string) {
 	const playwrightConfig = `export { default } from '@rtorcato/js-tooling/playwright'
 `
 	await fs.writeFile(playwrightConfigPath, playwrightConfig)
+}
+
+const CYPRESS_EXAMPLE_SPEC = `describe('example', () => {
+  it('loads the app', () => {
+    cy.visit('/')
+  })
+})
+`
+
+/**
+ * Scaffolds cypress.config.ts (a re-export of the shipped preset) plus the
+ * tests/e2e + cypress/support boilerplate. The config re-export is regenerated
+ * every run (idempotent); boilerplate/specs are only created when absent, so
+ * real tests are never clobbered. Returns the relative paths written.
+ */
+export async function generateCypressConfig(targetDir: string): Promise<string[]> {
+	const written: string[] = []
+	await fs.writeFile(
+		path.join(targetDir, 'cypress.config.ts'),
+		`export { default } from '@rtorcato/js-tooling/cypress'\n`
+	)
+	written.push('cypress.config.ts')
+
+	const boilerplate: Array<[string, string]> = [
+		['cypress/support/e2e.ts', `import './commands'\n`],
+		[
+			'cypress/support/commands.ts',
+			`// Add custom commands via Cypress.Commands.add(...).\nexport {}\n`,
+		],
+		['tests/e2e/example.cy.ts', CYPRESS_EXAMPLE_SPEC],
+	]
+	for (const [rel, content] of boilerplate) {
+		const filePath = path.join(targetDir, rel)
+		if (await fs.pathExists(filePath)) continue
+		await fs.ensureDir(path.dirname(filePath))
+		await fs.writeFile(filePath, content)
+		written.push(rel)
+	}
+	return written
 }

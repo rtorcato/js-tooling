@@ -48,6 +48,7 @@ const sidebars: SidebarsConfig = {
         'reference/biome',
         'reference/changesets',
         'reference/commitlint',
+        'reference/cypress',
         'reference/esbuild',
         'reference/eslint',
         'reference/github-actions',

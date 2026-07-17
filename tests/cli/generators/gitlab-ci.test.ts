@@ -70,4 +70,11 @@ describe('generateGitLabCI', () => {
 		const yaml = await fs.readFile(join(dir, '.gitlab-ci.yml'), 'utf-8')
 		expect(yaml).toContain('pnpm test:e2e')
 	})
+
+	it('uses pnpm test:e2e for cypress projects', async () => {
+		const dir = newTmpDir()
+		await generateGitLabCI(baseConfig({ testing: { framework: 'cypress' } }), dir)
+		const yaml = await fs.readFile(join(dir, '.gitlab-ci.yml'), 'utf-8')
+		expect(yaml).toContain('pnpm test:e2e')
+	})
 })
