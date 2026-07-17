@@ -72,17 +72,24 @@ interface ToolCatalogEntry {
 const TOOL_CATALOG: ToolCatalogEntry[] = [
 	{
 		name: 'TypeScript',
-		description: 'Base, React, Next.js, Node.js, Express tsconfig presets',
+		description: 'Base, React, Next.js, Node.js, Express, Bun tsconfig presets',
 		exports: [
 			'@rtorcato/js-tooling/typescript/base',
 			'@rtorcato/js-tooling/typescript/react',
 			'@rtorcato/js-tooling/typescript/next',
 			'@rtorcato/js-tooling/typescript/node',
 			'@rtorcato/js-tooling/typescript/express',
+			'@rtorcato/js-tooling/typescript/bun',
 			'@rtorcato/js-tooling/typescript/test',
 			'@rtorcato/js-tooling/typescript/reset',
 		],
 		fixTarget: 'tsconfig',
+	},
+	{
+		name: 'Bun',
+		description: 'Bun runtime/test-runner config (bunfig.toml + Bun-typed tsconfig)',
+		exports: ['@rtorcato/js-tooling/typescript/bun'],
+		fixTarget: 'bun',
 	},
 	{
 		name: 'ESLint',

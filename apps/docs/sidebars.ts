@@ -46,6 +46,7 @@ const sidebars: SidebarsConfig = {
       },
       items: [
         'reference/biome',
+        'reference/bun',
         'reference/changesets',
         'reference/commitlint',
         'reference/cypress',

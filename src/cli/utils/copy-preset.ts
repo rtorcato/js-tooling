@@ -3,6 +3,7 @@ import fs from 'fs-extra'
 
 export type PresetName =
 	| 'biome'
+	| 'bun'
 	| 'nx'
 	| 'changesets'
 	| 'release-please'
@@ -22,6 +23,11 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		source: 'tooling/biome/biome.json',
 		target: 'biome.json',
 		desc: 'Biome formatter and linter configuration',
+	},
+	bun: {
+		source: 'tooling/bun/bunfig.toml',
+		target: 'bunfig.toml',
+		desc: 'Bun runtime/test-runner configuration',
 	},
 	nx: {
 		source: 'tooling/nx/nx.json',
