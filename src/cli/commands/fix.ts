@@ -44,6 +44,7 @@ import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/
 import { generateTailwind } from '../generators/tailwind.js'
 import { generateTurborepo } from '../generators/turborepo.js'
 import { generateNx } from '../generators/nx.js'
+import { generateBun } from '../generators/bun.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../generators/typedoc.js'
 import { copyPreset } from '../utils/copy-preset.js'
 import { applyGithubSettings } from '../utils/github-settings.js'
@@ -653,6 +654,20 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			await generateRollupConfig(targetDir)
 			return { filesWritten: ['rollup.config.mjs'] }
+		},
+	},
+	{
+		target: 'bun',
+		description:
+			'Scaffold bunfig.toml + a Bun-typed tsconfig.json (extends the bun preset) for Bun runtime/test users',
+		// Opt-in toolchain — no doctor check; runs only when explicitly targeted.
+		appliesTo: [],
+		outputs: ['bunfig.toml', 'tsconfig.json'],
+		// safe-add: never clobbers an existing bunfig.toml or tsconfig.json.
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			const filesWritten = await generateBun(targetDir)
+			return { filesWritten }
 		},
 	},
 	{

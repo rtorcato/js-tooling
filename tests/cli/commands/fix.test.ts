@@ -119,6 +119,18 @@ describe('fix nx', () => {
 	})
 })
 
+describe('fix bun', () => {
+	it('scaffolds bunfig.toml + a bun-typed tsconfig when targeted', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('bun', { directory: dir, yes: true })
+		expect(await fs.pathExists(join(dir, 'bunfig.toml'))).toBe(true)
+		expect((await fs.readJson(join(dir, 'tsconfig.json'))).extends).toBe(
+			'@rtorcato/js-tooling/typescript/bun'
+		)
+	})
+})
+
 describe('fix --list', () => {
 	it('emits a json payload listing every fixer when --list --json', async () => {
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
