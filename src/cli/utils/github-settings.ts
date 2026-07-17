@@ -26,8 +26,14 @@ export type GhExec = (args: string[], stdin?: string) => Promise<GhResult>
 
 const GH_TIMEOUT_MS = 10_000
 
-/** Real `gh` runner — never rejects; a missing/failing gh resolves ok:false. */
-export const realGhExec: GhExec = (args, stdin) =>
+/**
+ * Real `gh` runner — never rejects; a missing/failing gh resolves ok:false.
+ * `cwd` scopes gh's repo resolution to the target dir so `-d/--directory` is
+ * honored (gh otherwise resolves the remote from process.cwd()). Not annotated
+ * `: GhExec` so the optional cwd stays callable; still assignable where GhExec
+ * is expected.
+ */
+export const realGhExec = (args: string[], stdin?: string, cwd?: string): Promise<GhResult> =>
 	new Promise((resolve) => {
 		let settled = false
 		const done = (r: GhResult) => {
@@ -39,6 +45,7 @@ export const realGhExec: GhExec = (args, stdin) =>
 		// gh args are internal/derived from gh itself (never user free-text), so
 		// shell:false + an args array keeps this injection-safe.
 		const child = spawn('gh', args, {
+			cwd,
 			stdio: [stdin === undefined ? 'ignore' : 'pipe', 'pipe', 'pipe'],
 		})
 		let stdout = ''
@@ -115,20 +122,19 @@ async function probeRepo(exec: GhExec): Promise<{ info: RepoInfo } | { skip: str
 	}
 }
 
-export async function checkGitHubSettings(
-	dir: string,
-	exec: GhExec = realGhExec
-): Promise<CheckResult[]> {
+export async function checkGitHubSettings(dir: string, exec?: GhExec): Promise<CheckResult[]> {
 	// Cheap gate first: no .git → never spawn (keeps tmp-dir doctor runs offline).
 	if (!(await fs.pathExists(path.join(dir, '.git')))) return skipAll('not a git repository')
 
-	const probe = await probeRepo(exec)
+	// Bind gh's cwd to the target dir so its repo resolution honors `-d` (#218).
+	const gh: GhExec = exec ?? ((args, stdin) => realGhExec(args, stdin, dir))
+	const probe = await probeRepo(gh)
 	if ('skip' in probe) return skipAll(probe.skip)
 	const { info } = probe
 	return [
-		await checkBranchProtection(exec, info.nwo, info.branch),
+		await checkBranchProtection(gh, info.nwo, info.branch),
 		checkMergeSettings(info),
-		await checkWorkflowPermissions(exec, info.nwo),
+		await checkWorkflowPermissions(gh, info.nwo),
 	]
 }
 
@@ -320,15 +326,14 @@ export function buildGhApplyCommands(state: GhApplyState): GhCommand[] {
  * the "no package.json found — skipping" fixer pattern. Read-only unless a delta
  * exists, so re-runs (walk-all hits it up to 3×) are safe.
  */
-export async function applyGithubSettings(
-	dir: string,
-	exec: GhExec = realGhExec
-): Promise<string[]> {
+export async function applyGithubSettings(dir: string, exec?: GhExec): Promise<string[]> {
 	if (!(await fs.pathExists(path.join(dir, '.git')))) {
 		console.log(chalk.gray('   skipped — not a git repository'))
 		return []
 	}
-	const probe = await probeRepo(exec)
+	// Bind gh's cwd to the target dir so its repo resolution honors `-d` (#218).
+	const gh: GhExec = exec ?? ((args, stdin) => realGhExec(args, stdin, dir))
+	const probe = await probeRepo(gh)
 	if ('skip' in probe) {
 		console.log(chalk.gray(`   skipped — ${probe.skip}`))
 		return []
@@ -337,8 +342,8 @@ export async function applyGithubSettings(
 
 	// Re-read via the same checks so the delta logic stays single-sourced. A 403
 	// (no admin) reports `ok` → treated as "nothing to apply", never a failed PUT.
-	const bp = await checkBranchProtection(exec, info.nwo, info.branch)
-	const wp = await checkWorkflowPermissions(exec, info.nwo)
+	const bp = await checkBranchProtection(gh, info.nwo, info.branch)
+	const wp = await checkWorkflowPermissions(gh, info.nwo)
 	const commands = buildGhApplyCommands({
 		nwo: info.nwo,
 		branch: info.branch,
@@ -349,7 +354,7 @@ export async function applyGithubSettings(
 
 	const applied: string[] = []
 	for (const cmd of commands) {
-		const r = await exec(cmd.args, cmd.stdin)
+		const r = await gh(cmd.args, cmd.stdin)
 		if (r.ok) applied.push(cmd.label)
 		else
 			console.log(chalk.yellow(`   could not apply ${cmd.label}: ${r.stderr.trim() || 'gh error'}`))
