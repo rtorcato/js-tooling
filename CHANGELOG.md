@@ -1,3 +1,10 @@
+# [2.43.0](https://github.com/rtorcato/js-tooling/compare/v2.42.0...v2.43.0) (2026-07-17)
+
+
+### Features
+
+* **cli:** add Release Please preset (alternative release tool) ([#223](https://github.com/rtorcato/js-tooling/issues/223)) ([c42bd98](https://github.com/rtorcato/js-tooling/commit/c42bd98f6ff936237e69570561839a6378944410))
+
 # [2.42.0](https://github.com/rtorcato/js-tooling/compare/v2.41.2...v2.42.0) (2026-07-17)
 
 
