@@ -41,6 +41,7 @@ import { generateTailwind } from '../generators/tailwind.js'
 import { generateTurborepo } from '../generators/turborepo.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../generators/typedoc.js'
 import { copyPreset } from '../utils/copy-preset.js'
+import { applyGithubSettings } from '../utils/github-settings.js'
 import {
 	type Lockfile,
 	LOCKFILE_NAME,
@@ -412,6 +413,21 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			await generateCodeQLWorkflow(targetDir)
 			return { filesWritten: ['.github/workflows/codeql.yml'] }
+		},
+	},
+	{
+		target: 'github-settings',
+		description:
+			'Apply branch protection + auto-merge + workflow permissions on GitHub via gh api (mutates the remote repo, not files)',
+		appliesTo: ['Branch protection', 'Merge settings', 'Workflow permissions'],
+		outputs: ['GitHub repo settings (remote, via gh api)'],
+		// safe-add is load-bearing: it exempts this fixer from the `--diff` shadow-run
+		// (previewFixer copies to tmp and *executes* run(), which would fire real
+		// `gh api` PUTs during a mere preview).
+		riskLevel: 'safe-add',
+		canFixDrift: true,
+		async run({ targetDir }) {
+			return { filesWritten: await applyGithubSettings(targetDir) }
 		},
 	},
 	{

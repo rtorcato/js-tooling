@@ -59,6 +59,17 @@ describe('fix registry', () => {
 			expect(typeof f.canFixDrift).toBe('boolean')
 		}
 	})
+
+	it('registers github-settings as a safe-add fixer (exempt from the diff shadow-run)', () => {
+		const fixer = getFixers().find((f) => f.target === 'github-settings')
+		expect(fixer).toBeTruthy()
+		expect(fixer?.riskLevel).toBe('safe-add')
+		expect(fixer?.appliesTo).toEqual([
+			'Branch protection',
+			'Merge settings',
+			'Workflow permissions',
+		])
+	})
 })
 
 describe('fix --list', () => {
@@ -652,6 +663,20 @@ describe('fix --json', () => {
 		} finally {
 			logSpy.mockRestore()
 			exitSpy.mockRestore()
+		}
+	})
+
+	it('fix github-settings --json --dry-run on a non-git dir mutates nothing', async () => {
+		const dir = newTmpDir()
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await fixCommand('github-settings', { directory: dir, json: true, dryRun: true })
+			// No .git → the checks skip to ok, so nothing is written or spawned.
+			expect(fs.readdirSync(dir)).toEqual([])
+			const payload = JSON.parse(logSpy.mock.calls.at(-1)?.[0] as string)
+			expect(payload.target).toBe('github-settings')
+		} finally {
+			logSpy.mockRestore()
 		}
 	})
 

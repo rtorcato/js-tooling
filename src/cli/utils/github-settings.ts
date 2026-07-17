@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process'
 import path from 'node:path'
+import chalk from 'chalk'
 import fs from 'fs-extra'
 import type { CheckResult } from '../commands/doctor.js'
 
@@ -20,12 +21,13 @@ export interface GhResult {
 	code: number | null
 }
 
-export type GhExec = (args: string[]) => Promise<GhResult>
+/** `stdin`, when given, is written to gh's stdin (for `--input -` bodies). */
+export type GhExec = (args: string[], stdin?: string) => Promise<GhResult>
 
 const GH_TIMEOUT_MS = 10_000
 
 /** Real `gh` runner — never rejects; a missing/failing gh resolves ok:false. */
-export const realGhExec: GhExec = (args) =>
+export const realGhExec: GhExec = (args, stdin) =>
 	new Promise((resolve) => {
 		let settled = false
 		const done = (r: GhResult) => {
@@ -36,21 +38,27 @@ export const realGhExec: GhExec = (args) =>
 		}
 		// gh args are internal/derived from gh itself (never user free-text), so
 		// shell:false + an args array keeps this injection-safe.
-		const child = spawn('gh', args, { stdio: ['ignore', 'pipe', 'pipe'] })
+		const child = spawn('gh', args, {
+			stdio: [stdin === undefined ? 'ignore' : 'pipe', 'pipe', 'pipe'],
+		})
 		let stdout = ''
 		let stderr = ''
 		const timer = setTimeout(() => {
 			child.kill()
 			done({ ok: false, stdout: '', stderr: 'gh timed out', code: null })
 		}, GH_TIMEOUT_MS)
-		child.stdout.on('data', (d) => {
+		child.stdout?.on('data', (d) => {
 			stdout += d
 		})
-		child.stderr.on('data', (d) => {
+		child.stderr?.on('data', (d) => {
 			stderr += d
 		})
 		child.on('close', (code) => done({ ok: code === 0, stdout, stderr, code }))
 		child.on('error', (err) => done({ ok: false, stdout: '', stderr: String(err), code: null }))
+		if (stdin !== undefined && child.stdin) {
+			child.stdin.write(stdin)
+			child.stdin.end()
+		}
 	})
 
 /** The standard doctor checks these settings against. */
@@ -211,4 +219,146 @@ async function checkWorkflowPermissions(exec: GhExec, nwo: string): Promise<Chec
 			hint: 'Set default workflow permissions to read-only and disable workflow PR approvals',
 		}
 	return { check, status: 'ok', detail: 'read-only default, no workflow PR approvals' }
+}
+
+// --- Fixer side (#138): apply the standard via gh api ---------------------
+
+/** Which of the three settings deviate from the standard and so need applying. */
+export interface GhApplyState {
+	nwo: string
+	branch: string
+	merge: boolean
+	protection: boolean
+	workflow: boolean
+}
+
+/** A single `gh api` mutation plus the human label reported once it succeeds. */
+export interface GhCommand {
+	label: string
+	args: string[]
+	/** JSON body piped to gh stdin (branch protection uses `--input -`). */
+	stdin?: string
+}
+
+/** The branch-protection body PUT to the API — mirrors the doctor standard. */
+const PROTECTION_BODY = JSON.stringify({
+	required_status_checks: { strict: false, contexts: GITHUB_STANDARD.requiredContexts },
+	// enforce_admins off so the App/RELEASE_TOKEN can bypass to push release commits.
+	enforce_admins: false,
+	// Required human review would deadlock solo Dependabot auto-merge.
+	required_pull_request_reviews: null,
+	restrictions: null,
+	allow_force_pushes: false,
+	allow_deletions: false,
+})
+
+/** Pure: the exact `gh api` invocations for whatever deviates ([] when compliant). */
+export function buildGhApplyCommands(state: GhApplyState): GhCommand[] {
+	const commands: GhCommand[] = []
+	if (state.merge)
+		commands.push({
+			label: 'merge settings (auto-merge, squash, delete-on-merge)',
+			args: [
+				'api',
+				'-X',
+				'PATCH',
+				`repos/${state.nwo}`,
+				'-F',
+				'allow_auto_merge=true',
+				'-F',
+				'allow_squash_merge=true',
+				'-F',
+				'delete_branch_on_merge=true',
+			],
+		})
+	if (state.protection)
+		commands.push({
+			label: `branch protection on ${state.branch}`,
+			args: [
+				'api',
+				'-X',
+				'PUT',
+				`repos/${state.nwo}/branches/${state.branch}/protection`,
+				'--input',
+				'-',
+			],
+			stdin: PROTECTION_BODY,
+		})
+	if (state.workflow)
+		commands.push({
+			label: 'workflow permissions (read-only)',
+			args: [
+				'api',
+				'-X',
+				'PUT',
+				`repos/${state.nwo}/actions/permissions/workflow`,
+				'-f',
+				'default_workflow_permissions=read',
+				'-F',
+				'can_approve_pull_request_reviews=false',
+			],
+		})
+	return commands
+}
+
+/**
+ * Re-reads GitHub state and applies only the deltas via `gh api` (idempotent —
+ * a compliant repo is a no-op). Returns human labels for what changed, or `[]`
+ * on skip (no gh/auth/remote, or already compliant), logging the reason. Mirrors
+ * the "no package.json found — skipping" fixer pattern. Read-only unless a delta
+ * exists, so re-runs (walk-all hits it up to 3×) are safe.
+ */
+export async function applyGithubSettings(
+	dir: string,
+	exec: GhExec = realGhExec
+): Promise<string[]> {
+	if (!(await fs.pathExists(path.join(dir, '.git')))) {
+		console.log(chalk.gray('   skipped — not a git repository'))
+		return []
+	}
+	const probe = await exec([
+		'repo',
+		'view',
+		'--json',
+		'nameWithOwner,defaultBranchRef,autoMergeAllowed,squashMergeAllowed,deleteBranchOnMerge',
+	])
+	if (!probe.ok) {
+		console.log(chalk.gray(`   skipped — ${probeFailureReason(probe)}`))
+		return []
+	}
+	let meta: RepoProbe
+	try {
+		meta = JSON.parse(probe.stdout) as RepoProbe
+	} catch {
+		console.log(chalk.gray('   skipped — could not parse gh output'))
+		return []
+	}
+	const nwo = meta.nameWithOwner
+	if (!nwo) {
+		console.log(chalk.gray('   skipped — no GitHub remote'))
+		return []
+	}
+	const branch = meta.defaultBranchRef?.name ?? 'main'
+
+	// Re-read via the same checks so the delta logic stays single-sourced. A 403
+	// (no admin) reports `ok` → treated as "nothing to apply", never a failed PUT.
+	const bp = await checkBranchProtection(exec, nwo, branch)
+	const wp = await checkWorkflowPermissions(exec, nwo)
+	const commands = buildGhApplyCommands({
+		nwo,
+		branch,
+		merge: checkMergeSettings(meta).status === 'drift',
+		protection: bp.status === 'optional-missing' || bp.status === 'drift',
+		workflow: wp.status === 'drift',
+	})
+
+	const applied: string[] = []
+	for (const cmd of commands) {
+		const r = await exec(cmd.args, cmd.stdin)
+		if (r.ok) applied.push(cmd.label)
+		else
+			console.log(chalk.yellow(`   could not apply ${cmd.label}: ${r.stderr.trim() || 'gh error'}`))
+	}
+	if (applied.length === 0) console.log(chalk.gray('   already configured — nothing to apply'))
+	return applied
 }

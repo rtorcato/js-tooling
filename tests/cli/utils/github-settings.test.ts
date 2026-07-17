@@ -1,7 +1,13 @@
 import { join } from 'node:path'
 import fs from 'fs-extra'
-import { describe, expect, it, vi } from 'vitest'
-import { checkGitHubSettings, type GhExec, type GhResult } from '../../../src/cli/utils/github-settings.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+	applyGithubSettings,
+	buildGhApplyCommands,
+	checkGitHubSettings,
+	type GhExec,
+	type GhResult,
+} from '../../../src/cli/utils/github-settings.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
@@ -141,5 +147,128 @@ describe('checkGitHubSettings — drift', () => {
 		const wp = byName(await checkGitHubSettings(gitRepo(), fakeGh({ workflow })), 'Workflow permissions')
 		expect(wp?.status).toBe('drift')
 		expect(wp?.detail).toContain('write')
+	})
+})
+
+describe('buildGhApplyCommands', () => {
+	const state = { nwo: 'owner/repo', branch: 'main' }
+
+	it('returns the exact PATCH/PUT/PUT invocations for a fully-drifted repo', () => {
+		const cmds = buildGhApplyCommands({ ...state, merge: true, protection: true, workflow: true })
+		expect(cmds.map((c) => c.args)).toEqual([
+			[
+				'api',
+				'-X',
+				'PATCH',
+				'repos/owner/repo',
+				'-F',
+				'allow_auto_merge=true',
+				'-F',
+				'allow_squash_merge=true',
+				'-F',
+				'delete_branch_on_merge=true',
+			],
+			['api', '-X', 'PUT', 'repos/owner/repo/branches/main/protection', '--input', '-'],
+			[
+				'api',
+				'-X',
+				'PUT',
+				'repos/owner/repo/actions/permissions/workflow',
+				'-f',
+				'default_workflow_permissions=read',
+				'-F',
+				'can_approve_pull_request_reviews=false',
+			],
+		])
+		// The protection PUT carries the standard body on stdin.
+		const body = JSON.parse(cmds[1]?.stdin ?? '{}')
+		expect(body.required_status_checks).toEqual({
+			strict: false,
+			contexts: ['lint', 'typecheck', 'build', 'test'],
+		})
+		expect(body.enforce_admins).toBe(false)
+		expect(body.required_pull_request_reviews).toBeNull()
+	})
+
+	it('returns [] when nothing deviates', () => {
+		expect(
+			buildGhApplyCommands({ ...state, merge: false, protection: false, workflow: false })
+		).toEqual([])
+	})
+})
+
+describe('applyGithubSettings', () => {
+	beforeEach(() => {
+		vi.spyOn(console, 'log').mockImplementation(() => {})
+	})
+
+	/** Records every gh call; canned responses drive which deltas fire. */
+	function recordingGh(
+		overrides: { probe?: GhResult; protection?: GhResult; workflow?: GhResult } = {}
+	) {
+		const calls: { args: string[]; stdin?: string }[] = []
+		const exec: GhExec = vi.fn(async (args: string[], stdin?: string) => {
+			calls.push({ args, stdin })
+			if (args[0] === 'repo') return overrides.probe ?? ok(COMPLIANT_PROBE)
+			if (args.includes('--input')) return ok('') // protection PUT
+			if (args[1]?.includes('/protection')) return overrides.protection ?? ok(COMPLIANT_PROTECTION)
+			if (args[1]?.includes('/actions/permissions/workflow'))
+				return overrides.workflow ?? ok(COMPLIANT_WORKFLOW)
+			if (args.includes('PATCH')) return ok('') // merge PATCH
+			return ok('')
+		})
+		return { exec, calls }
+	}
+
+	it('never spawns gh outside a git repo', async () => {
+		const { exec } = recordingGh()
+		expect(await applyGithubSettings(newTmpDir(), exec)).toEqual([])
+		expect(exec).not.toHaveBeenCalled()
+	})
+
+	it('applies all three deltas and returns their labels, in order', async () => {
+		const driftedProbe = ok(
+			JSON.stringify({
+				nameWithOwner: 'owner/repo',
+				defaultBranchRef: { name: 'main' },
+				autoMergeAllowed: false,
+				squashMergeAllowed: false,
+				deleteBranchOnMerge: false,
+			})
+		)
+		const { exec, calls } = recordingGh({
+			probe: driftedProbe,
+			protection: fail('gh: Not Found (HTTP 404)'),
+			workflow: ok(
+				JSON.stringify({
+					default_workflow_permissions: 'write',
+					can_approve_pull_request_reviews: false,
+				})
+			),
+		})
+		const labels = await applyGithubSettings(gitRepo(), exec)
+		expect(labels).toEqual([
+			'merge settings (auto-merge, squash, delete-on-merge)',
+			'branch protection on main',
+			'workflow permissions (read-only)',
+		])
+		// The three mutating calls fire after the read probes, PATCH before the PUTs.
+		const mutations = calls.filter(
+			(c) => c.args.includes('PATCH') || c.args.includes('PUT')
+		)
+		expect(mutations.map((c) => c.args[2])).toEqual(['PATCH', 'PUT', 'PUT'])
+		const protectionPut = mutations.find((c) => c.args.includes('--input'))
+		expect(protectionPut?.stdin).toContain('required_status_checks')
+	})
+
+	it('is a no-op on a compliant repo', async () => {
+		const { exec } = recordingGh()
+		expect(await applyGithubSettings(gitRepo(), exec)).toEqual([])
+	})
+
+	it('skips (no mutation) when the probe fails', async () => {
+		const { exec, calls } = recordingGh({ probe: fail('gh auth login required') })
+		expect(await applyGithubSettings(gitRepo(), exec)).toEqual([])
+		expect(calls.every((c) => !c.args.includes('PUT') && !c.args.includes('PATCH'))).toBe(true)
 	})
 })

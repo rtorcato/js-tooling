@@ -26,6 +26,9 @@ export const FIX_TARGETS: Record<string, string> = {
 	'Coverage upload': 'github-actions',
 	Dependabot: 'dependabot',
 	CodeQL: 'codeql',
+	'Branch protection': 'github-settings',
+	'Merge settings': 'github-settings',
+	'Workflow permissions': 'github-settings',
 	CODEOWNERS: 'codeowners',
 	'GitLab CI': 'gitlab-ci',
 	Turborepo: 'turborepo',
@@ -142,6 +145,7 @@ export function lockfilePatchForTarget(
 		case 'dependabot':
 		case 'renovate':
 		case 'codeql':
+		case 'github-settings':
 			return c.securityAutomation ? null : { securityAutomation: true }
 		case 'tsconfig':
 			return c.typescript.enabled ? null : { typescript: { enabled: true, config: 'base' } }
