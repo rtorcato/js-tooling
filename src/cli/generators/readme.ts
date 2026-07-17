@@ -285,6 +285,9 @@ function generateToolingList(config: ProjectConfig): string {
 	if (config.semanticRelease) {
 		tools.push('- **Semantic Release** - Automated versioning and publishing')
 	}
+	if (config.releasePlease) {
+		tools.push('- **Release Please** - Automated release PRs and changelogs')
+	}
 
 	return tools.join('\n')
 }

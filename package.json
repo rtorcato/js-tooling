@@ -82,6 +82,8 @@
 		"tooling/docusaurus/index.d.mts",
 		"tooling/biome/biome.json",
 		"tooling/changesets/config.json",
+		"tooling/release-please/release-please-config.json",
+		"tooling/release-please/.release-please-manifest.json",
 		"tooling/oxlint/oxlintrc.json",
 		"tooling/typedoc/typedoc.json",
 		"tooling/semantic-release/*.mjs",
@@ -175,6 +177,7 @@
 		},
 		"./biome": "./tooling/biome/biome.json",
 		"./changesets": "./tooling/changesets/config.json",
+		"./release-please": "./tooling/release-please/release-please-config.json",
 		"./oxlint": "./tooling/oxlint/oxlintrc.json",
 		"./typedoc": "./tooling/typedoc/typedoc.json",
 		"./semantic-release": {

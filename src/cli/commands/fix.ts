@@ -6,7 +6,11 @@ import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import { installAgentRules, installAiSetup } from '../generators/agent-rules.js'
 import { buildBadgeBlock, parseRepository, upsertBadges } from '../generators/badges.js'
-import { generateRollupConfig, generateSemanticReleaseConfig } from '../generators/build.js'
+import {
+	generateReleasePleaseConfig,
+	generateRollupConfig,
+	generateSemanticReleaseConfig,
+} from '../generators/build.js'
 import { generateCommunityHealth } from '../generators/community-health.js'
 import {
 	generateCommitlintConfig,
@@ -376,6 +380,22 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			const result = await copyPreset('changesets', targetDir)
 			return { filesWritten: [result.target] }
+		},
+	},
+	{
+		target: 'release-please',
+		description:
+			'Scaffold release-please-config.json + manifest + release-please.yml workflow (alternative to semantic-release)',
+		appliesTo: ['Release Please'],
+		outputs: [
+			'release-please-config.json',
+			'.release-please-manifest.json',
+			'.github/workflows/release-please.yml',
+		],
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const filesWritten = await generateReleasePleaseConfig(targetDir)
+			return { filesWritten }
 		},
 	},
 	{
