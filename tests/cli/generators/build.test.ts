@@ -55,6 +55,24 @@ describe('generateBuildConfigs', () => {
 		expect(await fs.pathExists(join(dir, 'build.mjs'))).toBe(false)
 	})
 
+	it('writes rolldown.config.mjs re-exporting the preset', async () => {
+		const dir = newTmpDir()
+		await generateBuildConfigs(baseConfig({ bundler: 'rolldown' }), dir)
+
+		const content = await fs.readFile(join(dir, 'rolldown.config.mjs'), 'utf-8')
+		expect(content).toContain("from '@rtorcato/js-tooling/rolldown'")
+		expect(await fs.pathExists(join(dir, 'rollup.config.mjs'))).toBe(false)
+	})
+
+	it('the shipped rolldown preset uses rolldown defineConfig', async () => {
+		const preset = await fs.readFile(
+			join(process.cwd(), 'tooling/rolldown/rolldown.config.mjs'),
+			'utf-8'
+		)
+		expect(preset).toMatch(/from 'rolldown'/)
+		expect(preset).toMatch(/\bdefineConfig\b/)
+	})
+
 	it('writes vite.config.ts re-exporting the preset', async () => {
 		const dir = newTmpDir()
 		await generateBuildConfigs(baseConfig({ bundler: 'vite' }), dir)

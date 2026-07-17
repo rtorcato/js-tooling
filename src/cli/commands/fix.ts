@@ -8,6 +8,7 @@ import { installAgentRules, installAiSetup } from '../generators/agent-rules.js'
 import { buildBadgeBlock, parseRepository, upsertBadges } from '../generators/badges.js'
 import {
 	generateReleasePleaseConfig,
+	generateRolldownConfig,
 	generateRollupConfig,
 	generateSemanticReleaseConfig,
 } from '../generators/build.js'
@@ -654,6 +655,17 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			await generateRollupConfig(targetDir)
 			return { filesWritten: ['rollup.config.mjs'] }
+		},
+	},
+	{
+		target: 'rolldown',
+		description: 'Scaffold rolldown.config.mjs re-exporting the shared library preset',
+		appliesTo: [],
+		outputs: ['rolldown.config.mjs'],
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			await generateRolldownConfig(targetDir)
+			return { filesWritten: ['rolldown.config.mjs'] }
 		},
 	},
 	{

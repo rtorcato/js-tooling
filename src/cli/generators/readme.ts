@@ -63,6 +63,8 @@ ${config.testing.framework === 'playwright' ? '├── playwright.config.ts # 
 ${config.testing.framework === 'cypress' ? '├── cypress.config.ts   # Cypress configuration' : ''}
 ${config.bundler === 'tsup' ? '├── tsup.config.ts       # tsup configuration' : ''}
 ${config.bundler === 'esbuild' ? '├── build.mjs           # esbuild configuration' : ''}
+${config.bundler === 'rollup' ? '├── rollup.config.mjs   # Rollup configuration' : ''}
+${config.bundler === 'rolldown' ? '├── rolldown.config.mjs # Rolldown configuration' : ''}
 ${config.bundler === 'vite' ? '├── vite.config.ts       # Vite configuration' : ''}
 ${config.commitLint ? '├── commitlint.config.mjs # Commitlint configuration' : ''}
 ${config.gitHooks ? '├── .husky/             # Git hooks' : ''}

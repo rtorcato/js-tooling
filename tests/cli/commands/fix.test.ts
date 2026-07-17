@@ -131,6 +131,17 @@ describe('fix bun', () => {
 	})
 })
 
+describe('fix rolldown', () => {
+	it('scaffolds rolldown.config.mjs re-exporting the preset', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('rolldown', { directory: dir, yes: true })
+		expect(await fs.readFile(join(dir, 'rolldown.config.mjs'), 'utf-8')).toContain(
+			"from '@rtorcato/js-tooling/rolldown'"
+		)
+	})
+})
+
 describe('fix --list', () => {
 	it('emits a json payload listing every fixer when --list --json', async () => {
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})

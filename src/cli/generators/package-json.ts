@@ -129,6 +129,9 @@ function getScripts(config: ProjectConfig, opts: GetScriptsOptions = {}): Record
 	} else if (config.bundler === 'rollup') {
 		scripts['build'] = 'rollup -c'
 		scripts['build:watch'] = 'rollup -c --watch'
+	} else if (config.bundler === 'rolldown') {
+		scripts['build'] = 'rolldown -c'
+		scripts['build:watch'] = 'rolldown -c --watch'
 	} else if (config.bundler === 'vite') {
 		scripts['build'] = 'vite build'
 		scripts['dev'] = 'vite'
@@ -280,6 +283,9 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 		deps['rollup'] = '^4.0.0'
 		deps['@rollup/plugin-typescript'] = '^12.0.0'
 		deps['tslib'] = '^2.0.0'
+	} else if (config.bundler === 'rolldown') {
+		// Rolldown transpiles TypeScript natively — no plugin-typescript/tslib.
+		deps['rolldown'] = '^1.0.0'
 	} else if (config.bundler === 'vite') {
 		deps['vite'] = '^6.0.0'
 	}

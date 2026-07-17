@@ -60,6 +60,7 @@ const sidebars: SidebarsConfig = {
         'reference/prettier',
         'reference/publint',
         'reference/release-please',
+        'reference/rolldown',
         'reference/rollup',
         'reference/semantic-release',
         'reference/tailwind',
