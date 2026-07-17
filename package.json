@@ -82,6 +82,8 @@
 		"tooling/rolldown/rolldown.config.d.mts",
 		"tooling/docusaurus/index.mjs",
 		"tooling/docusaurus/index.d.mts",
+		"tooling/docusaurus/sync-changelog.mjs",
+		"tooling/docusaurus/theme-tokens.css",
 		"tooling/biome/biome.json",
 		"tooling/bun/bunfig.toml",
 		"tooling/nx/nx.json",
