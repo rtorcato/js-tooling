@@ -1,3 +1,10 @@
+# [2.44.0](https://github.com/rtorcato/js-tooling/compare/v2.43.0...v2.44.0) (2026-07-17)
+
+
+### Features
+
+* **cli:** add Nx preset (alternative to Turborepo) ([#224](https://github.com/rtorcato/js-tooling/issues/224)) ([60e4c5c](https://github.com/rtorcato/js-tooling/commit/60e4c5c44305760379620c98b9a661374a930519))
+
 # [2.43.0](https://github.com/rtorcato/js-tooling/compare/v2.42.0...v2.43.0) (2026-07-17)
 
 
