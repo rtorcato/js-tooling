@@ -1,3 +1,10 @@
+# [2.41.0](https://github.com/rtorcato/js-tooling/compare/v2.40.0...v2.41.0) (2026-07-17)
+
+
+### Features
+
+* **fix:** github-settings target — apply branch protection + merge + workflow permissions via gh api ([#216](https://github.com/rtorcato/js-tooling/issues/216)) ([8b70233](https://github.com/rtorcato/js-tooling/commit/8b70233a4f75077159b3b10c59b8b4647c09738a)), closes [#137](https://github.com/rtorcato/js-tooling/issues/137) [#137](https://github.com/rtorcato/js-tooling/issues/137) [#138](https://github.com/rtorcato/js-tooling/issues/138)
+
 # [2.40.0](https://github.com/rtorcato/js-tooling/compare/v2.39.0...v2.40.0) (2026-07-16)
 
 
