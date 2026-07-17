@@ -1,3 +1,10 @@
+# [2.47.0](https://github.com/rtorcato/js-tooling/compare/v2.46.0...v2.47.0) (2026-07-17)
+
+
+### Features
+
+* **cli:** add Docusaurus shared helpers ([#54](https://github.com/rtorcato/js-tooling/issues/54)) ([#228](https://github.com/rtorcato/js-tooling/issues/228)) ([2bb3bda](https://github.com/rtorcato/js-tooling/commit/2bb3bda2776f9f6d7fea01d6f83d17dedfeba15c)), closes [106/#100](https://github.com/rtorcato/js-tooling/issues/100) [#100](https://github.com/rtorcato/js-tooling/issues/100) [100/#106](https://github.com/rtorcato/js-tooling/issues/106)
+
 # [2.46.0](https://github.com/rtorcato/js-tooling/compare/v2.45.0...v2.46.0) (2026-07-17)
 
 
