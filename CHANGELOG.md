@@ -1,3 +1,10 @@
+# [2.45.0](https://github.com/rtorcato/js-tooling/compare/v2.44.0...v2.45.0) (2026-07-17)
+
+
+### Features
+
+* **cli:** add Bun support (tsconfig preset, bunfig, fix bun) ([#226](https://github.com/rtorcato/js-tooling/issues/226)) ([5a667cd](https://github.com/rtorcato/js-tooling/commit/5a667cd3f727146fc9c5818ff69be472ede4198e)), closes [#60](https://github.com/rtorcato/js-tooling/issues/60) [#225](https://github.com/rtorcato/js-tooling/issues/225)
+
 # [2.44.0](https://github.com/rtorcato/js-tooling/compare/v2.43.0...v2.44.0) (2026-07-17)
 
 
