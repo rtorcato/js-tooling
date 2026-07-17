@@ -108,6 +108,26 @@ describe('generateBuildConfigs', () => {
 		expect(await fs.pathExists(join(dir, 'release.config.mjs'))).toBe(false)
 	})
 
+	it('writes release-please config + manifest + workflow when releasePlease is true', async () => {
+		const dir = newTmpDir()
+		await generateBuildConfigs(baseConfig({ releasePlease: true }), dir)
+
+		const config = await fs.readJson(join(dir, 'release-please-config.json'))
+		expect(config.packages['.']['release-type']).toBe('node')
+		const manifest = await fs.readJson(join(dir, '.release-please-manifest.json'))
+		expect(manifest['.']).toBe('0.0.0')
+		const workflow = await fs.readFile(join(dir, '.github/workflows/release-please.yml'), 'utf-8')
+		expect(workflow).toContain('googleapis/release-please-action')
+		expect(await fs.pathExists(join(dir, 'release.config.mjs'))).toBe(false)
+	})
+
+	it('preserves an existing release-please manifest (holds live versions)', async () => {
+		const dir = newTmpDir()
+		await fs.outputJson(join(dir, '.release-please-manifest.json'), { '.': '3.2.1' })
+		await generateBuildConfigs(baseConfig({ releasePlease: true }), dir)
+		expect((await fs.readJson(join(dir, '.release-please-manifest.json')))['.']).toBe('3.2.1')
+	})
+
 	it('writes no files when bundler is none and no release tool is selected', async () => {
 		const dir = newTmpDir()
 		await generateBuildConfigs(baseConfig(), dir)

@@ -4,6 +4,7 @@ import fs from 'fs-extra'
 export type PresetName =
 	| 'biome'
 	| 'changesets'
+	| 'release-please'
 	| 'oxlint'
 	| 'tsconfig'
 	| 'claude-skill'
@@ -25,6 +26,11 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		source: 'tooling/changesets/config.json',
 		target: '.changeset/config.json',
 		desc: 'Changesets release-tool configuration',
+	},
+	'release-please': {
+		source: 'tooling/release-please/release-please-config.json',
+		target: 'release-please-config.json',
+		desc: 'Release Please release-tool configuration',
 	},
 	oxlint: {
 		source: 'tooling/oxlint/oxlintrc.json',

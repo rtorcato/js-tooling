@@ -168,6 +168,12 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		fixTarget: 'changesets',
 	},
 	{
+		name: 'Release Please',
+		description: 'Release-PR-driven release tool (alternative to semantic-release)',
+		exports: ['@rtorcato/js-tooling/release-please'],
+		fixTarget: 'release-please',
+	},
+	{
 		name: 'Oxlint',
 		description: 'Rust-based linter (additive to Biome/ESLint)',
 		exports: ['@rtorcato/js-tooling/oxlint'],

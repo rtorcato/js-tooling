@@ -92,6 +92,18 @@ describe('fix cypress', () => {
 	})
 })
 
+describe('fix release-please', () => {
+	it('scaffolds config + manifest + workflow when targeted', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('release-please', { directory: dir, yes: true })
+		expect(await fs.pathExists(join(dir, 'release-please-config.json'))).toBe(true)
+		expect((await fs.readJson(join(dir, '.release-please-manifest.json')))['.']).toBe('0.0.0')
+		const workflow = await fs.readFile(join(dir, '.github/workflows/release-please.yml'), 'utf-8')
+		expect(workflow).toContain('googleapis/release-please-action')
+	})
+})
+
 describe('fix --list', () => {
 	it('emits a json payload listing every fixer when --list --json', async () => {
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})

@@ -338,6 +338,34 @@ describe('doctor extended checks', () => {
 		expect(results.find((r) => r.check === 'semantic-release')?.status).toBe('ok')
 	})
 
+	it('reports semantic-release ok as "using Release Please instead" when only release-please is configured', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeJson(join(dir, 'release-please-config.json'), {
+			packages: { '.': { 'release-type': 'node' } },
+		})
+		const results = await runDoctor(dir)
+		const sr = results.find((r) => r.check === 'semantic-release')
+		expect(sr?.status).toBe('ok')
+		expect(sr?.detail).toMatch(/Release Please/)
+	})
+
+	it('flags drift when multiple release tools are configured', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.writeFile(
+			join(dir, 'release.config.mjs'),
+			"export { default } from '@rtorcato/js-tooling/semantic-release/github'\n"
+		)
+		await fs.writeJson(join(dir, 'release-please-config.json'), {
+			packages: { '.': { 'release-type': 'node' } },
+		})
+		const sr = (await runDoctor(dir)).find((r) => r.check === 'semantic-release')
+		expect(sr?.status).toBe('drift')
+		expect(sr?.detail).toMatch(/multiple release tools/)
+		expect(sr?.detail).toMatch(/Release Please/)
+	})
+
 	it('detects GitHub Actions workflows', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

@@ -56,6 +56,11 @@ export async function generateBuildConfigs(config: ProjectConfig, targetDir: str
 	if (config.changesets) {
 		await generateChangesetsConfig(targetDir)
 	}
+
+	// Generate Release Please config (alternative to semantic-release)
+	if (config.releasePlease) {
+		await generateReleasePleaseConfig(targetDir)
+	}
 }
 
 async function generateTsupConfig(targetDir: string) {
@@ -177,4 +182,61 @@ export async function generateChangesetsConfig(targetDir: string) {
 	// create per-change markdown files alongside it.
 	const { copyPreset } = await import('../utils/copy-preset.js')
 	await copyPreset('changesets', targetDir)
+}
+
+// The release-please workflow — googleapis/release-please-action opens/maintains
+// a release PR on every push to main and tags + creates the GitHub release when
+// it merges. RELEASE_TOKEN (falling back to GITHUB_TOKEN) lets the release PR's
+// checks run, mirroring the semantic-release setup.
+const RELEASE_PLEASE_WORKFLOW = `name: release-please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          token: \${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+`
+
+/**
+ * Scaffolds Release Please: the config (from the shipped preset), a starting
+ * manifest, and the release workflow. The config is (re)written to realign with
+ * the preset, but the manifest (holds live versions) and the workflow (may be
+ * user-tuned) are only created when absent. Returns the relative paths touched.
+ */
+export async function generateReleasePleaseConfig(targetDir: string): Promise<string[]> {
+	const { copyPreset, getPackageRoot } = await import('../utils/copy-preset.js')
+	const written: string[] = []
+
+	const cfg = await copyPreset('release-please', targetDir)
+	written.push(cfg.target)
+
+	const manifestDest = path.join(targetDir, '.release-please-manifest.json')
+	if (!(await fs.pathExists(manifestDest))) {
+		await fs.copy(
+			path.join(getPackageRoot(), 'tooling/release-please/.release-please-manifest.json'),
+			manifestDest
+		)
+	}
+	written.push('.release-please-manifest.json')
+
+	const workflowPath = path.join(targetDir, '.github', 'workflows', 'release-please.yml')
+	if (!(await fs.pathExists(workflowPath))) {
+		await fs.ensureDir(path.dirname(workflowPath))
+		await fs.writeFile(workflowPath, RELEASE_PLEASE_WORKFLOW)
+	}
+	written.push('.github/workflows/release-please.yml')
+
+	return written
 }
