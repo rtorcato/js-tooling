@@ -43,6 +43,7 @@ import { generateCypressConfig, generateVitestConfig } from '../generators/testi
 import { generateTreeshakeCheck, inferSubpathsFromExports } from '../generators/treeshake.js'
 import { generateTailwind } from '../generators/tailwind.js'
 import { generateTurborepo } from '../generators/turborepo.js'
+import { generateNx } from '../generators/nx.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../generators/typedoc.js'
 import { copyPreset } from '../utils/copy-preset.js'
 import { applyGithubSettings } from '../utils/github-settings.js'
@@ -521,6 +522,19 @@ const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			const written = await generateTurborepo(targetDir)
 			return { filesWritten: [written] }
+		},
+	},
+	{
+		target: 'nx',
+		description: 'Scaffold nx.json task orchestrator (alternative to Turborepo)',
+		// No doctor check — orchestrator is opt-in and Turborepo is the default;
+		// runs only when explicitly targeted. generateNx never clobbers nx.json.
+		appliesTo: [],
+		outputs: ['nx.json'],
+		riskLevel: 'safe-add',
+		async run({ targetDir }) {
+			const filesWritten = await generateNx(targetDir)
+			return { filesWritten }
 		},
 	},
 	{

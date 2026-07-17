@@ -159,6 +159,8 @@ export function lockfilePatchForTarget(
 			return c.aiSetup ? null : { aiSetup: true }
 		case 'turborepo':
 			return c.turborepo ? null : { turborepo: true }
+		case 'nx':
+			return c.nx ? null : { nx: true }
 		case 'tailwind':
 			return c.tailwind ? null : { tailwind: true }
 		default:

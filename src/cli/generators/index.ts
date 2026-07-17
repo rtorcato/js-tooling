@@ -16,6 +16,7 @@ import { generateTreeshakeCheck, inferSubpathsFromExports } from './treeshake.js
 import { generateTSConfig } from './tsconfig.js'
 import { generateTailwind } from './tailwind.js'
 import { generateTurborepo } from './turborepo.js'
+import { generateNx } from './nx.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -90,6 +91,11 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 	// Turborepo task pipeline (pnpm-workspace monorepos, when opted-in)
 	if (config.turborepo) {
 		await generateTurborepo(targetDir)
+	}
+
+	// Nx task orchestrator (alternative to Turborepo, when opted-in)
+	if (config.nx) {
+		await generateNx(targetDir)
 	}
 
 	// Tailwind CSS v4 (frontend projects, when opted-in)

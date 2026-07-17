@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import fs from 'fs-extra'
 import { describe, expect, it } from 'vitest'
 import { runDoctor } from '../../../src/cli/commands/doctor.js'
+import { generateNx } from '../../../src/cli/generators/nx.js'
 import { generateTurborepo } from '../../../src/cli/generators/turborepo.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
@@ -44,5 +45,43 @@ describe('doctor Turborepo check', () => {
 		await fs.writeFile(join(dir, 'pnpm-workspace.yaml'), "packages:\n  - 'apps/*'\n")
 		await generateTurborepo(dir)
 		expect(findTurbo(await runDoctor(dir))?.status).toBe('ok')
+	})
+
+	it('reports ok in a workspace with nx.json (using Nx)', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), { name: 'demo' })
+		await fs.writeFile(join(dir, 'pnpm-workspace.yaml'), "packages:\n  - 'apps/*'\n")
+		await generateNx(dir)
+		const turbo = findTurbo(await runDoctor(dir))
+		expect(turbo?.status).toBe('ok')
+		expect(turbo?.detail).toMatch(/Nx/)
+	})
+
+	it('flags drift when both turbo.json and nx.json are present', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), { name: 'demo' })
+		await fs.writeFile(join(dir, 'pnpm-workspace.yaml'), "packages:\n  - 'apps/*'\n")
+		await generateTurborepo(dir)
+		await generateNx(dir)
+		expect(findTurbo(await runDoctor(dir))?.status).toBe('drift')
+	})
+})
+
+describe('generateNx', () => {
+	it('writes a valid nx.json with targetDefaults', async () => {
+		const dir = newTmpDir()
+		const written = await generateNx(dir)
+		expect(written).toEqual(['nx.json'])
+
+		const nx = await fs.readJson(join(dir, 'nx.json'))
+		expect(nx.$schema).toContain('nrwl/nx')
+		expect(nx.targetDefaults.build.dependsOn).toEqual(['^build'])
+	})
+
+	it('never clobbers an existing nx.json', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'nx.json'), { custom: true })
+		expect(await generateNx(dir)).toEqual([])
+		expect((await fs.readJson(join(dir, 'nx.json'))).custom).toBe(true)
 	})
 })

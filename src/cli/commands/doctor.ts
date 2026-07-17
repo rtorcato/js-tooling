@@ -1346,16 +1346,26 @@ async function checkAiSetup(dir: string): Promise<CheckResult> {
 }
 
 // Only called for pnpm-workspace monorepos (see runDoctor) — a single-package
-// repo has no use for turbo.json, so the check would be noise there.
+// repo has no use for a task orchestrator, so the check would be noise there.
+// Accepts either Turborepo or Nx (no preference); flags a repo running both.
 async function checkTurborepo(dir: string): Promise<CheckResult> {
-	if (await fs.pathExists(path.join(dir, 'turbo.json'))) {
-		return { check: 'Turborepo', status: 'ok', detail: 'turbo.json found' }
+	const hasTurbo = await fs.pathExists(path.join(dir, 'turbo.json'))
+	const hasNx = await fs.pathExists(path.join(dir, 'nx.json'))
+	if (hasTurbo && hasNx) {
+		return {
+			check: 'Turborepo',
+			status: 'drift',
+			detail: 'both turbo.json and nx.json present',
+			hint: 'Pick one monorepo orchestrator — remove either turbo.json or nx.json',
+		}
 	}
+	if (hasTurbo) return { check: 'Turborepo', status: 'ok', detail: 'turbo.json found' }
+	if (hasNx) return { check: 'Turborepo', status: 'ok', detail: 'nx.json found (using Nx)' }
 	return {
 		check: 'Turborepo',
 		status: 'optional-missing',
-		detail: 'pnpm workspace without turbo.json',
-		hint: 'Run `npx @rtorcato/js-tooling fix turborepo` to scaffold a task pipeline',
+		detail: 'pnpm workspace without a task orchestrator',
+		hint: 'Run `npx @rtorcato/js-tooling fix turborepo` (or `fix nx`) to scaffold a task pipeline',
 	}
 }
 

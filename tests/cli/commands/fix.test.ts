@@ -104,6 +104,21 @@ describe('fix release-please', () => {
 	})
 })
 
+describe('fix nx', () => {
+	it('scaffolds nx.json when targeted, and never clobbers it', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('nx', { directory: dir, yes: true })
+		const nx = await fs.readJson(join(dir, 'nx.json'))
+		expect(nx.$schema).toContain('nrwl/nx')
+
+		// Re-running is a no-op — an existing nx.json is preserved.
+		await fs.writeJson(join(dir, 'nx.json'), { custom: true })
+		await fixCommand('nx', { directory: dir, yes: true })
+		expect((await fs.readJson(join(dir, 'nx.json'))).custom).toBe(true)
+	})
+})
+
 describe('fix --list', () => {
 	it('emits a json payload listing every fixer when --list --json', async () => {
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
