@@ -78,12 +78,41 @@ function skip(check: string, reason: string): CheckResult {
 	return { check, status: 'ok', detail: `skipped — ${reason}` }
 }
 
-interface RepoProbe {
-	nameWithOwner?: string
-	defaultBranchRef?: { name?: string } | null
-	autoMergeAllowed?: boolean
-	squashMergeAllowed?: boolean
-	deleteBranchOnMerge?: boolean
+interface RepoInfo {
+	nwo: string
+	branch: string
+	autoMerge: boolean
+	squashMerge: boolean
+	deleteOnMerge: boolean
+}
+
+/**
+ * One combined probe: proves gh is installed + authed + has a GitHub remote +
+ * online, and carries identity, default branch, and the merge settings. Reads
+ * the REST repo endpoint (gh resolves the `{owner}/{repo}` placeholder from the
+ * remote) rather than `gh repo view --json` because auto-merge (`allow_auto_merge`)
+ * is not a `gh repo view` field at all — requesting it fails the whole call.
+ */
+async function probeRepo(exec: GhExec): Promise<{ info: RepoInfo } | { skip: string }> {
+	const r = await exec(['api', 'repos/{owner}/{repo}'])
+	if (!r.ok) return { skip: probeFailureReason(r) }
+	let d: Record<string, any>
+	try {
+		d = JSON.parse(r.stdout)
+	} catch {
+		return { skip: 'could not parse gh output' }
+	}
+	const nwo = typeof d.full_name === 'string' ? d.full_name : undefined
+	if (!nwo) return { skip: 'no GitHub remote' }
+	return {
+		info: {
+			nwo,
+			branch: typeof d.default_branch === 'string' ? d.default_branch : 'main',
+			autoMerge: d.allow_auto_merge === true,
+			squashMerge: d.allow_squash_merge === true,
+			deleteOnMerge: d.delete_branch_on_merge === true,
+		},
+	}
 }
 
 export async function checkGitHubSettings(
@@ -93,30 +122,13 @@ export async function checkGitHubSettings(
 	// Cheap gate first: no .git → never spawn (keeps tmp-dir doctor runs offline).
 	if (!(await fs.pathExists(path.join(dir, '.git')))) return skipAll('not a git repository')
 
-	// One combined probe: proves gh is installed + authed + has a GitHub remote
-	// + online, and carries the merge settings in the same call.
-	const probe = await exec([
-		'repo',
-		'view',
-		'--json',
-		'nameWithOwner,defaultBranchRef,autoMergeAllowed,squashMergeAllowed,deleteBranchOnMerge',
-	])
-	if (!probe.ok) return skipAll(probeFailureReason(probe))
-
-	let meta: RepoProbe
-	try {
-		meta = JSON.parse(probe.stdout) as RepoProbe
-	} catch {
-		return skipAll('could not parse gh output')
-	}
-	const nwo = meta.nameWithOwner
-	if (!nwo) return skipAll('no GitHub remote')
-	const branch = meta.defaultBranchRef?.name ?? 'main'
-
+	const probe = await probeRepo(exec)
+	if ('skip' in probe) return skipAll(probe.skip)
+	const { info } = probe
 	return [
-		await checkBranchProtection(exec, nwo, branch),
-		checkMergeSettings(meta),
-		await checkWorkflowPermissions(exec, nwo),
+		await checkBranchProtection(exec, info.nwo, info.branch),
+		checkMergeSettings(info),
+		await checkWorkflowPermissions(exec, info.nwo),
 	]
 }
 
@@ -177,12 +189,12 @@ async function checkBranchProtection(
 	return { check, status: 'ok', detail: `${branch} protected per standard` }
 }
 
-function checkMergeSettings(meta: RepoProbe): CheckResult {
+function checkMergeSettings(info: RepoInfo): CheckResult {
 	const check = 'Merge settings'
 	const deltas: string[] = []
-	if (!meta.autoMergeAllowed) deltas.push('auto-merge disabled')
-	if (!meta.squashMergeAllowed) deltas.push('squash-merge disabled')
-	if (!meta.deleteBranchOnMerge) deltas.push('delete-branch-on-merge disabled')
+	if (!info.autoMerge) deltas.push('auto-merge disabled')
+	if (!info.squashMerge) deltas.push('squash-merge disabled')
+	if (!info.deleteOnMerge) deltas.push('delete-branch-on-merge disabled')
 	if (deltas.length)
 		return {
 			check,
@@ -316,38 +328,21 @@ export async function applyGithubSettings(
 		console.log(chalk.gray('   skipped — not a git repository'))
 		return []
 	}
-	const probe = await exec([
-		'repo',
-		'view',
-		'--json',
-		'nameWithOwner,defaultBranchRef,autoMergeAllowed,squashMergeAllowed,deleteBranchOnMerge',
-	])
-	if (!probe.ok) {
-		console.log(chalk.gray(`   skipped — ${probeFailureReason(probe)}`))
+	const probe = await probeRepo(exec)
+	if ('skip' in probe) {
+		console.log(chalk.gray(`   skipped — ${probe.skip}`))
 		return []
 	}
-	let meta: RepoProbe
-	try {
-		meta = JSON.parse(probe.stdout) as RepoProbe
-	} catch {
-		console.log(chalk.gray('   skipped — could not parse gh output'))
-		return []
-	}
-	const nwo = meta.nameWithOwner
-	if (!nwo) {
-		console.log(chalk.gray('   skipped — no GitHub remote'))
-		return []
-	}
-	const branch = meta.defaultBranchRef?.name ?? 'main'
+	const { info } = probe
 
 	// Re-read via the same checks so the delta logic stays single-sourced. A 403
 	// (no admin) reports `ok` → treated as "nothing to apply", never a failed PUT.
-	const bp = await checkBranchProtection(exec, nwo, branch)
-	const wp = await checkWorkflowPermissions(exec, nwo)
+	const bp = await checkBranchProtection(exec, info.nwo, info.branch)
+	const wp = await checkWorkflowPermissions(exec, info.nwo)
 	const commands = buildGhApplyCommands({
-		nwo,
-		branch,
-		merge: checkMergeSettings(meta).status === 'drift',
+		nwo: info.nwo,
+		branch: info.branch,
+		merge: checkMergeSettings(info).status === 'drift',
 		protection: bp.status === 'optional-missing' || bp.status === 'drift',
 		workflow: wp.status === 'drift',
 	})
