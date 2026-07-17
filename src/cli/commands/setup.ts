@@ -36,7 +36,7 @@ export interface ProjectConfig {
 		tool: 'biome' | 'prettier' | 'none'
 	}
 	testing: {
-		framework: 'vitest' | 'jest' | 'playwright' | 'none'
+		framework: 'vitest' | 'jest' | 'playwright' | 'cypress' | 'none'
 		environment?: 'node' | 'browser' | 'both'
 	}
 	gitHooks: boolean
@@ -241,6 +241,7 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 				{ name: '⚡ Vitest (Fast, Vite-powered)', value: 'vitest' },
 				{ name: '🃏 Jest (Traditional)', value: 'jest' },
 				{ name: '🎭 Playwright (E2E)', value: 'playwright' },
+				{ name: '🌲 Cypress (E2E)', value: 'cypress' },
 				{ name: '❌ None', value: 'none' },
 			],
 			default: 'vitest',

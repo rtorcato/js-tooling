@@ -74,6 +74,33 @@ describe('generateTestingConfigs', () => {
 		expect(preset).toMatch(/\bdevices\b/)
 	})
 
+	it('writes a cypress config re-export plus tests/e2e + support boilerplate', async () => {
+		const dir = newTmpDir()
+		await generateTestingConfigs(baseConfig({ testing: { framework: 'cypress' } }), dir)
+
+		const cypressConfig = await fs.readFile(join(dir, 'cypress.config.ts'), 'utf-8')
+		expect(cypressConfig).toContain("from '@rtorcato/js-tooling/cypress'")
+		expect(await fs.pathExists(join(dir, 'cypress/support/e2e.ts'))).toBe(true)
+		expect(await fs.pathExists(join(dir, 'cypress/support/commands.ts'))).toBe(true)
+		expect(await fs.pathExists(join(dir, 'tests/e2e/example.cy.ts'))).toBe(true)
+	})
+
+	it('does not clobber an existing cypress spec', async () => {
+		const dir = newTmpDir()
+		await fs.outputFile(join(dir, 'tests/e2e/example.cy.ts'), '// my real spec\n')
+		await generateTestingConfigs(baseConfig({ testing: { framework: 'cypress' } }), dir)
+		expect(await fs.readFile(join(dir, 'tests/e2e/example.cy.ts'), 'utf-8')).toBe('// my real spec\n')
+	})
+
+	it('the shipped cypress preset references cypress defineConfig', async () => {
+		const preset = await fs.readFile(
+			join(process.cwd(), 'tooling/cypress/cypress.config.mjs'),
+			'utf-8'
+		)
+		expect(preset).toMatch(/from 'cypress'/)
+		expect(preset).toMatch(/\bdefineConfig\b/)
+	})
+
 	it('writes nothing when framework is none', async () => {
 		const dir = newTmpDir()
 		await generateTestingConfigs(baseConfig({ testing: { framework: 'none' } }), dir)

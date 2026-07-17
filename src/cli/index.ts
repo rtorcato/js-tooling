@@ -128,6 +128,12 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		fixTarget: null,
 	},
 	{
+		name: 'Cypress',
+		description: 'End-to-end testing configuration',
+		exports: ['@rtorcato/js-tooling/cypress'],
+		fixTarget: 'cypress',
+	},
+	{
 		name: 'Commitlint',
 		description: 'Conventional commit linting',
 		exports: ['@rtorcato/js-tooling/commitlint/config'],

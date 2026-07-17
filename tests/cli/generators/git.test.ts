@@ -132,6 +132,16 @@ describe('generateGitConfigs', () => {
 		expect(gitignore).toContain('/playwright-report/')
 	})
 
+	it('appends Cypress entries to .gitignore', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await generateGitConfigs(baseConfig({ testing: { framework: 'cypress' } }), dir)
+
+		const gitignore = await fs.readFile(join(dir, '.gitignore'), 'utf-8')
+		expect(gitignore).toContain('/cypress/videos/')
+		expect(gitignore).toContain('/cypress/screenshots/')
+	})
+
 	it('ignores Claude Code worktrees and local settings (but not shared agents/commands)', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

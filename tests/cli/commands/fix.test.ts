@@ -70,6 +70,26 @@ describe('fix registry', () => {
 			'Workflow permissions',
 		])
 	})
+
+	it('registers a safe-add cypress fixer', () => {
+		const fixer = getFixers().find((f) => f.target === 'cypress')
+		expect(fixer).toBeTruthy()
+		expect(fixer?.riskLevel).toBe('safe-add')
+		expect(fixer?.outputs).toContain('cypress.config.ts')
+	})
+})
+
+describe('fix cypress', () => {
+	it('scaffolds cypress.config.ts + boilerplate when targeted', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fixCommand('cypress', { directory: dir, yes: true })
+		expect(await fs.readFile(join(dir, 'cypress.config.ts'), 'utf-8')).toContain(
+			"from '@rtorcato/js-tooling/cypress'"
+		)
+		expect(await fs.pathExists(join(dir, 'cypress', 'support', 'e2e.ts'))).toBe(true)
+		expect(await fs.pathExists(join(dir, 'tests', 'e2e', 'example.cy.ts'))).toBe(true)
+	})
 })
 
 describe('fix --list', () => {
