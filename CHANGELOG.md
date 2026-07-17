@@ -1,3 +1,10 @@
+# [2.42.0](https://github.com/rtorcato/js-tooling/compare/v2.41.2...v2.42.0) (2026-07-17)
+
+
+### Features
+
+* **cli:** add Cypress preset (peer to Playwright) ([#222](https://github.com/rtorcato/js-tooling/issues/222)) ([fdfc58d](https://github.com/rtorcato/js-tooling/commit/fdfc58d51dbb90223ab5dea9b3f02b662c47834b))
+
 ## [2.41.2](https://github.com/rtorcato/js-tooling/compare/v2.41.1...v2.41.2) (2026-07-17)
 
 
