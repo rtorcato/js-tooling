@@ -27,12 +27,14 @@ const fail = (stderr: string, code: number | null = 1): GhResult => ({
 	code,
 })
 
-const COMPLIANT_PROBE = JSON.stringify({
-	nameWithOwner: 'owner/repo',
-	defaultBranchRef: { name: 'main' },
-	autoMergeAllowed: true,
-	squashMergeAllowed: true,
-	deleteBranchOnMerge: true,
+// The probe reads the REST repo endpoint (gh api repos/{owner}/{repo}), whose
+// field names are snake_case and include allow_auto_merge — unlike gh repo view.
+const COMPLIANT_REPO = JSON.stringify({
+	full_name: 'owner/repo',
+	default_branch: 'main',
+	allow_auto_merge: true,
+	allow_squash_merge: true,
+	delete_branch_on_merge: true,
 })
 const COMPLIANT_PROTECTION = JSON.stringify({
 	required_status_checks: { strict: false, contexts: ['lint', 'typecheck', 'build', 'test'] },
@@ -46,10 +48,12 @@ const COMPLIANT_WORKFLOW = JSON.stringify({
 	can_approve_pull_request_reviews: false,
 })
 
-/** Route canned responses by which gh subcommand is invoked. */
-function fakeGh(overrides: { probe?: GhResult; protection?: GhResult; workflow?: GhResult } = {}): GhExec {
+/** Route canned responses by which gh api path is invoked. */
+function fakeGh(
+	overrides: { repo?: GhResult; protection?: GhResult; workflow?: GhResult } = {}
+): GhExec {
 	return vi.fn(async (args: string[]) => {
-		if (args[0] === 'repo') return overrides.probe ?? ok(COMPLIANT_PROBE)
+		if (args[1] === 'repos/{owner}/{repo}') return overrides.repo ?? ok(COMPLIANT_REPO)
 		if (args[1]?.includes('/protection')) return overrides.protection ?? ok(COMPLIANT_PROTECTION)
 		if (args[1]?.includes('/actions/permissions/workflow'))
 			return overrides.workflow ?? ok(COMPLIANT_WORKFLOW)
@@ -70,14 +74,14 @@ describe('checkGitHubSettings — skip paths', () => {
 	})
 
 	it('skips all three when gh is not installed', async () => {
-		const exec = fakeGh({ probe: fail('spawn gh ENOENT', null) })
+		const exec = fakeGh({ repo: fail('spawn gh ENOENT', null) })
 		const results = await checkGitHubSettings(gitRepo(), exec)
 		expect(results.every((r) => r.status === 'ok')).toBe(true)
 		expect(byName(results, 'Branch protection')?.detail).toContain('gh not installed')
 	})
 
 	it('skips when the probe fails (no GitHub remote / not authed)', async () => {
-		const exec = fakeGh({ probe: fail('gh auth login required') })
+		const exec = fakeGh({ repo: fail('gh auth login required') })
 		const results = await checkGitHubSettings(gitRepo(), exec)
 		expect(results.every((r) => r.status === 'ok' && r.detail.includes('skipped'))).toBe(true)
 	})
@@ -122,17 +126,17 @@ describe('checkGitHubSettings — drift', () => {
 		expect(bp?.detail).toContain('typecheck')
 	})
 
-	it('drifts when merge settings are off (from the probe)', async () => {
-		const probe = ok(
+	it('drifts when merge settings are off (from the repo probe)', async () => {
+		const repo = ok(
 			JSON.stringify({
-				nameWithOwner: 'owner/repo',
-				defaultBranchRef: { name: 'main' },
-				autoMergeAllowed: false,
-				squashMergeAllowed: true,
-				deleteBranchOnMerge: true,
+				full_name: 'owner/repo',
+				default_branch: 'main',
+				allow_auto_merge: false,
+				allow_squash_merge: true,
+				delete_branch_on_merge: true,
 			})
 		)
-		const ms = byName(await checkGitHubSettings(gitRepo(), fakeGh({ probe })), 'Merge settings')
+		const ms = byName(await checkGitHubSettings(gitRepo(), fakeGh({ repo })), 'Merge settings')
 		expect(ms?.status).toBe('drift')
 		expect(ms?.detail).toContain('auto-merge disabled')
 	})
@@ -204,12 +208,12 @@ describe('applyGithubSettings', () => {
 
 	/** Records every gh call; canned responses drive which deltas fire. */
 	function recordingGh(
-		overrides: { probe?: GhResult; protection?: GhResult; workflow?: GhResult } = {}
+		overrides: { repo?: GhResult; protection?: GhResult; workflow?: GhResult } = {}
 	) {
 		const calls: { args: string[]; stdin?: string }[] = []
 		const exec: GhExec = vi.fn(async (args: string[], stdin?: string) => {
 			calls.push({ args, stdin })
-			if (args[0] === 'repo') return overrides.probe ?? ok(COMPLIANT_PROBE)
+			if (args[1] === 'repos/{owner}/{repo}') return overrides.repo ?? ok(COMPLIANT_REPO)
 			if (args.includes('--input')) return ok('') // protection PUT
 			if (args[1]?.includes('/protection')) return overrides.protection ?? ok(COMPLIANT_PROTECTION)
 			if (args[1]?.includes('/actions/permissions/workflow'))
@@ -227,17 +231,17 @@ describe('applyGithubSettings', () => {
 	})
 
 	it('applies all three deltas and returns their labels, in order', async () => {
-		const driftedProbe = ok(
+		const driftedRepo = ok(
 			JSON.stringify({
-				nameWithOwner: 'owner/repo',
-				defaultBranchRef: { name: 'main' },
-				autoMergeAllowed: false,
-				squashMergeAllowed: false,
-				deleteBranchOnMerge: false,
+				full_name: 'owner/repo',
+				default_branch: 'main',
+				allow_auto_merge: false,
+				allow_squash_merge: false,
+				delete_branch_on_merge: false,
 			})
 		)
 		const { exec, calls } = recordingGh({
-			probe: driftedProbe,
+			repo: driftedRepo,
 			protection: fail('gh: Not Found (HTTP 404)'),
 			workflow: ok(
 				JSON.stringify({
@@ -267,7 +271,7 @@ describe('applyGithubSettings', () => {
 	})
 
 	it('skips (no mutation) when the probe fails', async () => {
-		const { exec, calls } = recordingGh({ probe: fail('gh auth login required') })
+		const { exec, calls } = recordingGh({ repo: fail('gh auth login required') })
 		expect(await applyGithubSettings(gitRepo(), exec)).toEqual([])
 		expect(calls.every((c) => !c.args.includes('PUT') && !c.args.includes('PATCH'))).toBe(true)
 	})
