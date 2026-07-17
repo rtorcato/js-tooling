@@ -78,6 +78,8 @@
 		"tooling/tsup/index.d.mts",
 		"tooling/rollup/rollup.config.mjs",
 		"tooling/rollup/rollup.config.d.mts",
+		"tooling/rolldown/rolldown.config.mjs",
+		"tooling/rolldown/rolldown.config.d.mts",
 		"tooling/docusaurus/index.mjs",
 		"tooling/docusaurus/index.d.mts",
 		"tooling/biome/biome.json",
@@ -173,6 +175,10 @@
 		"./rollup": {
 			"types": "./tooling/rollup/rollup.config.d.mts",
 			"import": "./tooling/rollup/rollup.config.mjs"
+		},
+		"./rolldown": {
+			"types": "./tooling/rolldown/rolldown.config.d.mts",
+			"import": "./tooling/rolldown/rolldown.config.mjs"
 		},
 		"./docusaurus": {
 			"types": "./tooling/docusaurus/index.d.mts",

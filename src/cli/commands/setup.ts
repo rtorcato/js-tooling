@@ -46,7 +46,7 @@ export interface ProjectConfig {
 	releasePlease?: boolean
 	oxlint?: boolean
 	securityAutomation: boolean
-	bundler: 'tsup' | 'esbuild' | 'rollup' | 'vite' | 'none'
+	bundler: 'tsup' | 'esbuild' | 'rollup' | 'rolldown' | 'vite' | 'none'
 	treeshakeCheck?: boolean
 	/** Add publint (validates package.json + dist for publishing mistakes). */
 	publint?: boolean
@@ -351,6 +351,7 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 					{ name: '📦 tsup (TypeScript packages)', value: 'tsup' },
 					{ name: '⚡ esbuild (Fast bundling)', value: 'esbuild' },
 					{ name: '🍣 Rollup (library bundler)', value: 'rollup' },
+					{ name: '🦀 Rolldown (Rust, Rollup-compatible)', value: 'rolldown' },
 					{ name: '❌ None', value: 'none' },
 				]
 
