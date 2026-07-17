@@ -1,3 +1,10 @@
+## [2.41.2](https://github.com/rtorcato/js-tooling/compare/v2.41.1...v2.41.2) (2026-07-17)
+
+
+### Bug Fixes
+
+* **doctor:** scope gh repo resolution to the -d target dir ([#219](https://github.com/rtorcato/js-tooling/issues/219)) ([afb3249](https://github.com/rtorcato/js-tooling/commit/afb3249e747f549f6ba4216ee33fa7da94503f07)), closes [#218](https://github.com/rtorcato/js-tooling/issues/218) [#137](https://github.com/rtorcato/js-tooling/issues/137) [#138](https://github.com/rtorcato/js-tooling/issues/138) [#backed](https://github.com/rtorcato/js-tooling/issues/backed) [#218](https://github.com/rtorcato/js-tooling/issues/218)
+
 ## [2.41.1](https://github.com/rtorcato/js-tooling/compare/v2.41.0...v2.41.1) (2026-07-17)
 
 
