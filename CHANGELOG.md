@@ -1,3 +1,10 @@
+# [2.46.0](https://github.com/rtorcato/js-tooling/compare/v2.45.0...v2.46.0) (2026-07-17)
+
+
+### Features
+
+* **cli:** add Rolldown preset (bundler option) ([#227](https://github.com/rtorcato/js-tooling/issues/227)) ([86b7550](https://github.com/rtorcato/js-tooling/commit/86b75502a91e4c9d4d41e88f4695f76785673a75))
+
 # [2.45.0](https://github.com/rtorcato/js-tooling/compare/v2.44.0...v2.45.0) (2026-07-17)
 
 
