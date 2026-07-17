@@ -41,6 +41,14 @@ using `dependabot/fetch-metadata` + `gh pr merge --auto --squash`, gated to
 > the repo has auto-merge enabled and `main` has required status checks
 > (`lint`, `typecheck`, `build`, `test`). Without it, auto-merge never fires and
 > safe updates pile up. This is a hard prerequisite of the strategy.
+>
+> **Needs a public repo or a paid plan.** Both auto-merge (`allow_auto_merge`)
+> and classic branch protection are unavailable on **private repos on the free
+> tier** — GitHub returns 403 for branch protection and silently ignores
+> `allow_auto_merge`. On such repos `js-tooling fix github-settings` applies what
+> it can (squash-merge, delete-branch-on-merge, workflow permissions) but leaves
+> auto-merge and protection off, so `doctor` keeps reporting them as drift. Make
+> the repo public or upgrade the plan to converge fully.
 
 ## 3. Major bumps — batched, triaged, never auto-merged
 
