@@ -1,3 +1,10 @@
+## [2.41.1](https://github.com/rtorcato/js-tooling/compare/v2.41.0...v2.41.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **doctor:** read GitHub merge settings via REST, not gh repo view ([#217](https://github.com/rtorcato/js-tooling/issues/217)) ([9dc6b16](https://github.com/rtorcato/js-tooling/commit/9dc6b1683a355fd3561ffa3465bb3eab874c62e2)), closes [#137](https://github.com/rtorcato/js-tooling/issues/137) [#138](https://github.com/rtorcato/js-tooling/issues/138) [#138](https://github.com/rtorcato/js-tooling/issues/138) [#137](https://github.com/rtorcato/js-tooling/issues/137)
+
 # [2.41.0](https://github.com/rtorcato/js-tooling/compare/v2.40.0...v2.41.0) (2026-07-17)
 
 
