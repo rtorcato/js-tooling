@@ -11,6 +11,8 @@ export type PresetName =
 	| 'tsconfig'
 	| 'claude-skill'
 	| 'mcp-example'
+	| 'docusaurus-sync-changelog'
+	| 'docusaurus-theme-tokens'
 
 export interface PresetDefinition {
 	source: string
@@ -63,6 +65,16 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		source: 'tooling/mcp/mcp.json.example',
 		target: '.mcp.json.example',
 		desc: 'Commented MCP server template (copy to .mcp.json to activate)',
+	},
+	'docusaurus-sync-changelog': {
+		source: 'tooling/docusaurus/sync-changelog.mjs',
+		target: 'scripts/sync-changelog.mjs',
+		desc: 'Canonical CHANGELOG → docs sync script for Docusaurus sites',
+	},
+	'docusaurus-theme-tokens': {
+		source: 'tooling/docusaurus/theme-tokens.css',
+		target: 'apps/docs/src/css/_jt-tokens.css',
+		desc: 'Shared Docusaurus design tokens (Geist + navy surfaces; accent per-project)',
 	},
 }
 
