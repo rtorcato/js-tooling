@@ -1,3 +1,10 @@
+# [2.50.0](https://github.com/rtorcato/js-tooling/compare/v2.49.0...v2.50.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** opt-in TypeDoc API section in the docs-site generator ([#229](https://github.com/rtorcato/js-tooling/issues/229)) ([#236](https://github.com/rtorcato/js-tooling/issues/236)) ([d8f99e6](https://github.com/rtorcato/js-tooling/commit/d8f99e66dad54deaa4fe745c7f6a871723458b0c)), closes [100/#232](https://github.com/rtorcato/js-tooling/issues/232)
+
 # [2.49.0](https://github.com/rtorcato/js-tooling/compare/v2.48.0...v2.49.0) (2026-07-19)
 
 
