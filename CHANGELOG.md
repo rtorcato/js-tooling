@@ -1,3 +1,10 @@
+# [2.52.0](https://github.com/rtorcato/js-tooling/compare/v2.51.0...v2.52.0) (2026-07-19)
+
+
+### Features
+
+* self-hosted Claude Code plugin + ship AGENTS.md ([#162](https://github.com/rtorcato/js-tooling/issues/162)) ([#234](https://github.com/rtorcato/js-tooling/issues/234)) ([f31240b](https://github.com/rtorcato/js-tooling/commit/f31240b7f2c8df9d433a89b055e58097c56d83d1))
+
 # [2.51.0](https://github.com/rtorcato/js-tooling/compare/v2.50.0...v2.51.0) (2026-07-19)
 
 
