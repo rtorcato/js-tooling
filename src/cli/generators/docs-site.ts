@@ -1,7 +1,7 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 import { copyPreset, PRESETS } from '../utils/copy-preset.js'
-import { parseRepository } from './badges.js'
+import { buildBadgeRow, parseRepository } from './badges.js'
 
 type Pkg = Record<string, unknown> | null
 
@@ -285,7 +285,7 @@ function docsPackageJson(meta: SiteMeta): string {
 	return `${JSON.stringify(pkg, null, 2)}\n`
 }
 
-function introDoc(meta: SiteMeta): string {
+function introDoc(meta: SiteMeta, badges: string): string {
 	return `---
 title: ${meta.title}
 slug: /
@@ -293,7 +293,7 @@ sidebar_position: 0
 ---
 
 # ${meta.title}
-
+${badges ? `\n${badges}\n` : ''}
 ${meta.tagline}
 
 Welcome to the docs. Edit \`apps/docs/docs/intro.md\` to get started, and add
@@ -344,6 +344,16 @@ export async function generateDocsSite(
 	written.push(...(await copyPresetIfMissing('docusaurus-sync-changelog', targetDir)))
 	written.push(...(await copyPresetIfMissing('docusaurus-theme-tokens', targetDir)))
 
+	// The docs homepage carries the same badge set as the README (#169), derived
+	// from package.json + repo; visibility-aware (private repos drop npm/coverage).
+	// Plain row (no upsert delimiters) to stay MDX-safe in the generated intro.
+	const badges = buildBadgeRow({
+		name: pkg?.name as string | undefined,
+		owner: meta.owner ?? undefined,
+		repo: meta.repo ?? undefined,
+		isPrivate: pkg?.private === true,
+	})
+
 	// Project-specific scaffold.
 	const files: Array<[string, string]> = [
 		[`${DOCS_APP}/package.json`, docsPackageJson(meta)],
@@ -351,7 +361,7 @@ export async function generateDocsSite(
 		[`${DOCS_APP}/sidebars.ts`, SIDEBARS],
 		[`${DOCS_APP}/tsconfig.json`, TSCONFIG],
 		[`${DOCS_APP}/src/css/custom.css`, customCss(accent)],
-		[`${DOCS_APP}/docs/intro.md`, introDoc(meta)],
+		[`${DOCS_APP}/docs/intro.md`, introDoc(meta, badges)],
 		['.github/workflows/docs.yml', docsWorkflow(meta)],
 	]
 	for (const [rel, contents] of files) {
