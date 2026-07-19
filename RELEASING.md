@@ -15,6 +15,21 @@ Releases are driven by **conventional commit** messages on `main`:
 
 If no release-worthy commits exist since the last tag, semantic-release exits without publishing — that's expected, not a failure.
 
+## Before an API-changing release
+
+semantic-release owns the version, tag, CHANGELOG, and npm publish — **never bump
+or tag by hand.** But the automation can't write the human-facing docs, so any PR
+that adds or changes a public surface (a CLI command/flag, a preset, a config
+field, or the JSON output contract) must also carry these in the **same PR**:
+
+- [ ] **Docs site** — update `apps/docs/docs/` for the new/changed command, flag, preset, or field.
+- [ ] **README** — update the command table / examples / options if the public surface changed.
+- [ ] **AGENTS.md + `skills/*/SKILL.md`** — keep the agent guidance in sync when the CLI contract changes (agents read these; they must not drift from reality).
+- [ ] **ROADMAP.md** — tick the relevant item and, if it closes a themed goal, the matching [GitHub milestone](https://github.com/rtorcato/js-tooling/milestones).
+
+Version bumps are automated; this checklist is only for the API- and doc-facing
+work that isn't.
+
 ## Required secrets
 
 Configured at **Settings → Secrets and variables → Actions**.
