@@ -133,6 +133,23 @@ ln -sf ../../node_modules/@rtorcato/js-tooling/tooling/claude/js-tooling.md \
   .claude/skills/js-tooling.md
 ```
 
+### Use with Claude Code (plugin)
+
+This repo is also a self-hosted Claude Code marketplace. Install the plugin to
+get two skills — `js-tooling` (adopt/audit the presets via the CLI) and
+`npm-publish` (the family's release rules) — in any session:
+
+```
+/plugin marketplace add rtorcato/js-tooling
+/plugin install js-tooling@js-tooling
+```
+
+### Use with other AI tools (Cursor / Copilot / Codex)
+
+[`AGENTS.md`](AGENTS.md) at the repo root carries the same guidance in the
+cross-tool convention many agents read, and ships in the npm tarball so tools
+scanning `node_modules/@rtorcato/js-tooling` can find it.
+
 ## What's new
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history.

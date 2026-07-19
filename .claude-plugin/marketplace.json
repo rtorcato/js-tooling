@@ -1,0 +1,15 @@
+{
+  "name": "js-tooling",
+  "description": "AI skills for the @rtorcato/js-tooling family: drive the tooling CLI and follow the shared semantic-release publishing rules.",
+  "owner": {
+    "name": "Richard Torcato",
+    "url": "https://github.com/rtorcato"
+  },
+  "plugins": [
+    {
+      "name": "js-tooling",
+      "source": "./",
+      "description": "Drive the @rtorcato/js-tooling CLI (setup/doctor/fix) and follow the shared release rules. Two skills: js-tooling (adopt/audit the presets) and npm-publish (never hand-cut a release)."
+    }
+  ]
+}
