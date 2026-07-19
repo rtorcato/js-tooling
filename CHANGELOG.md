@@ -1,3 +1,10 @@
+# [2.48.0](https://github.com/rtorcato/js-tooling/compare/v2.47.0...v2.48.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** docs-site generator (fix docs-site) ([#100](https://github.com/rtorcato/js-tooling/issues/100)) ([#232](https://github.com/rtorcato/js-tooling/issues/232)) ([6794f46](https://github.com/rtorcato/js-tooling/commit/6794f4673ce1a0a65ac949e579d88bb22d9bb38b)), closes [#54](https://github.com/rtorcato/js-tooling/issues/54) [#54](https://github.com/rtorcato/js-tooling/issues/54) [100/#106](https://github.com/rtorcato/js-tooling/issues/106) [#54](https://github.com/rtorcato/js-tooling/issues/54) [#229](https://github.com/rtorcato/js-tooling/issues/229) [#230](https://github.com/rtorcato/js-tooling/issues/230) [#231](https://github.com/rtorcato/js-tooling/issues/231)
+
 # [2.47.0](https://github.com/rtorcato/js-tooling/compare/v2.46.0...v2.47.0) (2026-07-17)
 
 
