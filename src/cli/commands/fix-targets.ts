@@ -163,6 +163,8 @@ export function lockfilePatchForTarget(
 			return c.nx ? null : { nx: true }
 		case 'tailwind':
 			return c.tailwind ? null : { tailwind: true }
+		case 'docs-site':
+			return c.docsSite ? null : { docsSite: true }
 		default:
 			return null
 	}
