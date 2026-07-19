@@ -1,0 +1,13 @@
+{
+  "name": "js-tooling",
+  "description": "Adopt and audit the @rtorcato/js-tooling shared presets via its CLI, and follow the family's semantic-release publishing rules.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Richard Torcato",
+    "url": "https://github.com/rtorcato"
+  },
+  "homepage": "https://rtorcato.github.io/js-tooling/",
+  "repository": "https://github.com/rtorcato/js-tooling",
+  "license": "MIT",
+  "keywords": ["tooling", "typescript", "biome", "vitest", "semantic-release"]
+}

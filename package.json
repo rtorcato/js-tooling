@@ -97,7 +97,8 @@
 		"tooling/claude/*.md",
 		"tooling/mcp/mcp.json.example",
 		"tooling/github-actions/workflows/*.yml",
-		"README.md"
+		"README.md",
+		"AGENTS.md"
 	],
 	"exports": {
 		"./commitlint/config": {
