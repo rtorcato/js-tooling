@@ -165,6 +165,8 @@ export function lockfilePatchForTarget(
 			return c.tailwind ? null : { tailwind: true }
 		case 'docs-site':
 			return c.docsSite ? null : { docsSite: true }
+		case 'bun':
+			return c.bun ? null : { bun: true }
 		default:
 			return null
 	}

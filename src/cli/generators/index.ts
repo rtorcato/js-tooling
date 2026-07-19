@@ -17,6 +17,7 @@ import { generateTSConfig } from './tsconfig.js'
 import { generateTailwind } from './tailwind.js'
 import { generateTurborepo } from './turborepo.js'
 import { generateNx } from './nx.js'
+import { generateBun } from './bun.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -101,6 +102,12 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 	// Tailwind CSS v4 (frontend projects, when opted-in)
 	if (config.tailwind) {
 		await generateTailwind(targetDir)
+	}
+
+	// Bun runtime (#225): bunfig.toml (the Bun-typed tsconfig is already emitted
+	// by generateTSConfig above when config.bun, so generateBun only adds bunfig).
+	if (config.bun) {
+		await generateBun(targetDir)
 	}
 
 	// AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot, Claude skill, MCP example)
