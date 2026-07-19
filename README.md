@@ -148,6 +148,11 @@ See [CHANGELOG.md](CHANGELOG.md) for the full history.
 - [@rtorcato/js-common](https://github.com/rtorcato/js-common) — General TypeScript/JS utilities (strings, dates, numbers, async, errors)
 - [@rtorcato/browser-common](https://github.com/rtorcato/browser-common) — Browser Web API wrappers (clipboard, observers, storage, etc.)
 
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for direction and the current
+[milestones](https://github.com/rtorcato/js-tooling/milestones).
+
 ## Contributing
 
 Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
