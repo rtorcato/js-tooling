@@ -149,6 +149,7 @@ export const CONFIG_SCHEMA = {
 		turborepo: { type: 'boolean' },
 		nx: { type: 'boolean' },
 		tailwind: { type: 'boolean' },
+		bun: { type: 'boolean' },
 	},
 } as const
 
@@ -260,6 +261,7 @@ export function computeFileList(config: ProjectConfig): string[] {
 	if (config.turborepo) files.push('turbo.json')
 	if (config.nx) files.push('nx.json')
 	if (config.tailwind) files.push('postcss.config.mjs', 'src/styles/globals.css')
+	if (config.bun) files.push('bunfig.toml')
 	files.push('README.md')
 	return files
 }

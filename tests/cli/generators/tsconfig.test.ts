@@ -46,6 +46,16 @@ describe('generateTSConfig', () => {
 		expect(tsconfig.compilerOptions.rootDir).toBe('./src')
 	})
 
+	it('extends the Bun preset when targeting Bun, regardless of config (#225)', async () => {
+		const dir = newTmpDir()
+		await generateTSConfig(
+			baseConfig({ typescript: { enabled: true, config: 'base' }, bun: true }),
+			dir
+		)
+		const tsconfig = await fs.readJson(join(dir, 'tsconfig.json'))
+		expect(tsconfig.extends).toBe('@rtorcato/js-tooling/typescript/bun')
+	})
+
 	it('switches include/exclude for Next.js projects', async () => {
 		const dir = newTmpDir()
 		await generateTSConfig(

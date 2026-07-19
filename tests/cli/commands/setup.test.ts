@@ -108,6 +108,14 @@ describe('computeFileList', () => {
 		expect(files).toContain('vite.config.ts')
 		expect(files).not.toContain('tsup.config.ts')
 	})
+
+	it('lists bunfig.toml when targeting Bun (#225)', () => {
+		expect(computeFileList({ ...buildPresetConfig('library', 'demo'), bun: true })).toContain(
+			'bunfig.toml'
+		)
+		// Off by default — no bunfig unless opted in.
+		expect(computeFileList(buildPresetConfig('library', 'demo'))).not.toContain('bunfig.toml')
+	})
 })
 
 describe('setup --config-schema', () => {

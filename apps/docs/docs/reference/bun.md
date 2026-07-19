@@ -14,7 +14,12 @@ and just want Bun's fast dev loop.
 
 ## Usage
 
-Scaffold the Bun toolchain files into a project:
+**New projects** — the `setup` wizard asks "Target the Bun runtime?" for library
+and Node-API projects. Answer yes and it emits `bunfig.toml` and a Bun-typed
+`tsconfig.json` as part of the scaffold (or set `"bun": true` in a
+`--config` file).
+
+**Existing projects** — scaffold the Bun toolchain files with the fixer:
 
 ```bash
 npx @rtorcato/js-tooling fix bun

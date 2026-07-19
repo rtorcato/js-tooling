@@ -62,6 +62,12 @@ export interface ProjectConfig {
 	tailwind?: boolean
 	/** Scaffold a Docusaurus docs site under apps/docs (deployed to GitHub Pages). */
 	docsSite?: boolean
+	/**
+	 * Target the Bun runtime (#225): a runtime flag on the existing project types,
+	 * not a distinct projectType — most Bun consumers still ship Node-compatible
+	 * libraries. When set, setup emits a bunfig.toml and the Bun-typed tsconfig.
+	 */
+	bun?: boolean
 }
 
 export interface SetupOptions {
@@ -365,6 +371,16 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 			},
 			when: (answers: any) => answers.projectType !== 'nextjs-app', // Next.js has its own bundler
 		},
+		{
+			type: 'confirm',
+			name: 'bun',
+			message: '🥟 Target the Bun runtime (bunfig.toml + Bun-typed tsconfig)?',
+			default: false,
+			// A runtime flag, not a project type — offer it for Node-compatible
+			// library/API targets, not the browser-framework types.
+			when: (answers: any) =>
+				answers.projectType === 'library' || answers.projectType === 'node-api',
+		},
 	])
 
 	return {
@@ -408,6 +424,7 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 		turborepo: answers.orchestrator === 'turbo',
 		nx: answers.orchestrator === 'nx',
 		tailwind: answers.tailwind ?? false,
+		bun: answers.bun ?? false,
 	}
 }
 
