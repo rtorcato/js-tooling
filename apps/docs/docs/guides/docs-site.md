@@ -26,8 +26,14 @@ It writes `apps/docs/` (Docusaurus config, sidebars, `src/css`, a starter
 entry, and `.github/workflows/docs.yml`. Every file is written only when
 missing, so re-running never clobbers your edits. The accent colour defaults to
 a neutral green — override `--ifm-color-primary` in `apps/docs/src/css/custom.css`
-to brand it. The sections below cover the optional TypeDoc API reference and the
-deploy details.
+to brand it.
+
+If your repo already uses TypeDoc (a `typedoc.json` or the `typedoc` dependency),
+`fix docs-site` also wires the **API-reference section** automatically: one
+`docusaurus-plugin-typedoc` instance per source module — inferred from your
+single-segment subpath exports (`./errors` → `src/errors/index.ts`) — plus the
+TypeDoc devDependencies and a `.gitignore` for the generated `docs/api/`. The
+sections below explain that wiring and the deploy details.
 
 ## How it stays current
 
