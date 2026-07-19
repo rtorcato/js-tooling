@@ -107,6 +107,24 @@ describe('generateDocsSite', () => {
 		expect(docs?.status).toBe('ok')
 	})
 
+	it('emits the shared badge row into the docs homepage (#169)', async () => {
+		const dir = newTmpDir()
+		await generateDocsSite(PKG, dir)
+		const intro = await fs.readFile(join(dir, 'apps/docs/docs/intro.md'), 'utf-8')
+		expect(intro).toContain('actions/workflows/ci.yml/badge.svg') // CI
+		expect(intro).toContain('img.shields.io/npm/v/@rtorcato/js-tooling') // npm version
+		expect(intro).toContain('License: MIT')
+	})
+
+	it('drops 404-prone badges on a private package (#169)', async () => {
+		const dir = newTmpDir()
+		await generateDocsSite({ ...PKG, private: true }, dir)
+		const intro = await fs.readFile(join(dir, 'apps/docs/docs/intro.md'), 'utf-8')
+		// Private → no npm/bundlephobia/codecov (they'd 404); CI + license stay.
+		expect(intro).not.toMatch(/img\.shields\.io\/npm\/|bundlephobia|codecov\.io/)
+		expect(intro).toContain('License: MIT')
+	})
+
 	it('omits TypeDoc wiring by default', async () => {
 		const dir = newTmpDir()
 		await generateDocsSite(PKG, dir)
