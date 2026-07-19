@@ -1,3 +1,24 @@
+# [2.51.0](https://github.com/rtorcato/js-tooling/compare/v2.50.0...v2.51.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** emit the shared badge row into the generated docs homepage ([#169](https://github.com/rtorcato/js-tooling/issues/169)) ([#239](https://github.com/rtorcato/js-tooling/issues/239)) ([c2a41b9](https://github.com/rtorcato/js-tooling/commit/c2a41b9d1d7f6588ce6e684ed4cb21bcf1893375)), closes [#142](https://github.com/rtorcato/js-tooling/issues/142) [100/#232](https://github.com/rtorcato/js-tooling/issues/232) [#235](https://github.com/rtorcato/js-tooling/issues/235) [#236](https://github.com/rtorcato/js-tooling/issues/236)
+
+# [2.50.0](https://github.com/rtorcato/js-tooling/compare/v2.49.0...v2.50.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** opt-in TypeDoc API section in the docs-site generator ([#229](https://github.com/rtorcato/js-tooling/issues/229)) ([#236](https://github.com/rtorcato/js-tooling/issues/236)) ([d8f99e6](https://github.com/rtorcato/js-tooling/commit/d8f99e66dad54deaa4fe745c7f6a871723458b0c)), closes [100/#232](https://github.com/rtorcato/js-tooling/issues/232)
+
+# [2.49.0](https://github.com/rtorcato/js-tooling/compare/v2.48.0...v2.49.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** scaffold a Playwright smoke test in the docs-site generator ([#230](https://github.com/rtorcato/js-tooling/issues/230)) ([#235](https://github.com/rtorcato/js-tooling/issues/235)) ([2353af5](https://github.com/rtorcato/js-tooling/commit/2353af5428ff6825a400bdaea69852b3b51f0c98)), closes [#100](https://github.com/rtorcato/js-tooling/issues/100) [#232](https://github.com/rtorcato/js-tooling/issues/232)
+
 # [2.48.0](https://github.com/rtorcato/js-tooling/compare/v2.47.0...v2.48.0) (2026-07-19)
 
 
