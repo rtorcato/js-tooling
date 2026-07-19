@@ -27,6 +27,8 @@ describe('generateDocsSite', () => {
 			'apps/docs/src/css/custom.css',
 			'apps/docs/src/css/_jt-tokens.css',
 			'apps/docs/docs/intro.md',
+			'apps/docs/playwright.config.ts',
+			'apps/docs/tests/smoke.spec.ts',
 			'scripts/sync-changelog.mjs',
 			'.github/workflows/docs.yml',
 			'pnpm-workspace.yaml',
@@ -39,6 +41,13 @@ describe('generateDocsSite', () => {
 		const docsPkg = await fs.readJson(join(dir, 'apps/docs/package.json'))
 		expect(docsPkg.name).toBe('@rtorcato/js-tooling-docs')
 		expect(docsPkg.scripts.build).toMatch(/sync-changelog/)
+		expect(docsPkg.scripts['test:e2e']).toBe('playwright test')
+		expect(docsPkg.devDependencies['@playwright/test']).toBeTruthy()
+
+		// Smoke test reuses the shipped preset and targets the site's base path.
+		const pw = await fs.readFile(join(dir, 'apps/docs/playwright.config.ts'), 'utf-8')
+		expect(pw).toContain("import base from '@rtorcato/js-tooling/playwright'")
+		expect(pw).toContain('http://localhost:3000/js-tooling/')
 
 		// Config infers org/repo → GitHub Pages url + baseUrl.
 		const config = await fs.readFile(join(dir, 'apps/docs/docusaurus.config.ts'), 'utf-8')
@@ -114,5 +123,53 @@ describe('generateDocsSite', () => {
 		// Private → no npm/bundlephobia/codecov (they'd 404); CI + license stay.
 		expect(intro).not.toMatch(/img\.shields\.io\/npm\/|bundlephobia|codecov\.io/)
 		expect(intro).toContain('License: MIT')
+	})
+
+	it('omits TypeDoc wiring by default', async () => {
+		const dir = newTmpDir()
+		await generateDocsSite(PKG, dir)
+		const config = await fs.readFile(join(dir, 'apps/docs/docusaurus.config.ts'), 'utf-8')
+		expect(config).not.toContain('getTypedocPlugins')
+		const docsPkg = await fs.readJson(join(dir, 'apps/docs/package.json'))
+		expect(docsPkg.devDependencies['docusaurus-plugin-typedoc']).toBeUndefined()
+		expect(await fs.pathExists(join(dir, 'apps/docs/.gitignore'))).toBe(false)
+	})
+
+	it('wires TypeDoc (#229) from single-segment subpath exports when enabled', async () => {
+		const dir = newTmpDir()
+		const modulePkg = {
+			name: '@rtorcato/js-common',
+			repository: 'git+https://github.com/rtorcato/js-common.git',
+			exports: {
+				'.': './dist/index.js',
+				'./errors': './dist/errors/index.js',
+				'./env': './dist/env/index.js',
+				// Multi-segment = config/asset export, not a source module → excluded.
+				'./typescript/base': './x.json',
+			},
+		}
+		await generateDocsSite(modulePkg, dir, { typedoc: true })
+
+		const config = await fs.readFile(join(dir, 'apps/docs/docusaurus.config.ts'), 'utf-8')
+		expect(config).toContain("import { getTypedocPlugins } from '@rtorcato/js-tooling/docusaurus'")
+		expect(config).toContain('getTypedocPlugins(["errors","env"])')
+		expect(config).not.toContain('typescript/base')
+
+		const docsPkg = await fs.readJson(join(dir, 'apps/docs/package.json'))
+		for (const dep of ['docusaurus-plugin-typedoc', 'typedoc', 'typedoc-plugin-markdown']) {
+			expect(docsPkg.devDependencies[dep]).toBeTruthy()
+		}
+
+		const gitignore = await fs.readFile(join(dir, 'apps/docs/.gitignore'), 'utf-8')
+		expect(gitignore).toContain('docs/api/')
+	})
+
+	it('is a no-op for TypeDoc when the package exposes no source modules', async () => {
+		const dir = newTmpDir()
+		// PKG has no `exports`, so there are no modules to document.
+		await generateDocsSite(PKG, dir, { typedoc: true })
+		const config = await fs.readFile(join(dir, 'apps/docs/docusaurus.config.ts'), 'utf-8')
+		expect(config).not.toContain('getTypedocPlugins')
+		expect(await fs.pathExists(join(dir, 'apps/docs/.gitignore'))).toBe(false)
 	})
 })
