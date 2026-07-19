@@ -60,6 +60,8 @@ export interface ProjectConfig {
 	nx?: boolean
 	/** Scaffold Tailwind CSS v4 (PostCSS plugin + CSS entry) for frontend projects. */
 	tailwind?: boolean
+	/** Scaffold a Docusaurus docs site under apps/docs (deployed to GitHub Pages). */
+	docsSite?: boolean
 }
 
 export interface SetupOptions {
