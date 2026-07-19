@@ -1,3 +1,10 @@
+# [2.53.0](https://github.com/rtorcato/js-tooling/compare/v2.52.0...v2.53.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** wire Bun into the setup wizard as a runtime flag ([#225](https://github.com/rtorcato/js-tooling/issues/225)) ([#238](https://github.com/rtorcato/js-tooling/issues/238)) ([8b7e242](https://github.com/rtorcato/js-tooling/commit/8b7e242379c48cbc11d93fa485731794f0acd89f)), closes [#60](https://github.com/rtorcato/js-tooling/issues/60) [#60](https://github.com/rtorcato/js-tooling/issues/60)
+
 # [2.52.0](https://github.com/rtorcato/js-tooling/compare/v2.51.0...v2.52.0) (2026-07-19)
 
 
