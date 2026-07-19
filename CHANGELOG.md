@@ -1,3 +1,10 @@
+# [2.51.0](https://github.com/rtorcato/js-tooling/compare/v2.50.0...v2.51.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** emit the shared badge row into the generated docs homepage ([#169](https://github.com/rtorcato/js-tooling/issues/169)) ([#239](https://github.com/rtorcato/js-tooling/issues/239)) ([c2a41b9](https://github.com/rtorcato/js-tooling/commit/c2a41b9d1d7f6588ce6e684ed4cb21bcf1893375)), closes [#142](https://github.com/rtorcato/js-tooling/issues/142) [100/#232](https://github.com/rtorcato/js-tooling/issues/232) [#235](https://github.com/rtorcato/js-tooling/issues/235) [#236](https://github.com/rtorcato/js-tooling/issues/236)
+
 # [2.50.0](https://github.com/rtorcato/js-tooling/compare/v2.49.0...v2.50.0) (2026-07-19)
 
 
