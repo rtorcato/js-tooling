@@ -46,6 +46,7 @@ import { generateTailwind } from '../generators/tailwind.js'
 import { generateTurborepo } from '../generators/turborepo.js'
 import { generateNx } from '../generators/nx.js'
 import { generateBun } from '../generators/bun.js'
+import { generateDocsSite } from '../generators/docs-site.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../generators/typedoc.js'
 import { copyPreset } from '../utils/copy-preset.js'
 import { applyGithubSettings } from '../utils/github-settings.js'
@@ -751,6 +752,46 @@ const FIXERS: Fixer[] = [
 					filesWritten.push('package.json')
 				}
 			}
+			return { filesWritten }
+		},
+	},
+	{
+		target: 'docs-site',
+		description:
+			'Scaffold a Docusaurus docs site under apps/docs (config/sidebars/tokens + reusable Pages deploy), inferring name/org/repo from package.json',
+		// Manual/opt-in target — the "Docs site" doctor check is opt-in (only
+		// surfaces once a site exists), so this never nags a repo without one.
+		appliesTo: [],
+		outputs: [
+			'apps/docs/**',
+			'scripts/sync-changelog.mjs',
+			'pnpm-workspace.yaml',
+			'.github/workflows/docs.yml',
+		],
+		riskLevel: 'safe-add',
+		async run({ targetDir, pkg }) {
+			// Wire the TypeDoc API section (#229) when the repo already uses TypeDoc —
+			// a typedoc config on disk or the dep installed. No new CLI flag needed.
+			const deps = {
+				...((pkg?.dependencies as Record<string, string> | undefined) ?? {}),
+				...((pkg?.devDependencies as Record<string, string> | undefined) ?? {}),
+			}
+			const typedocConfigs = [
+				'typedoc.json',
+				'typedoc.config.js',
+				'typedoc.config.mjs',
+				'typedoc.config.cjs',
+				'typedoc.config.ts',
+			]
+			let hasTypedocConfig = false
+			for (const c of typedocConfigs) {
+				if (await fs.pathExists(path.join(targetDir, c))) {
+					hasTypedocConfig = true
+					break
+				}
+			}
+			const typedoc = hasTypedocConfig || 'typedoc' in deps
+			const filesWritten = await generateDocsSite(pkg, targetDir, { typedoc })
 			return { filesWritten }
 		},
 	},

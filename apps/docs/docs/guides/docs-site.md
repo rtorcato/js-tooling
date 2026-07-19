@@ -11,6 +11,30 @@ shipping a module or cutting a version updates the docs with no manual step.
 This guide is the canonical setup; each repo's `CONTRIBUTING.md` links here and
 adds only its own module list.
 
+## Quick start
+
+Scaffold the whole site in one command — it infers the name, org, and repo from
+`package.json` and drops in the shared design tokens, sync-changelog script, and
+GitHub Pages workflow:
+
+```sh
+npx @rtorcato/js-tooling fix docs-site
+```
+
+It writes `apps/docs/` (Docusaurus config, sidebars, `src/css`, a starter
+`docs/intro.md`), `scripts/sync-changelog.mjs`, the `apps/*` pnpm workspace
+entry, and `.github/workflows/docs.yml`. Every file is written only when
+missing, so re-running never clobbers your edits. The accent colour defaults to
+a neutral green — override `--ifm-color-primary` in `apps/docs/src/css/custom.css`
+to brand it.
+
+If your repo already uses TypeDoc (a `typedoc.json` or the `typedoc` dependency),
+`fix docs-site` also wires the **API-reference section** automatically: one
+`docusaurus-plugin-typedoc` instance per source module — inferred from your
+single-segment subpath exports (`./errors` → `src/errors/index.ts`) — plus the
+TypeDoc devDependencies and a `.gitignore` for the generated `docs/api/`. The
+sections below explain that wiring and the deploy details.
+
 ## How it stays current
 
 - **API reference** — `docusaurus-plugin-typedoc` regenerates `docs/api/<mod>`

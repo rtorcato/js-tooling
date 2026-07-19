@@ -1,3 +1,24 @@
+# [2.50.0](https://github.com/rtorcato/js-tooling/compare/v2.49.0...v2.50.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** opt-in TypeDoc API section in the docs-site generator ([#229](https://github.com/rtorcato/js-tooling/issues/229)) ([#236](https://github.com/rtorcato/js-tooling/issues/236)) ([d8f99e6](https://github.com/rtorcato/js-tooling/commit/d8f99e66dad54deaa4fe745c7f6a871723458b0c)), closes [100/#232](https://github.com/rtorcato/js-tooling/issues/232)
+
+# [2.49.0](https://github.com/rtorcato/js-tooling/compare/v2.48.0...v2.49.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** scaffold a Playwright smoke test in the docs-site generator ([#230](https://github.com/rtorcato/js-tooling/issues/230)) ([#235](https://github.com/rtorcato/js-tooling/issues/235)) ([2353af5](https://github.com/rtorcato/js-tooling/commit/2353af5428ff6825a400bdaea69852b3b51f0c98)), closes [#100](https://github.com/rtorcato/js-tooling/issues/100) [#232](https://github.com/rtorcato/js-tooling/issues/232)
+
+# [2.48.0](https://github.com/rtorcato/js-tooling/compare/v2.47.0...v2.48.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** docs-site generator (fix docs-site) ([#100](https://github.com/rtorcato/js-tooling/issues/100)) ([#232](https://github.com/rtorcato/js-tooling/issues/232)) ([6794f46](https://github.com/rtorcato/js-tooling/commit/6794f4673ce1a0a65ac949e579d88bb22d9bb38b)), closes [#54](https://github.com/rtorcato/js-tooling/issues/54) [#54](https://github.com/rtorcato/js-tooling/issues/54) [100/#106](https://github.com/rtorcato/js-tooling/issues/106) [#54](https://github.com/rtorcato/js-tooling/issues/54) [#229](https://github.com/rtorcato/js-tooling/issues/229) [#230](https://github.com/rtorcato/js-tooling/issues/230) [#231](https://github.com/rtorcato/js-tooling/issues/231)
+
 # [2.47.0](https://github.com/rtorcato/js-tooling/compare/v2.46.0...v2.47.0) (2026-07-17)
 
 

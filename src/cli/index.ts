@@ -199,6 +199,12 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		fixTarget: 'typedoc',
 	},
 	{
+		name: 'Docs site',
+		description: 'Docusaurus docs site (apps/docs) with shared tokens + GitHub Pages deploy',
+		exports: [],
+		fixTarget: 'docs-site',
+	},
+	{
 		name: 'esbuild',
 		description: 'Fast JavaScript bundler configuration',
 		exports: ['@rtorcato/js-tooling/esbuild'],
