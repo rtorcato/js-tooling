@@ -1,5 +1,8 @@
 {
-  "extends": "../../tooling/typescript/tsconfig.base.json",
+  // Dogfood (#80): extend the base via the package's own export, not a relative
+  // path, so a breaking change to the shipped base — or a broken export path —
+  // surfaces in this repo's own typecheck.
+  "extends": "@rtorcato/js-tooling/typescript/base",
   "compilerOptions": {
     // CLI-specific deltas over the published base. The base owns strictness so
     // a breaking change to it surfaces here (the point of #80); these only cover
