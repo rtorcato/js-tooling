@@ -770,7 +770,28 @@ const FIXERS: Fixer[] = [
 		],
 		riskLevel: 'safe-add',
 		async run({ targetDir, pkg }) {
-			const filesWritten = await generateDocsSite(pkg, targetDir)
+			// Wire the TypeDoc API section (#229) when the repo already uses TypeDoc —
+			// a typedoc config on disk or the dep installed. No new CLI flag needed.
+			const deps = {
+				...((pkg?.dependencies as Record<string, string> | undefined) ?? {}),
+				...((pkg?.devDependencies as Record<string, string> | undefined) ?? {}),
+			}
+			const typedocConfigs = [
+				'typedoc.json',
+				'typedoc.config.js',
+				'typedoc.config.mjs',
+				'typedoc.config.cjs',
+				'typedoc.config.ts',
+			]
+			let hasTypedocConfig = false
+			for (const c of typedocConfigs) {
+				if (await fs.pathExists(path.join(targetDir, c))) {
+					hasTypedocConfig = true
+					break
+				}
+			}
+			const typedoc = hasTypedocConfig || 'typedoc' in deps
+			const filesWritten = await generateDocsSite(pkg, targetDir, { typedoc })
 			return { filesWritten }
 		},
 	},

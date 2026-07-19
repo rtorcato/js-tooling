@@ -1,6 +1,6 @@
 {
 	"name": "@rtorcato/js-tooling",
-	"version": "2.48.0",
+	"version": "2.52.0",
 	"description": "JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.",
 	"type": "module",
 	"keywords": [
@@ -97,7 +97,8 @@
 		"tooling/claude/*.md",
 		"tooling/mcp/mcp.json.example",
 		"tooling/github-actions/workflows/*.yml",
-		"README.md"
+		"README.md",
+		"AGENTS.md"
 	],
 	"exports": {
 		"./commitlint/config": {
