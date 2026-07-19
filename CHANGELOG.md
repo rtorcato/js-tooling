@@ -1,3 +1,10 @@
+# [2.49.0](https://github.com/rtorcato/js-tooling/compare/v2.48.0...v2.49.0) (2026-07-19)
+
+
+### Features
+
+* **cli:** scaffold a Playwright smoke test in the docs-site generator ([#230](https://github.com/rtorcato/js-tooling/issues/230)) ([#235](https://github.com/rtorcato/js-tooling/issues/235)) ([2353af5](https://github.com/rtorcato/js-tooling/commit/2353af5428ff6825a400bdaea69852b3b51f0c98)), closes [#100](https://github.com/rtorcato/js-tooling/issues/100) [#232](https://github.com/rtorcato/js-tooling/issues/232)
+
 # [2.48.0](https://github.com/rtorcato/js-tooling/compare/v2.47.0...v2.48.0) (2026-07-19)
 
 
