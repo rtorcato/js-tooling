@@ -85,6 +85,11 @@ async function ensureWorkspace(targetDir: string): Promise<string | null> {
 	return rel
 }
 
+/** The GitHub Pages base path Docusaurus serves under, e.g. `/js-tooling/`. */
+function siteBaseUrl(meta: SiteMeta): string {
+	return `/${meta.repo ?? meta.title}/`
+}
+
 function docusaurusConfig(meta: SiteMeta): string {
 	const owner = meta.owner ?? 'your-org'
 	const repo = meta.repo ?? meta.title
@@ -258,6 +263,9 @@ function docsPackageJson(meta: SiteMeta): string {
 			serve: 'docusaurus serve',
 			clear: 'docusaurus clear',
 			typecheck: 'tsc --noEmit',
+			// Opt-in smoke test — builds, serves, and checks the site renders. Heavy
+			// browser install, so it's a manual/CI-gated run, not part of `build`.
+			'test:e2e': 'playwright test',
 		},
 		dependencies: {
 			'@docusaurus/core': '^3.10.2',
@@ -273,6 +281,8 @@ function docsPackageJson(meta: SiteMeta): string {
 			'@docusaurus/module-type-aliases': '^3.10.2',
 			'@docusaurus/tsconfig': '^3.8.1',
 			'@docusaurus/types': '^3.10.2',
+			'@playwright/test': '^1.49.0',
+			'@rtorcato/js-tooling': '^2.47.0',
 			'@types/react': '^19.0.0',
 			typescript: '~5.6.3',
 		},
@@ -327,6 +337,51 @@ jobs:
 }
 
 /**
+ * Playwright config for the docs smoke test. Reuses the shipped preset, then
+ * builds + serves the site on :3000 and points the base URL at the site's
+ * GitHub Pages base path so routes resolve exactly as in production. One
+ * browser keeps the CI browser install light.
+ */
+function playwrightConfig(meta: SiteMeta): string {
+	const url = `http://localhost:3000${siteBaseUrl(meta)}`
+	return `import { defineConfig, devices } from '@playwright/test'
+import base from '@rtorcato/js-tooling/playwright'
+
+export default defineConfig({
+  ...base,
+  testDir: './tests',
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  use: {
+    ...base.use,
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? '${url}',
+  },
+  webServer: {
+    command: 'pnpm run build && pnpm exec docusaurus serve --port 3000',
+    url: process.env.PLAYWRIGHT_BASE_URL ?? '${url}',
+    reuseExistingServer: !process.env.CI,
+    timeout: 180_000,
+  },
+})
+`
+}
+
+const SMOKE_SPEC = `import { expect, test } from '@playwright/test'
+
+// Smoke test: assert the built site serves and its core UI renders. Deliberately
+// content-agnostic — it validates "the site builds and boots", not copy.
+test('homepage responds and renders the shell', async ({ page }) => {
+  const res = await page.goto('./')
+  expect(res?.ok()).toBeTruthy()
+  await expect(page.locator('.navbar')).toBeVisible()
+})
+
+test('the starter doc renders a heading', async ({ page }) => {
+  await page.goto('./')
+  await expect(page.locator('h1')).toBeVisible()
+})
+`
+
+/**
  * Scaffold the Docusaurus docs site. Writes each file only when missing and
  * returns the relative paths actually written, so `fix docs-site` is safe to
  * re-run. Also drops in the shared sync-changelog script + design tokens.
@@ -352,6 +407,8 @@ export async function generateDocsSite(
 		[`${DOCS_APP}/tsconfig.json`, TSCONFIG],
 		[`${DOCS_APP}/src/css/custom.css`, customCss(accent)],
 		[`${DOCS_APP}/docs/intro.md`, introDoc(meta)],
+		[`${DOCS_APP}/playwright.config.ts`, playwrightConfig(meta)],
+		[`${DOCS_APP}/tests/smoke.spec.ts`, SMOKE_SPEC],
 		['.github/workflows/docs.yml', docsWorkflow(meta)],
 	]
 	for (const [rel, contents] of files) {
