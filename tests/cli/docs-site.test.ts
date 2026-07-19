@@ -27,6 +27,8 @@ describe('generateDocsSite', () => {
 			'apps/docs/src/css/custom.css',
 			'apps/docs/src/css/_jt-tokens.css',
 			'apps/docs/docs/intro.md',
+			'apps/docs/playwright.config.ts',
+			'apps/docs/tests/smoke.spec.ts',
 			'scripts/sync-changelog.mjs',
 			'.github/workflows/docs.yml',
 			'pnpm-workspace.yaml',
@@ -39,6 +41,13 @@ describe('generateDocsSite', () => {
 		const docsPkg = await fs.readJson(join(dir, 'apps/docs/package.json'))
 		expect(docsPkg.name).toBe('@rtorcato/js-tooling-docs')
 		expect(docsPkg.scripts.build).toMatch(/sync-changelog/)
+		expect(docsPkg.scripts['test:e2e']).toBe('playwright test')
+		expect(docsPkg.devDependencies['@playwright/test']).toBeTruthy()
+
+		// Smoke test reuses the shipped preset and targets the site's base path.
+		const pw = await fs.readFile(join(dir, 'apps/docs/playwright.config.ts'), 'utf-8')
+		expect(pw).toContain("import base from '@rtorcato/js-tooling/playwright'")
+		expect(pw).toContain('http://localhost:3000/js-tooling/')
 
 		// Config infers org/repo → GitHub Pages url + baseUrl.
 		const config = await fs.readFile(join(dir, 'apps/docs/docusaurus.config.ts'), 'utf-8')
