@@ -1,3 +1,10 @@
+# [2.55.0](https://github.com/rtorcato/js-tooling/compare/v2.54.1...v2.55.0) (2026-07-20)
+
+
+### Features
+
+* **cli:** ship shared Docusaurus component theme copy-preset ([#141](https://github.com/rtorcato/js-tooling/issues/141)) ([#260](https://github.com/rtorcato/js-tooling/issues/260)) ([b982b30](https://github.com/rtorcato/js-tooling/commit/b982b3071195f13d491b9a09281bc6bb7f72a5fc)), closes [#54](https://github.com/rtorcato/js-tooling/issues/54) [#54](https://github.com/rtorcato/js-tooling/issues/54) [#178](https://github.com/rtorcato/js-tooling/issues/178)
+
 ## [2.54.1](https://github.com/rtorcato/js-tooling/compare/v2.54.0...v2.54.1) (2026-07-20)
 
 
