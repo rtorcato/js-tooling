@@ -1,3 +1,10 @@
+# [2.54.0](https://github.com/rtorcato/js-tooling/compare/v2.53.0...v2.54.0) (2026-07-20)
+
+
+### Features
+
+* **cli:** canonical Dependabot config + auto-merge workflow ([#111](https://github.com/rtorcato/js-tooling/issues/111)) ([#255](https://github.com/rtorcato/js-tooling/issues/255)) ([6785702](https://github.com/rtorcato/js-tooling/commit/6785702033b53355ef43e34c75495379909a9fb9)), closes [#109](https://github.com/rtorcato/js-tooling/issues/109) [#109](https://github.com/rtorcato/js-tooling/issues/109)
+
 # [2.53.0](https://github.com/rtorcato/js-tooling/compare/v2.52.0...v2.53.0) (2026-07-19)
 
 
