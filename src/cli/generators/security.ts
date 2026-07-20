@@ -1,53 +1,103 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 
-export async function generateDependabotConfig(targetDir: string) {
-	await fs.ensureDir(path.join(targetDir, '.github'))
-	const filepath = path.join(targetDir, '.github', 'dependabot.yml')
-
-	const content = `version: 2
+/** The canonical dependency-update standard shared by every @rtorcato repo. */
+export const DEPENDABOT_CONFIG = `version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    versioning-strategy: "increase"
+      interval: monthly
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
     commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    # TypeScript majors remove config options (7.0 dropped baseUrl) — a deliberate
-    # migration, not a dependabot bump. Take minor/patch only.
-    ignore:
-      - dependency-name: "typescript"
-        update-types: ["version-update:semver-major"]
+      prefix: chore
+      include: scope
     groups:
-      # react + react-dom must move in lockstep (React errors on mismatched versions),
-      # so group them; a lone react-dom bump can never pass CI. Inert in non-React repos.
-      react:
-        patterns:
-          - "react"
-          - "react-dom"
-          - "@types/react"
-          - "@types/react-dom"
-      # Fold every other minor/patch bump into one weekly PR to cut noise.
-      # Majors stay as individual PRs so breaking changes are reviewed on their own.
-      minor-and-patch:
-        patterns:
-          - "*"
+      # Safe tier: runtime + dev minor/patch auto-merge on green (see the
+      # dependabot-automerge workflow). Grouped so react/react-dom move together.
+      production-minor:
+        dependency-type: production
         update-types:
-          - "minor"
-          - "patch"
+          - minor
+          - patch
+      dev-minor:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      # Majors batch into one PR per ecosystem — breaking by definition, so
+      # never auto-merged; triaged on the monthly cadence.
+      major-updates:
+        update-types:
+          - major
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "weekly"
+      interval: monthly
     commit-message:
-      prefix: "chore(ci)"
+      prefix: ci
+      include: scope
 `
 
-	await fs.writeFile(filepath, content)
+/**
+ * Auto-merges patch + minor Dependabot PRs once CI is green. Requires branch
+ * protection with required status checks on the target branch — without it,
+ * \`gh pr merge --auto\` never fires. Majors are excluded (they land in the
+ * major-updates group for manual triage).
+ */
+export const DEPENDABOT_AUTOMERGE_WORKFLOW = `name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: \${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-merge patch and minor updates
+        if: |
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: \${{ github.event.pull_request.html_url }}
+          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+`
+
+/** Relative paths this generator owns, in a stable order for \`filesWritten\`. */
+export const DEPENDABOT_FILES = [
+	'.github/dependabot.yml',
+	'.github/workflows/dependabot-automerge.yml',
+] as const
+
+/**
+ * Scaffold the canonical Dependabot setup: the grouped \`dependabot.yml\` **and**
+ * the auto-merge workflow. They're a paired unit — the config batches updates
+ * into a safe tier and a major tier, and the workflow merges the safe tier on
+ * green. See \`apps/docs/docs/guides/dependabot-strategy.md\`.
+ */
+export async function generateDependabotConfig(targetDir: string) {
+	await fs.ensureDir(path.join(targetDir, '.github', 'workflows'))
+	await fs.writeFile(path.join(targetDir, '.github', 'dependabot.yml'), DEPENDABOT_CONFIG)
+	await fs.writeFile(
+		path.join(targetDir, '.github', 'workflows', 'dependabot-automerge.yml'),
+		DEPENDABOT_AUTOMERGE_WORKFLOW
+	)
+	return [...DEPENDABOT_FILES]
 }
 
 export async function generateRenovateConfig(targetDir: string) {

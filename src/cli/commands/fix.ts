@@ -428,13 +428,14 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'dependabot',
-		description: 'Scaffold .github/dependabot.yml (weekly npm + actions updates, grouped)',
+		description:
+			'Scaffold the canonical .github/dependabot.yml (monthly, grouped: production-minor/dev-minor/major-updates) + the dependabot-automerge workflow',
 		appliesTo: ['Dependabot'],
-		outputs: ['.github/dependabot.yml'],
+		outputs: ['.github/dependabot.yml', '.github/workflows/dependabot-automerge.yml'],
 		canFixDrift: true,
 		async run({ targetDir }) {
-			await generateDependabotConfig(targetDir)
-			return { filesWritten: ['.github/dependabot.yml'] }
+			const filesWritten = await generateDependabotConfig(targetDir)
+			return { filesWritten }
 		},
 	},
 	{
