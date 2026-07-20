@@ -75,9 +75,11 @@ npx @rtorcato/js-tooling doctor --json -d ./existing-repo
 ### Targeted fixes
 
 ```bash
-# Apply one fixer from the list
+# Apply one fixer from the list (run `list --json` for every target)
 npx @rtorcato/js-tooling fix dependabot --yes --json
 npx @rtorcato/js-tooling fix engines --yes --json
+npx @rtorcato/js-tooling fix docs-site --yes --json   # scaffold a Docusaurus docs site under apps/docs
+npx @rtorcato/js-tooling fix bun --yes --json         # Bun runtime/test config
 ```
 
 ## Drift policy (important)

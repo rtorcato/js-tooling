@@ -65,7 +65,7 @@ See the [Getting Started guide](https://rtorcato.github.io/js-tooling/guides/get
 | `doctor` | Diagnose an existing project for missing or drifted tooling. | `npx @rtorcato/js-tooling doctor` |
 | `fix [target]` | Apply scaffolders for what `doctor` flagged (`--yes`, `--dry-run`, `--diff`). | `npx @rtorcato/js-tooling fix` |
 
-Every command takes `-d, --directory <path>`; run any with `--help` for its full flags.
+Every command takes `-d, --directory <path>`; run any with `--help` for its full flags. Run `list` (or `list --json`) for the full set of `fix` targets — it's the source of truth. Notable ones include `fix docs-site` (scaffold a [Docusaurus docs site](https://rtorcato.github.io/js-tooling/guides/docs-site/)) and `fix bun` (Bun runtime config).
 
 ## The `.js-tooling.json` lockfile
 
