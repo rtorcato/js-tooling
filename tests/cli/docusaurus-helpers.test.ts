@@ -24,6 +24,21 @@ describe('copy docusaurus helpers', () => {
 		expect(content).toContain('--jt-accent')
 		expect(content).toMatch(/Geist/)
 	})
+
+	it('copies the shared component theme, and it defines no accent colours', async () => {
+		const dir = newTmpDir()
+		const result = await copyPreset('docusaurus-theme', dir)
+		expect(result.target).toBe('apps/docs/src/css/theme.css')
+		const content = await fs.readFile(join(dir, 'apps/docs/src/css/theme.css'), 'utf-8')
+		// Component overrides present…
+		expect(content).toMatch(/\.theme-doc-card-container/)
+		expect(content).toMatch(/\.markdown table/)
+		// …and it references tokens rather than hardcoding an accent (so it's
+		// safe to share across the family — each repo owns its accent block).
+		expect(content).toMatch(/var\(--jt-accent\)/)
+		// No hardcoded accent hex (js-tooling's green) leaked into the shared sheet.
+		expect(content).not.toMatch(/#10b981|#34d399/i)
+	})
 })
 
 describe('doctor Docs site check', () => {

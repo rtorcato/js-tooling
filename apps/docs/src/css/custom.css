@@ -1,13 +1,18 @@
 /**
  * js-tooling — Docusaurus theme.
  *
- * Adapted from the rtorcato/browser-common theme (same structural patterns —
- * Geist font, navy surfaces, design tokens) but with a green accent
- * (#10b981 light / #34d399 dark) instead of blue.
+ * Green accent (#10b981 light / #34d399 dark) over the shared @rtorcato base.
+ * This file owns only the per-project bits — the accent/surface token block,
+ * the accent `::selection`, and the repo-namespaced mobile-drawer swizzle CSS —
+ * then @imports the shared, accent-agnostic component sheet
+ * (tooling/docusaurus/theme.css, refresh with `js-tooling copy docusaurus-theme`).
  */
 
 /* ---------- Fonts ---------- */
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap");
+
+/* ---------- Shared component theme (navbar, cards, sidebar, footer, tables…) ---------- */
+@import "./theme.css";
 
 /* ---------- Light (default) ---------- */
 :root {
@@ -93,45 +98,17 @@
 	--jt-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.75);
 }
 
-/* ---------- Navbar ---------- */
-.navbar {
-	border-bottom: 1px solid var(--jt-border);
-	box-shadow: none;
-}
-.navbar__link--active {
-	color: var(--jt-heading);
-}
-
-/* Configuration Reference / index cards (generated-index). Match the clean
-   "install box" look — near-page-bg fill + thin border instead of infima's dull
-   surface fill — with an accent-border hover. Full description (no one-line
-   `text--truncate` clamp) and equal card heights per row. */
-.theme-doc-card-container {
-	height: 100%;
-	background: var(--jt-code-bg);
-	border: 1px solid var(--jt-border);
-	border-radius: 14px;
-	box-shadow: none;
-	transition:
-		border-color 0.15s ease,
-		background 0.15s ease,
-		transform 0.15s ease;
-}
-.theme-doc-card-container:hover {
-	background: var(--jt-surface2);
-	border-color: var(--jt-accent-border);
-	transform: translateY(-2px);
-}
-.theme-doc-card-description.text--truncate {
-	white-space: normal;
-	overflow: visible;
-	text-overflow: unset;
+/* ---------- Accent text selection ---------- */
+::selection {
+	background: rgba(16, 185, 129, 0.24);
 }
 
 /* ---------- Mobile drawer: collapse primary/secondary into one menu ----------
    The primary→secondary "Back to main menu" UX is confusing here. We swizzle
    theme/Navbar/MobileSidebar/PrimaryMenu (see src/theme/) to render a single
    flat menu directly, and stub out SecondaryMenu so it never renders content.
+   Repo-namespaced (`.jt-mobile-menu`), so it stays local rather than in the
+   shared theme sheet.
 
    On doc pages Docusaurus still flips its internal secondary state (the doc
    plugin contributes a mobile-sidebar filler), which adds the
@@ -178,329 +155,4 @@
 	content: " ↗";
 	color: var(--jt-faint);
 	font-weight: 400;
-}
-
-/* ---------- Backgrounds ---------- */
-html,
-body,
-#__docusaurus,
-.main-wrapper {
-	background: var(--ifm-background-color);
-}
-/* Sidebar container: match page background, clean 1px right border, and
-   ensure a long sidebar list scrolls without clipping the page footer. The
-   sticky positioning + bounded height come from Infima defaults; the explicit
-   overflow rule here defends against any inner container with overflow: hidden. */
-.theme-doc-sidebar-container {
-	background: var(--ifm-background-color) !important;
-	border-right: 1px solid var(--jt-border) !important;
-}
-.theme-doc-sidebar-container > div,
-.theme-doc-sidebar-container nav,
-.theme-doc-sidebar-menu,
-.menu,
-.menu__list {
-	background: var(--ifm-background-color);
-}
-/* The sticky inner wrapper that holds the scrollable menu list. */
-.theme-doc-sidebar-container > div:first-child {
-	height: 100%;
-	overflow-y: auto;
-	overscroll-behavior: contain;
-}
-
-/* ---------- Sidebar ---------- */
-.menu {
-	font-size: 14px;
-	background: transparent;
-	padding: 16px 12px;
-}
-.menu__list .menu__list {
-	padding-left: 8px;
-}
-.menu__link {
-	border-radius: 8px;
-	color: var(--jt-muted);
-	line-height: 1.4;
-}
-.menu__link:hover {
-	background: var(--jt-surface2);
-	color: var(--jt-heading);
-}
-.menu__link--active:not(.menu__link--sublist) {
-	color: var(--jt-accent);
-	background: var(--jt-accent-soft);
-	font-weight: 600;
-}
-.menu__list-item-collapsible .menu__link {
-	font-weight: 600;
-	color: var(--jt-heading);
-	background: transparent;
-}
-.menu__list-item-collapsible .menu__link--active {
-	color: var(--jt-accent);
-	background: transparent;
-}
-.menu__list-item-collapsible:hover {
-	background: var(--jt-surface2);
-	border-radius: 8px;
-}
-.menu__caret:hover {
-	background: transparent;
-}
-
-/* ---------- Table of contents ---------- */
-.table-of-contents__link--active {
-	color: var(--jt-accent);
-	font-weight: 600;
-}
-.table-of-contents .table-of-contents__link:hover {
-	color: var(--jt-heading);
-}
-
-/* ---------- Pagination ---------- */
-.pagination-nav__link {
-	border: 1px solid var(--jt-border);
-	border-radius: 8px;
-	background: var(--jt-surface);
-}
-.pagination-nav__link:hover {
-	border-color: var(--jt-accent-border);
-	background: var(--jt-surface2);
-}
-
-/* ---------- Footer ---------- */
-.footer,
-.footer--dark {
-	--ifm-footer-background-color: var(--jt-bg2);
-	--ifm-footer-color: var(--jt-text);
-	--ifm-footer-link-color: var(--jt-text);
-	--ifm-footer-title-color: var(--jt-faint);
-	border-top: 1px solid var(--jt-border);
-}
-.footer__title {
-	font-size: 12px;
-	font-weight: 700;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	color: var(--jt-faint);
-}
-.footer__link-item {
-	color: var(--jt-text);
-}
-.footer__link-item:hover {
-	color: var(--jt-accent);
-	text-decoration: none;
-}
-.footer__copyright {
-	color: var(--jt-faint);
-	font-size: 13px;
-	text-align: left;
-}
-.footer__col {
-	font-size: 14px;
-}
-/* Hide the external-link "↗" SVG Docusaurus auto-appends to footer href links —
-   the design uses clean text labels only. The class is CSS-module hashed
-   (iconExternalLink_<hash>), so we target by attribute prefix. */
-.footer__link-item svg,
-.footer__link-item [class*="iconExternalLink"] {
-	display: none;
-}
-
-/* ---------- Code ----------
-   Prism is vsDark in both light & dark mode (to match the navy aesthetic),
-   so fenced code blocks must stay dark in BOTH themes — otherwise the pale
-   vsDark tokens wash out on a light background. Inline code (the `code` pills)
-   keeps the themed --ifm-code-background and stays readable. */
-code {
-	background: var(--jt-code-bg);
-	border: 1px solid var(--jt-border);
-	border-radius: 4px;
-	padding: 1px 6px;
-	font-size: var(--ifm-code-font-size);
-	font-family: var(--ifm-font-family-monospace);
-}
-.theme-code-block,
-div[class*="codeBlockContainer"],
-pre[class*="language-"] {
-	border: 1px solid var(--jt-border);
-	border-radius: 12px;
-	background: #0c111b !important;
-}
-.theme-code-block code,
-pre[class*="language-"] code {
-	background: transparent !important;
-	border: none !important;
-	color: #dfe5ee;
-}
-div[class*="codeBlockTitle"] {
-	background: #0a0e16 !important;
-	color: #94a1b4 !important;
-	border-bottom: 1px solid var(--jt-border);
-}
-[data-theme="light"] .theme-code-block,
-[data-theme="light"] div[class*="codeBlockContainer"],
-[data-theme="light"] pre[class*="language-"] {
-	border-color: rgba(12, 18, 28, 0.16);
-	box-shadow: 0 8px 24px -18px rgba(12, 18, 28, 0.5);
-}
-
-/* ---------- Markdown tables ----------
-   Rounded container, horizontal row dividers only (no heavy cell gridlines). */
-.markdown table,
-.theme-doc-markdown table,
-article table {
-	display: table;
-	width: 100%;
-	border-collapse: separate;
-	border-spacing: 0;
-	margin: 22px 0;
-	border: 1px solid var(--jt-border);
-	border-radius: 12px;
-	overflow: hidden;
-	font-size: 14px;
-}
-.markdown table thead,
-article table thead {
-	background: var(--jt-bg2);
-}
-.markdown table thead tr,
-article table thead tr {
-	border: none;
-	background: transparent;
-}
-.markdown table th,
-article table th {
-	text-align: left;
-	font-weight: 700;
-	font-size: 12px;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
-	color: var(--jt-faint);
-	border: none;
-	border-bottom: 1px solid var(--jt-border);
-	padding: 14px 18px;
-}
-.markdown table tbody tr,
-article table tbody tr {
-	background: transparent !important;
-	border: none;
-}
-.markdown table td,
-article table td {
-	border: none;
-	border-bottom: 1px solid var(--jt-border);
-	padding: 13px 18px;
-	vertical-align: middle;
-	color: var(--jt-text);
-}
-.markdown table tbody tr:last-child td,
-article table tbody tr:last-child td {
-	border-bottom: none;
-}
-.markdown table td:first-child,
-article table td:first-child {
-	font-weight: 600;
-	color: var(--jt-heading);
-	white-space: nowrap;
-}
-.markdown table td code,
-.markdown table th code,
-article table td code {
-	background: transparent !important;
-	border: none !important;
-	padding: 0 !important;
-	font-size: 13px;
-}
-.markdown table td:nth-child(2) code,
-article table td:nth-child(2) code {
-	color: var(--jt-accent);
-}
-.markdown table td:nth-child(3),
-article table td:nth-child(3) {
-	color: var(--jt-muted);
-	line-height: 1.9;
-}
-.markdown table td:nth-child(3) code,
-article table td:nth-child(3) code {
-	color: var(--jt-muted);
-}
-
-/* ---------- Buttons ---------- */
-.button--primary {
-	background: var(--jt-accent-fill);
-	border-color: var(--jt-accent-fill);
-	color: var(--jt-on-accent);
-	font-weight: 700;
-}
-.button--primary:hover {
-	background: var(--ifm-color-primary-light);
-	border-color: var(--ifm-color-primary-light);
-	color: var(--jt-on-accent);
-}
-.button--secondary {
-	background: transparent;
-	border-color: var(--jt-border2);
-	color: var(--jt-heading);
-}
-
-::selection {
-	background: rgba(16, 185, 129, 0.24);
-}
-
-/* ============================================================
-   HARDENED DARK SURFACES
-   Infima's dark defaults are grey (#1b1b1d) and the footer is
-   slate. These explicit overrides force the navy palette even
-   if a default loads after this file.
-   ============================================================ */
-[data-theme="dark"] {
-	--ifm-background-color: #0a0e16;
-	--ifm-background-surface-color: #111824;
-	--ifm-navbar-background-color: #0a0e16;
-	--ifm-footer-background-color: #0b101a;
-}
-[data-theme="dark"],
-[data-theme="dark"] body,
-[data-theme="dark"] #__docusaurus,
-[data-theme="dark"] .main-wrapper,
-[data-theme="dark"] .navbar,
-[data-theme="dark"] main {
-	background-color: #0a0e16;
-}
-/* Footer follows the theme: soft grey panel in light mode, page-matching navy
-   in dark mode. Selectors are theme-scoped so the config's `style: 'dark'`
-   (which adds .footer--dark in BOTH modes) can't drag the light-mode footer
-   into a dark slate. */
-html[data-theme="light"] .footer,
-html[data-theme="light"] .footer--dark {
-	background-color: var(--jt-bg2) !important;
-	border-top: 1px solid var(--jt-border);
-}
-html[data-theme="light"] .footer__link-item {
-	color: var(--jt-text) !important;
-}
-html[data-theme="light"] .footer__title {
-	color: var(--jt-faint) !important;
-}
-html[data-theme="light"] .footer__copyright {
-	color: var(--jt-faint) !important;
-}
-html[data-theme="dark"] .footer,
-html[data-theme="dark"] .footer--dark {
-	background-color: #0a0e16 !important;
-	border-top: 1px solid var(--jt-border);
-}
-html[data-theme="dark"] .footer__link-item {
-	color: var(--jt-text) !important;
-}
-html[data-theme="dark"] .footer__title {
-	color: var(--jt-faint) !important;
-}
-html[data-theme="dark"] .footer__copyright {
-	color: var(--jt-faint) !important;
-}
-.footer__link-item:hover {
-	color: var(--jt-accent) !important;
 }

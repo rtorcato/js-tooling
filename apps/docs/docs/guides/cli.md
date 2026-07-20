@@ -22,7 +22,7 @@ npx @rtorcato/js-tooling copy biome     # → biome.json
 npx @rtorcato/js-tooling copy tsconfig  # → tsconfig.json
 ```
 
-Available presets: `biome`, `tsconfig`, `bun`, `nx`, `changesets`, `release-please`, `oxlint`, `claude-skill`, `mcp-example`, `docusaurus-sync-changelog`, `docusaurus-theme-tokens`.
+Available presets: `biome`, `tsconfig`, `bun`, `nx`, `changesets`, `release-please`, `oxlint`, `claude-skill`, `mcp-example`, `docusaurus-sync-changelog`, `docusaurus-theme-tokens`, `docusaurus-theme`.
 
 `copy` is for configs you must *own* rather than extend — Biome doesn't support configuration extension, and TypeScript configs resolve more reliably when local. Most other configs (ESLint, Prettier, Vitest, etc.) can be imported or extended directly — see the [Configuration Reference](../reference/biome.md) for usage.
 
