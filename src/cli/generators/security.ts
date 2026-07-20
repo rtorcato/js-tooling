@@ -10,6 +10,11 @@ updates:
       interval: monthly
       time: "06:00"
       timezone: Etc/UTC
+    # Let brand-new releases settle before opening a PR — keeps grouped bumps
+    # from tripping pnpm's minimumReleaseAge supply-chain check (a same-day
+    # release fails the frozen-lockfile install in CI).
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     versioning-strategy: increase
     commit-message:
