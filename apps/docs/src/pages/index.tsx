@@ -3,6 +3,7 @@ import CodeBlock from '@theme/CodeBlock'
 import Layout from '@theme/Layout'
 import TabItem from '@theme/TabItem'
 import Tabs from '@theme/Tabs'
+import { siblings } from '@rtorcato/shared-docs'
 import clsx from 'clsx'
 import type { ReactElement } from 'react'
 import InstallTabs from '@site/src/components/InstallTabs'
@@ -341,69 +342,9 @@ function Categories(): ReactElement {
 	)
 }
 
-type Sibling = {
-	name: string
-	tagline: string
-	/** Prefer the published docs site; fall back to the GitHub repo when there isn't one yet. */
-	href: string
-	/** Short label rendered in the card's top-right indicating where the link goes. */
-	dest: 'Docs' | 'GitHub'
-	/** Each project's brand hue used to tint the card title. */
-	accent: string
-}
-
-const SIBLINGS: Sibling[] = [
-	{
-		name: '@rtorcato/api-common',
-		tagline:
-			'Framework-agnostic building blocks for Node.js APIs — errors, auth, rate limiting, OpenAPI, Express + Hono.',
-		href: 'https://rtorcato.github.io/api-common/',
-		dest: 'Docs',
-		accent: '#e879f9',
-	},
-	{
-		name: '@rtorcato/browser-common',
-		tagline: 'Tree-shakeable TypeScript wrappers around 40+ browser Web APIs — one subpath per spec.',
-		href: 'https://rtorcato.github.io/browser-common/',
-		dest: 'Docs',
-		accent: '#58a6ff',
-	},
-	{
-		name: '@rtorcato/js-common',
-		tagline: 'Tree-shakeable TypeScript utilities — tiny bundles, full type safety, CLI included.',
-		href: 'https://rtorcato.github.io/js-common/',
-		dest: 'Docs',
-		accent: '#f2cc60',
-	},
-	{
-		name: '@rtorcato/db-common',
-		tagline: 'Shared, tree-shakeable TypeScript database utilities for Node projects.',
-		href: 'https://rtorcato.github.io/db-common/',
-		dest: 'Docs',
-		accent: '#a78bfa',
-	},
-	{
-		name: '@rtorcato/cf-common',
-		tagline: 'Common helpers for Cloudflare developers — Workers, Pages, and the edge runtime.',
-		href: 'https://rtorcato.github.io/cf-common/',
-		dest: 'Docs',
-		accent: '#f6821f',
-	},
-	{
-		name: '@rtorcato/react-common',
-		tagline: 'Published React 19 component library — shared UI primitives.',
-		href: 'https://github.com/rtorcato/react-common',
-		dest: 'GitHub',
-		accent: '#818cf8',
-	},
-	{
-		name: '@rtorcato/swift-common',
-		tagline: 'SwiftUI package of reusable views and helpers to build apps faster.',
-		href: 'https://rtorcato.github.io/swift-common/',
-		dest: 'Docs',
-		accent: '#ff6f4d',
-	},
-]
+// Sibling projects from the shared single source of truth
+// (@rtorcato/shared-docs), excluding js-tooling itself.
+const SIBLINGS = siblings('@rtorcato/js-tooling')
 
 function Siblings(): ReactElement {
 	return (
