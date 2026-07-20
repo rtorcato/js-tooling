@@ -13,6 +13,7 @@ export type PresetName =
 	| 'mcp-example'
 	| 'docusaurus-sync-changelog'
 	| 'docusaurus-theme-tokens'
+	| 'docusaurus-theme'
 
 export interface PresetDefinition {
 	source: string
@@ -75,6 +76,11 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		source: 'tooling/docusaurus/theme-tokens.css',
 		target: 'apps/docs/src/css/_jt-tokens.css',
 		desc: 'Shared Docusaurus design tokens (Geist + navy surfaces; accent per-project)',
+	},
+	'docusaurus-theme': {
+		source: 'tooling/docusaurus/theme.css',
+		target: 'apps/docs/src/css/theme.css',
+		desc: 'Shared Docusaurus component theme (navbar, cards, sidebar, footer, tables; accent-agnostic — @import after docusaurus-theme-tokens)',
 	},
 }
 
