@@ -75,7 +75,11 @@ CI. Closing stale PRs is the normal, expected hygiene step — not a loss of wor
 - **Monthly** version updates (batched → low noise). Security updates remain
   always-on and are not subject to the monthly schedule.
 - `open-pull-requests-limit: 5` — grouping makes this ample and caps the backlog.
-- Optional `cooldown: 7 days` so brand-new releases settle before a PR opens.
+- `cooldown: { default-days: 7 }` so brand-new releases settle before a PR
+  opens. This is required, not optional, on repos that enforce pnpm's
+  `minimumReleaseAge` supply-chain policy: without it Dependabot bumps a
+  same-day release into the lockfile and the frozen-lockfile install fails CI
+  (`ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`), so the PR can never go green.
 
 ## 6. Single source of truth
 
@@ -96,6 +100,8 @@ updates:
       interval: monthly
       time: "06:00"
       timezone: Etc/UTC
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     versioning-strategy: increase
     commit-message:

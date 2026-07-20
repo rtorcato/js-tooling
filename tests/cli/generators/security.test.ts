@@ -24,6 +24,9 @@ describe('generateDependabotConfig', () => {
 		// `schedule.day` is weekly-only and must be a weekday name — invalid under
 		// monthly, which already runs on the 1st. Guard against it regressing.
 		expect(content).not.toMatch(/^\s*day:/m)
+		// cooldown lets fresh releases settle so a same-day bump can't trip the
+		// minimumReleaseAge supply-chain check in CI.
+		expect(content).toMatch(/cooldown:\s*\n\s*default-days: 7/)
 	})
 
 	it('uses the canonical safe-tier + major-tier grouping', async () => {
