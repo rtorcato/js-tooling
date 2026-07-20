@@ -906,22 +906,33 @@ async function checkDependabot(dir: string): Promise<CheckResult> {
 	for (const candidate of ['.github/dependabot.yml', '.github/dependabot.yaml']) {
 		const candidatePath = path.join(dir, candidate)
 		if (await fs.pathExists(candidatePath)) {
-			// A config with no `groups:` predates the grouping/ignore defaults — a lone
-			// react-dom or TypeScript-major bump can never pass CI. Flag as drift so
-			// `fix dependabot` can bring it up to standard.
+			// The canonical standard (apps/docs/docs/guides/dependabot-strategy.md) is
+			// the safe-tier + major-tier grouping plus the auto-merge workflow that
+			// depends on it. Flag any config that predates it so `fix dependabot` can
+			// bring the pair up to standard.
 			const content = await fs.readFile(candidatePath, 'utf8')
-			if (!/^\s*groups:/m.test(content)) {
+			const deltas: string[] = []
+			for (const group of ['production-minor', 'dev-minor', 'major-updates']) {
+				if (!new RegExp(`^\\s*${group}:`, 'm').test(content)) {
+					deltas.push(`missing \`${group}\` group`)
+				}
+			}
+			const automergePath = path.join(dir, '.github', 'workflows', 'dependabot-automerge.yml')
+			if (!(await fs.pathExists(automergePath))) {
+				deltas.push('missing dependabot-automerge workflow')
+			}
+			if (deltas.length > 0) {
 				return {
 					check: 'Dependabot',
 					status: 'drift',
-					detail: `${candidate} missing recommended dependency grouping`,
-					hint: 'Run `npx @rtorcato/js-tooling fix dependabot` to add grouping + ignore rules',
+					detail: `${candidate} drifts from canonical (${deltas.join('; ')})`,
+					hint: 'Run `npx @rtorcato/js-tooling fix dependabot` to apply the canonical grouping + auto-merge workflow',
 				}
 			}
 			return {
 				check: 'Dependabot',
 				status: 'ok',
-				detail: `${candidate} found`,
+				detail: `${candidate} + auto-merge workflow`,
 			}
 		}
 	}

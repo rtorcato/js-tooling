@@ -7,6 +7,7 @@ import {
 	runDoctor,
 	summarize,
 } from '../../../src/cli/commands/doctor.js'
+import { generateDependabotConfig } from '../../../src/cli/generators/security.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
@@ -583,7 +584,7 @@ describe('doctor security checks', () => {
 		expect(dep?.hint).toMatch(/fix dependabot/)
 	})
 
-	it('reports Dependabot ok when dependabot.yml has a groups block', async () => {
+	it('reports Dependabot drift when the config lacks the canonical groups', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.ensureDir(join(dir, '.github'))
@@ -591,6 +592,14 @@ describe('doctor security checks', () => {
 			join(dir, '.github', 'dependabot.yml'),
 			'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    groups:\n      all:\n        patterns: ["*"]\n'
 		)
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Dependabot')?.status).toBe('drift')
+	})
+
+	it('reports Dependabot ok with the canonical config + auto-merge workflow', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await generateDependabotConfig(dir)
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'Dependabot')?.status).toBe('ok')
 	})

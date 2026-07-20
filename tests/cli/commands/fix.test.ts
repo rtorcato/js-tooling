@@ -3,6 +3,10 @@ import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fixCommand, getFixers, listFixers } from '../../../src/cli/commands/fix.js'
+import {
+	DEPENDABOT_AUTOMERGE_WORKFLOW,
+	DEPENDABOT_CONFIG,
+} from '../../../src/cli/generators/security.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 vi.mock('inquirer', () => ({
@@ -12,10 +16,17 @@ vi.mock('inquirer', () => ({
 const promptMock = vi.mocked(inquirer.prompt)
 const newTmpDir = useTmpDir()
 
-// A dependabot.yml with a `groups:` block reads as up-to-date (no drift), so the
-// fixer treats it as already-ok and leaves it alone.
-const GROUPED_DEPENDABOT =
-	'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    groups:\n      all:\n        patterns: ["*"]\n'
+// The canonical config + auto-merge workflow read as up-to-date (no drift), so
+// the fixer treats them as already-ok and leaves them alone. Both files are
+// required — the doctor check flags a config missing either half.
+const GROUPED_DEPENDABOT = DEPENDABOT_CONFIG
+async function seedCanonicalDependabot(dir: string) {
+	await fs.outputFile(join(dir, '.github', 'dependabot.yml'), DEPENDABOT_CONFIG)
+	await fs.outputFile(
+		join(dir, '.github', 'workflows', 'dependabot-automerge.yml'),
+		DEPENDABOT_AUTOMERGE_WORKFLOW
+	)
+}
 
 async function seedPackageJson(dir: string, extra: Record<string, unknown> = {}) {
 	await fs.writeJson(join(dir, 'package.json'), {
@@ -209,25 +220,28 @@ describe('fix targeted', () => {
 		expect(await fs.pathExists(join(dir, 'renovate.json'))).toBe(true)
 	})
 
-	it('fix dependabot reports already-ok when renovate.json is present', async () => {
+	it('fix dependabot leaves a canonical config untouched (already-ok)', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
-		await fs.writeJson(join(dir, 'renovate.json'), { extends: ['config:recommended'] })
-		await fs.outputFile(join(dir, '.github', 'dependabot.yml'), GROUPED_DEPENDABOT)
+		await seedCanonicalDependabot(dir)
 		await fixCommand('dependabot', { directory: dir, yes: true })
-		// dependabot.yml should remain untouched (no overwrite) and no error thrown.
+		// Both files already canonical → no overwrite, no error.
 		const yaml = await fs.readFile(join(dir, '.github', 'dependabot.yml'), 'utf-8')
 		expect(yaml).toBe(GROUPED_DEPENDABOT)
 	})
 
-	it('fix dependabot upgrades an existing config that lacks grouping', async () => {
+	it('fix dependabot upgrades an existing config that lacks canonical grouping', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.outputFile(join(dir, '.github', 'dependabot.yml'), 'version: 2\n')
 		await fixCommand('dependabot', { directory: dir, yes: true })
 		const yaml = await fs.readFile(join(dir, '.github', 'dependabot.yml'), 'utf-8')
-		expect(yaml).toMatch(/^\s*groups:/m)
-		expect(yaml).toMatch(/dependency-name: "typescript"/)
+		expect(yaml).toMatch(/^\s*production-minor:/m)
+		expect(yaml).toMatch(/^\s*major-updates:/m)
+		// and it scaffolds the paired auto-merge workflow
+		expect(
+			await fs.pathExists(join(dir, '.github', 'workflows', 'dependabot-automerge.yml'))
+		).toBe(true)
 	})
 
 	it('fix unknown-target exits non-zero', async () => {
@@ -682,8 +696,7 @@ describe('fix targeted', () => {
 	it('returns early when check is already ok', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
-		await fs.ensureDir(join(dir, '.github'))
-		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), GROUPED_DEPENDABOT)
+		await seedCanonicalDependabot(dir)
 		// Should not call inquirer at all.
 		await fixCommand('dependabot', { directory: dir })
 		expect(promptMock).not.toHaveBeenCalled()
@@ -708,7 +721,10 @@ describe('fix --json', () => {
 				target: 'dependabot',
 				check: 'Dependabot',
 				status: 'applied',
-				filesWritten: ['.github/dependabot.yml'],
+				filesWritten: [
+					'.github/dependabot.yml',
+					'.github/workflows/dependabot-automerge.yml',
+				],
 			})
 		} finally {
 			logSpy.mockRestore()
@@ -785,8 +801,7 @@ describe('fix --json', () => {
 	it('reports already-ok for a check that passes', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
-		await fs.ensureDir(join(dir, '.github'))
-		await fs.writeFile(join(dir, '.github', 'dependabot.yml'), GROUPED_DEPENDABOT)
+		await seedCanonicalDependabot(dir)
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 		try {
 			await fixCommand('dependabot', { directory: dir, json: true })

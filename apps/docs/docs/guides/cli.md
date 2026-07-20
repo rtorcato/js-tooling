@@ -83,7 +83,7 @@ Applies scaffolders for items `doctor` flagged. Without a target it walks every 
 
 ```bash
 npx @rtorcato/js-tooling fix                    # walk all findings interactively
-npx @rtorcato/js-tooling fix dependabot         # scaffold just .github/dependabot.yml
+npx @rtorcato/js-tooling fix dependabot         # scaffold dependabot.yml + auto-merge workflow
 npx @rtorcato/js-tooling fix --yes              # apply every recommended fix without prompts
 npx @rtorcato/js-tooling fix biome --dry-run    # print what would change, write nothing
 npx @rtorcato/js-tooling fix biome --diff       # show the exact diff before confirming
@@ -184,7 +184,7 @@ Implementation note: the preview is computed by shadow-running the fixer in a te
 |---|---|
 | `github-actions` | `.github/workflows/ci.yml` (+ `codecov.yml`; Vitest jobs upload coverage) |
 | `gitlab-ci` | `.gitlab-ci.yml` (lint/typecheck/test/build mirrored from GitHub Actions) |
-| `dependabot` | `.github/dependabot.yml` (weekly npm + actions, grouped) |
+| `dependabot` | `.github/dependabot.yml` (monthly, grouped: production-minor/dev-minor/major-updates) + the `dependabot-automerge.yml` workflow — see [Dependabot strategy](./dependabot-strategy.md) |
 | `renovate` | `renovate.json` (alternative to Dependabot) |
 | `codeql` | `.github/workflows/codeql.yml` (security scanning) |
 | `github-settings` | branch protection + auto-merge + workflow permissions via `gh api` (mutates the remote repo) |
