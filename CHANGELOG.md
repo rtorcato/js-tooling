@@ -1,3 +1,10 @@
+## [2.54.1](https://github.com/rtorcato/js-tooling/compare/v2.54.0...v2.54.1) (2026-07-20)
+
+
+### Bug Fixes
+
+* **cli:** Dependabot cooldown to avoid min-release-age CI failures ([#258](https://github.com/rtorcato/js-tooling/issues/258)) ([6947925](https://github.com/rtorcato/js-tooling/commit/69479258ed7ee8d7fc597aeb2545141210dc8a83)), closes [#111](https://github.com/rtorcato/js-tooling/issues/111) [#256](https://github.com/rtorcato/js-tooling/issues/256) [#257](https://github.com/rtorcato/js-tooling/issues/257) [#256](https://github.com/rtorcato/js-tooling/issues/256) [#257](https://github.com/rtorcato/js-tooling/issues/257)
+
 # [2.54.0](https://github.com/rtorcato/js-tooling/compare/v2.53.0...v2.54.0) (2026-07-20)
 
 
