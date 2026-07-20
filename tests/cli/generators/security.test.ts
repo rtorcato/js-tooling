@@ -21,6 +21,9 @@ describe('generateDependabotConfig', () => {
 		expect(content).toMatch(/package-ecosystem: github-actions/)
 		expect(content).toMatch(/interval: monthly/)
 		expect(content).toMatch(/open-pull-requests-limit: 5/)
+		// `schedule.day` is weekly-only and must be a weekday name — invalid under
+		// monthly, which already runs on the 1st. Guard against it regressing.
+		expect(content).not.toMatch(/^\s*day:/m)
 	})
 
 	it('uses the canonical safe-tier + major-tier grouping', async () => {

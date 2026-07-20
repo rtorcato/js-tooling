@@ -8,7 +8,6 @@ updates:
     directory: /
     schedule:
       interval: monthly
-      day: 1
       time: "06:00"
       timezone: Etc/UTC
     open-pull-requests-limit: 5
@@ -39,7 +38,6 @@ updates:
     directory: /
     schedule:
       interval: monthly
-      day: 1
     commit-message:
       prefix: ci
       include: scope
