@@ -906,6 +906,8 @@ const FIXERS: Fixer[] = [
 			'.github/copilot-instructions.md',
 			'.claude/skills/js-tooling.md',
 			'.mcp.json.example',
+			// Only written when the repo ships its own skills/<name>/SKILL.md.
+			'README.md',
 		],
 		// Every output is a delimited-block upsert or a `.example` file — existing
 		// user content is never clobbered.
