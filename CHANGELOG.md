@@ -1,3 +1,10 @@
+# [2.57.0](https://github.com/rtorcato/js-tooling/compare/v2.56.0...v2.57.0) (2026-07-22)
+
+
+### Features
+
+* **release:** publish to npm via OIDC trusted publishing ([#264](https://github.com/rtorcato/js-tooling/issues/264)) ([99a5837](https://github.com/rtorcato/js-tooling/commit/99a5837f99af977a49d9dc2da7755f7fa44c927d)), closes [#201](https://github.com/rtorcato/js-tooling/issues/201) [#201](https://github.com/rtorcato/js-tooling/issues/201)
+
 # [2.56.0](https://github.com/rtorcato/js-tooling/compare/v2.55.0...v2.56.0) (2026-07-22)
 
 
