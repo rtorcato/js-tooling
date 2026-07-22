@@ -183,12 +183,7 @@ jobs:
             echo "✅ GITHUB_TOKEN is available"
           fi
 
-          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "⚠️  NPM_TOKEN is not set - required for publishing"
-            echo "   Add NPM_TOKEN to repository secrets for publishing to work"
-          else
-            echo "✅ NPM_TOKEN is available"
-          fi
+          # npm publish uses OIDC trusted publishing (no NPM_TOKEN secret needed).
 
   # Testing — run on every supported Node major
   test:
@@ -359,8 +354,9 @@ jobs:
         run: pnpm run build-cli
 
       - name: 🚀 Run semantic-release
+        # Publishes to npm via OIDC trusted publishing — no NPM_TOKEN. Requires
+        # the `id-token: write` permission above + a trusted publisher configured
+        # for the package on npmjs.com (Settings → Trusted Publisher).
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release

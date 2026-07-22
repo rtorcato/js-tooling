@@ -1,3 +1,18 @@
+# [2.57.0](https://github.com/rtorcato/js-tooling/compare/v2.56.0...v2.57.0) (2026-07-22)
+
+
+### Features
+
+* **release:** publish to npm via OIDC trusted publishing ([#264](https://github.com/rtorcato/js-tooling/issues/264)) ([99a5837](https://github.com/rtorcato/js-tooling/commit/99a5837f99af977a49d9dc2da7755f7fa44c927d)), closes [#201](https://github.com/rtorcato/js-tooling/issues/201) [#201](https://github.com/rtorcato/js-tooling/issues/201)
+
+# [2.56.0](https://github.com/rtorcato/js-tooling/compare/v2.55.0...v2.56.0) (2026-07-22)
+
+
+### Features
+
+* **cli:** fix ai documents npx skills install in README ([#262](https://github.com/rtorcato/js-tooling/issues/262)) ([5c44a36](https://github.com/rtorcato/js-tooling/commit/5c44a3612ca7b4c4b2be6098095e6883ad98df59))
+* **docs:** make sync-changelog target configurable (Fumadocs-ready) ([#263](https://github.com/rtorcato/js-tooling/issues/263)) ([4c75aac](https://github.com/rtorcato/js-tooling/commit/4c75aac0f2a99f2a0cf72869984565d0ebaddc94)), closes [#261](https://github.com/rtorcato/js-tooling/issues/261)
+
 # [2.55.0](https://github.com/rtorcato/js-tooling/compare/v2.54.1...v2.55.0) (2026-07-20)
 
 
