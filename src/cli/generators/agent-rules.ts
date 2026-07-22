@@ -1,6 +1,7 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 import { copyPreset, getPackageRoot } from '../utils/copy-preset.js'
+import { installSkillsInstallDocs } from './skills-install.js'
 
 /**
  * All agent rule files are generated from one source of truth — the shipped
@@ -33,14 +34,19 @@ async function readSkill(): Promise<Skill> {
  * existing block, appends if the file exists without one, creates otherwise.
  * Never clobbers surrounding content.
  */
-export async function upsertBlock(filePath: string, body: string): Promise<void> {
-	const block = `${BLOCK_START}\n${body}\n${BLOCK_END}`
+export async function upsertBlock(
+	filePath: string,
+	body: string,
+	markers: { start: string; end: string } = { start: BLOCK_START, end: BLOCK_END }
+): Promise<void> {
+	const { start: startMarker, end: endMarker } = markers
+	const block = `${startMarker}\n${body}\n${endMarker}`
 	if (await fs.pathExists(filePath)) {
 		const existing = await fs.readFile(filePath, 'utf8')
-		const start = existing.indexOf(BLOCK_START)
-		const end = existing.indexOf(BLOCK_END)
+		const start = existing.indexOf(startMarker)
+		const end = existing.indexOf(endMarker)
 		if (start !== -1 && end !== -1) {
-			const next = existing.slice(0, start) + block + existing.slice(end + BLOCK_END.length)
+			const next = existing.slice(0, start) + block + existing.slice(end + endMarker.length)
 			await fs.writeFile(filePath, next)
 			return
 		}
@@ -78,6 +84,10 @@ export async function installAiSetup(targetDir: string): Promise<string[]> {
 	written.push(await installAgentRules(targetDir, 'copilot'))
 	written.push((await copyPreset('claude-skill', targetDir)).target)
 	written.push((await copyPreset('mcp-example', targetDir)).target)
+	// If this repo ships its own skills (skills/<name>/SKILL.md), document their
+	// one-command `npx skills add` install in README.md. No-op for repos without.
+	const skillsDoc = await installSkillsInstallDocs(targetDir)
+	if (skillsDoc) written.push(skillsDoc)
 	return written
 }
 
