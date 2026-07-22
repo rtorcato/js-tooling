@@ -416,7 +416,7 @@ const FIXERS: Fixer[] = [
 	{
 		target: 'github-actions',
 		description: 'Scaffold .github/workflows/ci.yml (+ codecov.yml when tests run)',
-		appliesTo: ['GitHub Actions', 'Coverage upload'],
+		appliesTo: ['GitHub Actions', 'Coverage upload', 'npm OIDC publish'],
 		outputs: ['.github/workflows/ci.yml', 'codecov.yml'],
 		canFixDrift: true,
 		async run({ targetDir, pkg }) {

@@ -888,6 +888,49 @@ describe('nextStepSuggestions', () => {
 		const rt = results.find((r) => r.check === 'Release token')
 		expect(rt?.status).toBe('ok')
 	})
+
+	it('flags a release workflow still authenticating npm publish with NPM_TOKEN', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  release:\n    steps:\n      - run: npx semantic-release\n        env:\n          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}\n'
+		)
+
+		const results = await runDoctor(dir)
+		const r = results.find((c) => c.check === 'npm OIDC publish')
+		expect(r?.status).toBe('drift')
+		expect(r?.hint).toMatch(/Trusted Publisher/)
+	})
+
+	it('reports ok when the release workflow publishes via OIDC (no NPM_TOKEN)', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  release:\n    permissions:\n      id-token: write\n    steps:\n      - run: npx semantic-release\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n'
+		)
+
+		const results = await runDoctor(dir)
+		const r = results.find((c) => c.check === 'npm OIDC publish')
+		expect(r?.status).toBe('ok')
+	})
+
+	it('skips the npm OIDC check for private packages', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, 'package.json'), { name: 'demo', version: '0.0.0', private: true })
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'jobs:\n  release:\n    steps:\n      - run: npx semantic-release\n        env:\n          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}\n'
+		)
+
+		const results = await runDoctor(dir)
+		const r = results.find((c) => c.check === 'npm OIDC publish')
+		expect(r?.status).toBe('optional-missing')
+	})
 })
 
 describe('doctor publint check', () => {
