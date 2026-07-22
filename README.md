@@ -177,3 +177,14 @@ Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+<!-- js-tooling:skills:start -->
+## Install the skills (`npx skills`)
+
+Any agent that supports the [`skills`](https://www.npmjs.com/package/skills) CLI can install this repo's skills straight from GitHub — no clone, no package install:
+
+```bash
+npx skills add https://github.com/rtorcato/js-tooling --skill js-tooling
+npx skills add https://github.com/rtorcato/js-tooling --skill npm-publish
+```
+<!-- js-tooling:skills:end -->
