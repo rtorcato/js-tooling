@@ -1,10 +1,15 @@
-![js-tooling banner](./banner.png)
+<!-- ![js-tooling banner](./banner.png) -->
 
-# js-tooling
+<!-- # js-tooling -->
 
-![js-common banner](./banner.jpeg)
+<!-- ![js-common banner](./banner.jpeg) -->
 
-JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.
+<picture>
+  <source media="(max-width: 640px)" srcset="./banner-mobile.png">
+  <img src="./banner.png" alt="js-tooling banner" width="1600">
+</picture>
+
+
 
 [![CI](https://github.com/rtorcato/js-tooling/actions/workflows/ci.yml/badge.svg)](https://github.com/rtorcato/js-tooling/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/@rtorcato%2Fjs-tooling.svg)](https://badge.fury.io/js/@rtorcato%2Fjs-tooling)
@@ -12,6 +17,8 @@ JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.
 [![Bundle size](https://img.shields.io/bundlephobia/minzip/@rtorcato/js-tooling)](https://bundlephobia.com/package/@rtorcato/js-tooling)
 [![Coverage](https://codecov.io/gh/rtorcato/js-tooling/branch/main/graph/badge.svg)](https://codecov.io/gh/rtorcato/js-tooling)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.
 
 Most tooling libraries give you one piece — just TypeScript configs, or just an ESLint preset. **js-tooling** covers the entire lifecycle: TypeScript, Biome/ESLint, Vitest/Jest, Commitlint, Husky, Semantic Release, GitHub Actions CI, and supply-chain security (Dependabot + CodeQL) — all wired together. The interactive `setup` wizard scaffolds everything in one shot; `doctor` checks an existing project for drift; `fix` applies the missing pieces incrementally.
 
