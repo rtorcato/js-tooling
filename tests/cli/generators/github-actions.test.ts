@@ -167,7 +167,9 @@ describe('generateGitHubActions', () => {
 		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
 		expect(content).toContain('release:')
 		expect(content).toContain('semantic-release')
-		expect(content).toContain('NPM_TOKEN')
+		// Publishes via OIDC trusted publishing — no NPM_TOKEN secret (#201).
+		expect(content).toContain('id-token: write')
+		expect(content).not.toContain('NPM_TOKEN')
 	})
 
 	it('omits release job when semanticRelease is false', async () => {

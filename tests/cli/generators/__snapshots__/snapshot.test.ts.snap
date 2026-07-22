@@ -236,10 +236,11 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: 🚀 Run semantic-release
+        # npm publish authenticates via OIDC trusted publishing (id-token: write
+        # above) — no npm secret needed. Add a Trusted Publisher for the package
+        # on npmjs.com. See doctor's "npm OIDC publish" check (#201).
         env:
           GITHUB_TOKEN: \${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: \${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: \${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
 "
 `;
