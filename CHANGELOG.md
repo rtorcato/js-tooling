@@ -1,3 +1,10 @@
+# [2.58.0](https://github.com/rtorcato/js-tooling/compare/v2.57.0...v2.58.0) (2026-07-22)
+
+
+### Features
+
+* **doctor:** flag release workflows still using NPM_TOKEN as drift ([#265](https://github.com/rtorcato/js-tooling/issues/265)) ([5ffc390](https://github.com/rtorcato/js-tooling/commit/5ffc3903ad2731b327a98681d694445432f2e323)), closes [#264](https://github.com/rtorcato/js-tooling/issues/264)
+
 # [2.57.0](https://github.com/rtorcato/js-tooling/compare/v2.56.0...v2.57.0) (2026-07-22)
 
 
