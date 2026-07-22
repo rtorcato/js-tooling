@@ -51,11 +51,13 @@ export default {
 				changelogFile: 'CHANGELOG.md',
 			},
 		],
-		// npm publishing is opt-in via NPM_TOKEN: a repo that provides the token
-		// (e.g. js-tooling's own CI) publishes; one that doesn't (GitHub-releases
-		// only) gets a green release instead of an EINVALIDNPMTOKEN failure. The
-		// version in package.json is still bumped either way.
-		['@semantic-release/npm', { npmPublish: Boolean(process.env.NPM_TOKEN), pkgRoot: '.' }],
+		// npm publishing goes through OIDC trusted publishing — no NPM_TOKEN. The
+		// release job runs with `id-token: write` and npm (>=11.5.1) authenticates
+		// via the GitHub Actions trusted publisher configured on the package, and
+		// gets provenance for free. Private packages are skipped automatically by
+		// @semantic-release/npm; a public repo that only wants GitHub releases can
+		// opt out with NPM_PUBLISH=false (the version in package.json is still bumped).
+		['@semantic-release/npm', { npmPublish: process.env.NPM_PUBLISH !== 'false', pkgRoot: '.' }],
 		[
 			'@semantic-release/git',
 			{
