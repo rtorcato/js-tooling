@@ -1,3 +1,10 @@
+## [2.58.1](https://github.com/rtorcato/js-tooling/compare/v2.58.0...v2.58.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **release:** upgrade npm for OIDC trusted publishing ([#268](https://github.com/rtorcato/js-tooling/issues/268)) ([da0b694](https://github.com/rtorcato/js-tooling/commit/da0b69400809bdd6ac609c1c9eb7a29ce618331e)), closes [#264](https://github.com/rtorcato/js-tooling/issues/264)
+
 # [2.58.0](https://github.com/rtorcato/js-tooling/compare/v2.57.0...v2.58.0) (2026-07-22)
 
 
