@@ -1,3 +1,10 @@
+# [2.59.0](https://github.com/rtorcato/js-tooling/compare/v2.58.1...v2.59.0) (2026-07-24)
+
+
+### Features
+
+* **doctor:** require code-scanning results before merge (branch ruleset) ([#270](https://github.com/rtorcato/js-tooling/issues/270)) ([d439858](https://github.com/rtorcato/js-tooling/commit/d439858669342d424dadde0cfa27af1e2e0ef0ff)), closes [#269](https://github.com/rtorcato/js-tooling/issues/269)
+
 ## [2.58.1](https://github.com/rtorcato/js-tooling/compare/v2.58.0...v2.58.1) (2026-07-23)
 
 
