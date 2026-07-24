@@ -74,7 +74,40 @@ export const GITHUB_STANDARD = {
 	requiredContexts: ['lint', 'typecheck', 'build', 'test'],
 } as const
 
-const CHECK_NAMES = ['Branch protection', 'Merge settings', 'Workflow permissions'] as const
+const CODE_SCANNING_CHECK = 'Code-scanning gate'
+const CHECK_NAMES = [
+	'Branch protection',
+	'Merge settings',
+	'Workflow permissions',
+	CODE_SCANNING_CHECK,
+] as const
+
+// Recommended CodeQL alert thresholds — GitHub's UI defaults. This is the
+// override surface: bump them here for a stricter/looser fleet-wide baseline.
+// ponytail: module constants, not per-repo config, until a repo actually needs to differ.
+const CODE_SCANNING_THRESHOLDS = {
+	security_alerts_threshold: 'high_or_higher',
+	alerts_threshold: 'errors',
+} as const
+
+const CODE_SCANNING_RULESET_NAME = 'code-scanning-main'
+
+/** The branch ruleset POSTed to require code-scanning results before merge (#269). */
+const CODE_SCANNING_RULESET_BODY = JSON.stringify({
+	name: CODE_SCANNING_RULESET_NAME,
+	target: 'branch',
+	enforcement: 'active',
+	// ~DEFAULT_BRANCH keeps this branch-name-agnostic across the fleet.
+	conditions: { ref_name: { include: ['~DEFAULT_BRANCH'], exclude: [] } },
+	rules: [
+		{
+			type: 'code_scanning',
+			parameters: {
+				code_scanning_tools: [{ tool: 'CodeQL', ...CODE_SCANNING_THRESHOLDS }],
+			},
+		},
+	],
+})
 
 /** All three checks as an `ok` skip — keeps them out of next-steps and exit code. */
 function skipAll(reason: string): CheckResult[] {
@@ -135,6 +168,7 @@ export async function checkGitHubSettings(dir: string, exec?: GhExec): Promise<C
 		await checkBranchProtection(gh, info.nwo, info.branch),
 		checkMergeSettings(info),
 		await checkWorkflowPermissions(gh, info.nwo),
+		await checkCodeScanningRuleset(gh, info.nwo, info.branch, dir),
 	]
 }
 
@@ -237,6 +271,112 @@ async function checkWorkflowPermissions(exec: GhExec, nwo: string): Promise<Chec
 			hint: 'Set default workflow permissions to read-only and disable workflow PR approvals',
 		}
 	return { check, status: 'ok', detail: 'read-only default, no workflow PR approvals' }
+}
+
+/**
+ * True when CodeQL/code-scanning is enabled for the repo. Covers both ways it
+ * ships: an advanced-setup workflow on disk (what `fix codeql` scaffolds) or
+ * GitHub's default setup (no file — ask the code-scanning API). Mirrors doctor's
+ * on-disk CodeQL check; kept inline to avoid a doctor↔settings import cycle.
+ */
+async function codeqlEnabled(gh: GhExec, nwo: string, dir: string): Promise<boolean> {
+	const workflowsDir = path.join(dir, '.github', 'workflows')
+	if (await fs.pathExists(workflowsDir)) {
+		try {
+			for (const f of await fs.readdir(workflowsDir)) {
+				if (!/\.ya?ml$/.test(f)) continue
+				const content = await fs.readFile(path.join(workflowsDir, f), 'utf-8')
+				if (/github\/codeql-action/.test(content)) return true
+			}
+		} catch {
+			// fall through to the API probe
+		}
+	}
+	// Default setup leaves no workflow file — the API is the only signal.
+	const r = await gh(['api', `repos/${nwo}/code-scanning/default-setup`])
+	if (!r.ok) return false
+	try {
+		return (JSON.parse(r.stdout) as { state?: string }).state === 'configured'
+	} catch {
+		return false
+	}
+}
+
+/** True when a ruleset's ref_name conditions cover the default branch. */
+function rulesetTargetsBranch(
+	conditions: Record<string, any> | undefined,
+	branch: string
+): boolean {
+	const include: string[] = conditions?.ref_name?.include ?? []
+	return include.some(
+		(ref) => ref === '~DEFAULT_BRANCH' || ref === '~ALL' || ref === `refs/heads/${branch}`
+	)
+}
+
+/**
+ * Does an active branch ruleset enforce a code_scanning rule on the default
+ * branch? The list endpoint omits rules/conditions, so active branch rulesets
+ * are fetched by id to inspect them. 'skip' on any read failure (self-skips like
+ * the other checks).
+ */
+async function hasCodeScanningRuleset(
+	gh: GhExec,
+	nwo: string,
+	branch: string
+): Promise<'yes' | 'no' | 'skip'> {
+	const list = await gh(['api', `repos/${nwo}/rulesets`])
+	if (!list.ok) return 'skip'
+	let rulesets: Array<{ id?: number; target?: string; enforcement?: string }>
+	try {
+		rulesets = JSON.parse(list.stdout)
+	} catch {
+		return 'skip'
+	}
+	if (!Array.isArray(rulesets)) return 'skip'
+	const active = rulesets.filter(
+		(r) => r.target === 'branch' && r.enforcement === 'active' && typeof r.id === 'number'
+	)
+	for (const rs of active) {
+		const detail = await gh(['api', `repos/${nwo}/rulesets/${rs.id}`])
+		if (!detail.ok) continue
+		let full: { rules?: Array<{ type?: string }>; conditions?: Record<string, any> }
+		try {
+			full = JSON.parse(detail.stdout)
+		} catch {
+			continue
+		}
+		const enforcesCodeScanning = (full.rules ?? []).some((r) => r.type === 'code_scanning')
+		if (enforcesCodeScanning && rulesetTargetsBranch(full.conditions, branch)) return 'yes'
+	}
+	return 'no'
+}
+
+/**
+ * The #269 gap: CodeQL results are advisory by default — a High alert still
+ * merges unless a branch ruleset requires the code-scanning check. Only
+ * meaningful where CodeQL is actually on, so it no-ops otherwise.
+ */
+async function checkCodeScanningRuleset(
+	gh: GhExec,
+	nwo: string,
+	branch: string,
+	dir: string
+): Promise<CheckResult> {
+	const check = CODE_SCANNING_CHECK
+	if (!(await codeqlEnabled(gh, nwo, dir))) {
+		return { check, status: 'ok', detail: 'CodeQL not enabled — no code-scanning gate needed' }
+	}
+	const found = await hasCodeScanningRuleset(gh, nwo, branch)
+	if (found === 'skip') return skip(check, 'could not read rulesets')
+	if (found === 'yes') {
+		return { check, status: 'ok', detail: `active ruleset requires code-scanning on ${branch}` }
+	}
+	return {
+		check,
+		status: 'drift',
+		detail: `CodeQL is on but no active ruleset requires code-scanning on ${branch} (High alerts stay advisory)`,
+		hint: 'Run `npx @rtorcato/js-tooling fix github-settings` to add a code_scanning branch ruleset that blocks merge on High+ CodeQL alerts',
+	}
 }
 
 // --- Fixer side (#138): apply the standard via gh api ---------------------
@@ -359,6 +499,20 @@ export async function applyGithubSettings(dir: string, exec?: GhExec): Promise<s
 		else
 			console.log(chalk.yellow(`   could not apply ${cmd.label}: ${r.stderr.trim() || 'gh error'}`))
 	}
+
+	// Code-scanning ruleset (#269): POST only when CodeQL is on and no active gate
+	// covers the default branch — the check re-read keeps this idempotent.
+	const cs = await checkCodeScanningRuleset(gh, info.nwo, info.branch, dir)
+	if (cs.status === 'drift') {
+		const label = `code-scanning ruleset on ${info.branch}`
+		const r = await gh(
+			['api', '-X', 'POST', `repos/${info.nwo}/rulesets`, '--input', '-'],
+			CODE_SCANNING_RULESET_BODY
+		)
+		if (r.ok) applied.push(label)
+		else console.log(chalk.yellow(`   could not apply ${label}: ${r.stderr.trim() || 'gh error'}`))
+	}
+
 	if (applied.length === 0) console.log(chalk.gray('   already configured — nothing to apply'))
 	return applied
 }
