@@ -353,10 +353,16 @@ jobs:
       - name: 🏗️ Build CLI
         run: pnpm run build-cli
 
+      # OIDC trusted publishing needs npm CLI >= 11.5.1; Node 22 ships 10.x, so
+      # semantic-release's own OIDC token exchange succeeds but the `npm publish`
+      # it shells out to fails with ENEEDAUTH. Upgrade npm so it can use the token.
+      - name: 📦 Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@latest
+
       - name: 🚀 Run semantic-release
         # Publishes to npm via OIDC trusted publishing — no NPM_TOKEN. Requires
         # the `id-token: write` permission above + a trusted publisher configured
-        # for the package on npmjs.com (Settings → Trusted Publisher).
+        # for the package on npmjs.com (Settings → Trusted Publisher, workflow ci.yml).
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
         run: npx semantic-release
