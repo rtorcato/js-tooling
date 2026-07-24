@@ -79,6 +79,7 @@ describe('fix registry', () => {
 			'Branch protection',
 			'Merge settings',
 			'Workflow permissions',
+			'Code-scanning gate',
 		])
 	})
 

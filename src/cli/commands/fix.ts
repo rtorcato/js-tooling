@@ -462,8 +462,13 @@ const FIXERS: Fixer[] = [
 	{
 		target: 'github-settings',
 		description:
-			'Apply branch protection + auto-merge + workflow permissions on GitHub via gh api (mutates the remote repo, not files)',
-		appliesTo: ['Branch protection', 'Merge settings', 'Workflow permissions'],
+			'Apply branch protection + auto-merge + workflow permissions + code-scanning ruleset on GitHub via gh api (mutates the remote repo, not files)',
+		appliesTo: [
+			'Branch protection',
+			'Merge settings',
+			'Workflow permissions',
+			'Code-scanning gate',
+		],
 		outputs: ['GitHub repo settings (remote, via gh api)'],
 		// safe-add is load-bearing: it exempts this fixer from the `--diff` shadow-run
 		// (previewFixer copies to tmp and *executes* run(), which would fire real

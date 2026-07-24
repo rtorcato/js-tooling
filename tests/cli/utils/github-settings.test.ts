@@ -48,28 +48,42 @@ const COMPLIANT_WORKFLOW = JSON.stringify({
 	can_approve_pull_request_reviews: false,
 })
 
+/** default-setup reads `not-configured` unless overridden → CodeQL gate no-ops. */
+const CODEQL_OFF = JSON.stringify({ state: 'not-configured' })
+const CODEQL_ON = JSON.stringify({ state: 'configured' })
+
+interface GhOverrides {
+	repo?: GhResult
+	protection?: GhResult
+	workflow?: GhResult
+	defaultSetup?: GhResult
+	rulesets?: GhResult
+	rulesetDetail?: GhResult
+}
+
 /** Route canned responses by which gh api path is invoked. */
-function fakeGh(
-	overrides: { repo?: GhResult; protection?: GhResult; workflow?: GhResult } = {}
-): GhExec {
+function fakeGh(overrides: GhOverrides = {}): GhExec {
 	return vi.fn(async (args: string[]) => {
-		if (args[1] === 'repos/{owner}/{repo}') return overrides.repo ?? ok(COMPLIANT_REPO)
-		if (args[1]?.includes('/protection')) return overrides.protection ?? ok(COMPLIANT_PROTECTION)
-		if (args[1]?.includes('/actions/permissions/workflow'))
+		const p = args[1]
+		if (p === 'repos/{owner}/{repo}') return overrides.repo ?? ok(COMPLIANT_REPO)
+		if (p?.includes('/protection')) return overrides.protection ?? ok(COMPLIANT_PROTECTION)
+		if (p?.includes('/actions/permissions/workflow'))
 			return overrides.workflow ?? ok(COMPLIANT_WORKFLOW)
+		if (p?.includes('/code-scanning/default-setup')) return overrides.defaultSetup ?? ok(CODEQL_OFF)
+		if (p?.includes('/rulesets/')) return overrides.rulesetDetail ?? ok('{}')
+		if (p?.endsWith('/rulesets')) return overrides.rulesets ?? ok('[]')
 		return fail('unexpected call')
 	})
 }
 
-const byName = (results: { check: string }[], name: string) =>
-	results.find((r) => r.check === name)
+const byName = (results: { check: string }[], name: string) => results.find((r) => r.check === name)
 
 describe('checkGitHubSettings — skip paths', () => {
 	it('never spawns gh outside a git repo', async () => {
 		const exec = fakeGh()
 		const results = await checkGitHubSettings(newTmpDir(), exec)
 		expect(exec).not.toHaveBeenCalled()
-		expect(results).toHaveLength(3)
+		expect(results).toHaveLength(4)
 		expect(results.every((r) => r.status === 'ok' && r.detail.includes('skipped'))).toBe(true)
 	})
 
@@ -90,9 +104,65 @@ describe('checkGitHubSettings — skip paths', () => {
 describe('checkGitHubSettings — compliant repo', () => {
 	it('reports all three ok when settings match the standard', async () => {
 		const results = await checkGitHubSettings(gitRepo(), fakeGh())
-		expect(results).toHaveLength(3)
+		expect(results).toHaveLength(4)
 		expect(results.every((r) => r.status === 'ok')).toBe(true)
 		expect(byName(results, 'Branch protection')?.detail).toContain('protected per standard')
+	})
+})
+
+describe('checkGitHubSettings — code-scanning gate (#269)', () => {
+	const gate = (r: GhResult[] | { check: string }[]) =>
+		byName(r as { check: string }[], 'Code-scanning gate')
+
+	it('no-ops as ok when CodeQL is not enabled', async () => {
+		const g = gate(await checkGitHubSettings(gitRepo(), fakeGh()))
+		expect(g?.status).toBe('ok')
+		expect(g?.detail).toContain('CodeQL not enabled')
+	})
+
+	it('drifts when CodeQL is on but no active ruleset requires code-scanning', async () => {
+		const exec = fakeGh({ defaultSetup: ok(CODEQL_ON), rulesets: ok('[]') })
+		const g = gate(await checkGitHubSettings(gitRepo(), exec))
+		expect(g?.status).toBe('drift')
+		expect(g?.detail).toContain('High alerts stay advisory')
+	})
+
+	it('is ok when an active ruleset enforces code-scanning on the default branch', async () => {
+		const exec = fakeGh({
+			defaultSetup: ok(CODEQL_ON),
+			rulesets: ok(JSON.stringify([{ id: 7, target: 'branch', enforcement: 'active' }])),
+			rulesetDetail: ok(
+				JSON.stringify({
+					rules: [{ type: 'code_scanning' }],
+					conditions: { ref_name: { include: ['~DEFAULT_BRANCH'] } },
+				})
+			),
+		})
+		const g = gate(await checkGitHubSettings(gitRepo(), exec))
+		expect(g?.status).toBe('ok')
+		expect(g?.detail).toContain('requires code-scanning on main')
+	})
+
+	it('ignores an inactive or non-default-branch ruleset (still drift)', async () => {
+		const exec = fakeGh({
+			defaultSetup: ok(CODEQL_ON),
+			// A code_scanning ruleset that targets a different branch → does not count.
+			rulesets: ok(JSON.stringify([{ id: 9, target: 'branch', enforcement: 'active' }])),
+			rulesetDetail: ok(
+				JSON.stringify({
+					rules: [{ type: 'code_scanning' }],
+					conditions: { ref_name: { include: ['refs/heads/release'] } },
+				})
+			),
+		})
+		expect(gate(await checkGitHubSettings(gitRepo(), exec))?.status).toBe('drift')
+	})
+
+	it('skips (ok) when rulesets cannot be read', async () => {
+		const exec = fakeGh({ defaultSetup: ok(CODEQL_ON), rulesets: fail('gh: (HTTP 403)') })
+		const g = gate(await checkGitHubSettings(gitRepo(), exec))
+		expect(g?.status).toBe('ok')
+		expect(g?.detail).toContain('skipped')
 	})
 })
 
@@ -121,7 +191,10 @@ describe('checkGitHubSettings — drift', () => {
 				allow_deletions: { enabled: false },
 			})
 		)
-		const bp = byName(await checkGitHubSettings(gitRepo(), fakeGh({ protection })), 'Branch protection')
+		const bp = byName(
+			await checkGitHubSettings(gitRepo(), fakeGh({ protection })),
+			'Branch protection'
+		)
 		expect(bp?.status).toBe('drift')
 		expect(bp?.detail).toContain('typecheck')
 	})
@@ -148,7 +221,10 @@ describe('checkGitHubSettings — drift', () => {
 				can_approve_pull_request_reviews: false,
 			})
 		)
-		const wp = byName(await checkGitHubSettings(gitRepo(), fakeGh({ workflow })), 'Workflow permissions')
+		const wp = byName(
+			await checkGitHubSettings(gitRepo(), fakeGh({ workflow })),
+			'Workflow permissions'
+		)
 		expect(wp?.status).toBe('drift')
 		expect(wp?.detail).toContain('write')
 	})
@@ -207,17 +283,19 @@ describe('applyGithubSettings', () => {
 	})
 
 	/** Records every gh call; canned responses drive which deltas fire. */
-	function recordingGh(
-		overrides: { repo?: GhResult; protection?: GhResult; workflow?: GhResult } = {}
-	) {
+	function recordingGh(overrides: GhOverrides = {}) {
 		const calls: { args: string[]; stdin?: string }[] = []
 		const exec: GhExec = vi.fn(async (args: string[], stdin?: string) => {
 			calls.push({ args, stdin })
 			if (args[1] === 'repos/{owner}/{repo}') return overrides.repo ?? ok(COMPLIANT_REPO)
-			if (args.includes('--input')) return ok('') // protection PUT
+			if (args.includes('--input')) return ok('') // protection PUT or ruleset POST
 			if (args[1]?.includes('/protection')) return overrides.protection ?? ok(COMPLIANT_PROTECTION)
 			if (args[1]?.includes('/actions/permissions/workflow'))
 				return overrides.workflow ?? ok(COMPLIANT_WORKFLOW)
+			if (args[1]?.includes('/code-scanning/default-setup'))
+				return overrides.defaultSetup ?? ok(CODEQL_OFF)
+			if (args[1]?.includes('/rulesets/')) return overrides.rulesetDetail ?? ok('{}')
+			if (args[1]?.endsWith('/rulesets')) return overrides.rulesets ?? ok('[]')
 			if (args.includes('PATCH')) return ok('') // merge PATCH
 			return ok('')
 		})
@@ -257,9 +335,7 @@ describe('applyGithubSettings', () => {
 			'workflow permissions (read-only)',
 		])
 		// The three mutating calls fire after the read probes, PATCH before the PUTs.
-		const mutations = calls.filter(
-			(c) => c.args.includes('PATCH') || c.args.includes('PUT')
-		)
+		const mutations = calls.filter((c) => c.args.includes('PATCH') || c.args.includes('PUT'))
 		expect(mutations.map((c) => c.args[2])).toEqual(['PATCH', 'PUT', 'PUT'])
 		const protectionPut = mutations.find((c) => c.args.includes('--input'))
 		expect(protectionPut?.stdin).toContain('required_status_checks')
@@ -274,5 +350,21 @@ describe('applyGithubSettings', () => {
 		const { exec, calls } = recordingGh({ repo: fail('gh auth login required') })
 		expect(await applyGithubSettings(gitRepo(), exec)).toEqual([])
 		expect(calls.every((c) => !c.args.includes('PUT') && !c.args.includes('PATCH'))).toBe(true)
+	})
+
+	it('POSTs a code-scanning ruleset when CodeQL is on and none exists (#269)', async () => {
+		const { exec, calls } = recordingGh({ defaultSetup: ok(CODEQL_ON), rulesets: ok('[]') })
+		const labels = await applyGithubSettings(gitRepo(), exec)
+		expect(labels).toContain('code-scanning ruleset on main')
+		const post = calls.find(
+			(c) => c.args.includes('POST') && c.args.some((a) => a.endsWith('/rulesets'))
+		)
+		expect(post?.stdin).toContain('code_scanning')
+	})
+
+	it('does not POST a ruleset on a compliant CodeQL-off repo', async () => {
+		const { exec, calls } = recordingGh()
+		await applyGithubSettings(gitRepo(), exec)
+		expect(calls.some((c) => c.args.includes('POST'))).toBe(false)
 	})
 })
