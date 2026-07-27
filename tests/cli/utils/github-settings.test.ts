@@ -199,6 +199,25 @@ describe('checkGitHubSettings — drift', () => {
 		expect(bp?.detail).toContain('typecheck')
 	})
 
+	it('accepts matrix status checks (`test (node 22)`) as satisfying `test`', async () => {
+		const protection = ok(
+			JSON.stringify({
+				required_status_checks: {
+					strict: false,
+					contexts: ['lint', 'typecheck', 'build', 'test (node 22)', 'test (node 24)'],
+				},
+				enforce_admins: { enabled: false },
+				allow_force_pushes: { enabled: false },
+				allow_deletions: { enabled: false },
+			})
+		)
+		const bp = byName(
+			await checkGitHubSettings(gitRepo(), fakeGh({ protection })),
+			'Branch protection'
+		)
+		expect(bp?.status).toBe('ok')
+	})
+
 	it('drifts when merge settings are off (from the repo probe)', async () => {
 		const repo = ok(
 			JSON.stringify({

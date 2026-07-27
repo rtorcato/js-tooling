@@ -316,6 +316,10 @@ program.hook('preAction', async (_, actionCommand) => {
 	if (name === 'setup' || name === 'doctor' || name === 'fix') {
 		// `fix --list` is read-only and safe to run anywhere, including this repo.
 		if (name === 'fix' && actionCommand.opts().list) return
+		// Dogfood escape hatch (#273): allow read-only `doctor` against this repo
+		// so CI can audit our own config the same way it does consumers'. Scoped
+		// to doctor — the mutating setup/fix stay blocked even with the flag set.
+		if (name === 'doctor' && process.env.REPO_TOOLING_ALLOW_SELF === '1') return
 		const dir = (actionCommand.opts().directory as string | undefined) ?? process.cwd()
 		if (await isSelfRepo(dir)) {
 			console.log(

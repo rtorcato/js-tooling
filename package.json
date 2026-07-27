@@ -38,6 +38,7 @@
 		"test:integration": "pnpm build-cli && node scripts/integration/preset-lifecycle.mjs library",
 		"coverage": "vitest run --coverage",
 		"verify": "pnpm run check && pnpm run typecheck && pnpm test --run && pnpm run build-cli",
+		"dogfood": "node scripts/dogfood.mjs",
 		"knip": "knip",
 		"commit": "cz",
 		"================================================": ""

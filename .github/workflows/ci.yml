@@ -287,6 +287,13 @@ jobs:
       - name: 🏗️ Build project
         run: pnpm build-cli
 
+      - name: 🐕 Dogfood — run the built doctor against this repo
+        run: pnpm dogfood
+        env:
+          # Lets the GitHub-settings checks read live protection; they self-skip
+          # gracefully if the token lacks admin:read, so this never hard-fails.
+          GH_TOKEN: ${{ github.token }}
+
       - name: 📦 Upload build artifacts
         uses: actions/upload-artifact@v7
         with:

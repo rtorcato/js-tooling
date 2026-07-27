@@ -207,7 +207,11 @@ async function checkBranchProtection(
 
 	const deltas: string[] = []
 	const contexts: string[] = p.required_status_checks?.contexts ?? []
-	const missing = GITHUB_STANDARD.requiredContexts.filter((c) => !contexts.includes(c))
+	// A matrix job reports each leg as `test (node 22)`, `test (node 24)`, etc.
+	// Treat any `<ctx> (...)` variant as satisfying the bare `<ctx>` requirement,
+	// so matrix CIs aren't falsely flagged as missing the check.
+	const isSatisfied = (c: string) => contexts.some((ctx) => ctx === c || ctx.startsWith(`${c} (`))
+	const missing = GITHUB_STANDARD.requiredContexts.filter((c) => !isSatisfied(c))
 	if (missing.length) deltas.push(`missing required checks: ${missing.join(', ')}`)
 	if (p.required_status_checks?.strict === true)
 		deltas.push('strict status checks on (should be off)')
