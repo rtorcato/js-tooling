@@ -239,7 +239,7 @@ function Hero(): ReactElement {
 			<div className={styles.heroGlow} aria-hidden />
 			<div className={styles.heroInner}>
 				<div className={styles.wordmark}>
-					<span className={styles.wmJs}>js</span>
+					<span className={styles.wmJs}>repo</span>
 					<span className={styles.wmDash}>-</span>
 					<span className={styles.wmTooling}>tooling</span>
 				</div>

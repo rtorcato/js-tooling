@@ -1,7 +1,7 @@
 {
 	"name": "@rtorcato/repo-tooling",
 	"version": "2.59.0",
-	"description": "JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.",
+	"description": "One CLI to scaffold, audit and fix your repo's whole toolchain — linting, tests, commits, releases & CI.",
 	"type": "module",
 	"keywords": [
 		"tooling",

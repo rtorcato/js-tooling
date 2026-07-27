@@ -23,7 +23,7 @@
 	text-align: center;
 }
 
-/* Text-only wordmark — "js" in heading color, "-tooling" in accent. */
+/* Text-only wordmark — "repo" in heading color, "-tooling" in accent. */
 .wordmark {
 	display: inline-flex;
 	align-items: baseline;
