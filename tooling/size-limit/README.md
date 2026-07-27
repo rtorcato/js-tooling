@@ -5,17 +5,17 @@ Bundle-size budget enforcement for TypeScript/JavaScript libraries, powered by [
 ## Installation
 
 ```bash
-pnpm add -D @rtorcato/js-tooling size-limit @size-limit/preset-small-lib
+pnpm add -D @rtorcato/repo-tooling size-limit @size-limit/preset-small-lib
 ```
 
-`size-limit` and `@size-limit/preset-small-lib` are listed as peer deps of `@rtorcato/js-tooling`.
+`size-limit` and `@size-limit/preset-small-lib` are listed as peer deps of `@rtorcato/repo-tooling`.
 
 ## Usage
 
 ### Scaffolded by the CLI
 
 ```bash
-npx @rtorcato/js-tooling fix size-limit
+npx @rtorcato/repo-tooling fix size-limit
 ```
 
 Writes a default `.size-limit.json` to your project root (or you can use a `"size-limit"` field in `package.json` — both work).

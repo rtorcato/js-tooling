@@ -76,9 +76,9 @@ export function buildPresetConfig(name: PresetName, projectName: string): Projec
 
 export const CONFIG_SCHEMA = {
 	$schema: 'https://json-schema.org/draft/2020-12/schema',
-	$id: 'https://rtorcato.github.io/js-tooling/schemas/project-config.json',
+	$id: 'https://rtorcato.github.io/repo-tooling/schemas/project-config.json',
 	title: 'ProjectConfig',
-	description: '@rtorcato/js-tooling setup configuration',
+	description: '@rtorcato/repo-tooling setup configuration',
 	type: 'object',
 	additionalProperties: false,
 	required: [
@@ -179,7 +179,7 @@ export function validateProjectConfig(input: unknown): ConfigValidationResult {
 }
 
 export function computeFileList(config: ProjectConfig): string[] {
-	const files: string[] = ['package.json', '.js-tooling.json']
+	const files: string[] = ['package.json', '.repo-tooling.json']
 	files.push('.editorconfig', '.nvmrc', 'knip.json', '.vscode/extensions.json')
 	if (config.typescript.enabled) {
 		files.push('tsconfig.json', 'reset.d.ts')

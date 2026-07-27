@@ -3,6 +3,7 @@ import fs from 'fs-extra'
 import { describe, expect, it } from 'vitest'
 import type { ProjectConfig } from '../../../src/cli/commands/setup.js'
 import {
+	LEGACY_LOCKFILE_NAME,
 	LOCKFILE_NAME,
 	LOCKFILE_VERSION,
 	readLockfile,
@@ -48,6 +49,18 @@ describe('readLockfile', () => {
 		expect(await readLockfile(dir)).toBeNull()
 	})
 
+	it('falls back to the pre-rename .js-tooling.json name (#272)', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, LEGACY_LOCKFILE_NAME), {
+			version: LOCKFILE_VERSION,
+			config: baseConfig({ language: 'js' }),
+			writtenBy: 'old',
+			writtenAt: '2024-01-01T00:00:00.000Z',
+		})
+		const lock = await readLockfile(dir)
+		expect(lock?.config.projectName).toBe('demo')
+	})
+
 	it('migrates a v1 file to v2, defaulting language to js', async () => {
 		const dir = newTmpDir()
 		await fs.writeJson(join(dir, LOCKFILE_NAME), {
@@ -76,8 +89,21 @@ describe('writeLockfile', () => {
 		expect(lock?.version).toBe(LOCKFILE_VERSION)
 		expect(lock?.config.projectName).toBe('demo')
 		expect(lock?.config.testing.framework).toBe('vitest')
-		expect(lock?.writtenBy).toMatch(/@rtorcato\/js-tooling@/)
+		expect(lock?.writtenBy).toMatch(/@rtorcato\/repo-tooling@/)
 		expect(lock?.writtenAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+	})
+
+	it('migrates a pre-rename repo: writes the new name and removes the legacy file (#272)', async () => {
+		const dir = newTmpDir()
+		await fs.writeJson(join(dir, LEGACY_LOCKFILE_NAME), {
+			version: LOCKFILE_VERSION,
+			config: baseConfig({ language: 'js' }),
+			writtenBy: 'old',
+			writtenAt: '2024-01-01T00:00:00.000Z',
+		})
+		await writeLockfile(dir, baseConfig({ language: 'js' }))
+		expect(await fs.pathExists(join(dir, LOCKFILE_NAME))).toBe(true)
+		expect(await fs.pathExists(join(dir, LEGACY_LOCKFILE_NAME))).toBe(false)
 	})
 
 	it('refuses to write an invalid ProjectConfig', async () => {

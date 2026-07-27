@@ -32,7 +32,7 @@ export async function generatePackageJson(config: ProjectConfig, targetDir: stri
 			...(existingPackageJson as any)?.dependencies,
 		},
 		devDependencies: {
-			'@rtorcato/js-tooling': 'latest',
+			'@rtorcato/repo-tooling': 'latest',
 			...getDependencies(config),
 			...(existingPackageJson as any)?.devDependencies,
 		},

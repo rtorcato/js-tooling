@@ -9,11 +9,11 @@ import typescript from '@rollup/plugin-typescript'
  *
  * Consumers scaffold a `rollup.config.mjs` that re-exports the default:
  *
- *   export { default } from '@rtorcato/js-tooling/rollup'
+ *   export { default } from '@rtorcato/repo-tooling/rollup'
  *
  * …or customize the entry / output:
  *
- *   import { getConfig } from '@rtorcato/js-tooling/rollup'
+ *   import { getConfig } from '@rtorcato/repo-tooling/rollup'
  *   export default getConfig({ input: 'src/main.ts' })
  *
  * @param {import('./rollup.config.d.mts').GetConfigOptions} [options]

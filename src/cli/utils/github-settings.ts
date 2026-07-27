@@ -5,7 +5,7 @@ import fs from 'fs-extra'
 import type { CheckResult } from '../commands/doctor.js'
 
 /**
- * Machine-checks the GitHub side of the js-tooling standard — branch
+ * Machine-checks the GitHub side of the repo-tooling standard — branch
  * protection, merge settings, workflow permissions — which doctor's
  * file-on-disk checks can't see (#137). Read-only. Shells out to `gh` via an
  * injectable seam (no octokit, zero deps, auth for free), modeled on
@@ -375,7 +375,7 @@ async function checkCodeScanningRuleset(
 		check,
 		status: 'drift',
 		detail: `CodeQL is on but no active ruleset requires code-scanning on ${branch} (High alerts stay advisory)`,
-		hint: 'Run `npx @rtorcato/js-tooling fix github-settings` to add a code_scanning branch ruleset that blocks merge on High+ CodeQL alerts',
+		hint: 'Run `npx @rtorcato/repo-tooling fix github-settings` to add a code_scanning branch ruleset that blocks merge on High+ CodeQL alerts',
 	}
 }
 

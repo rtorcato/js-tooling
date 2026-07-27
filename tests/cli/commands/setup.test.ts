@@ -237,19 +237,19 @@ describe('setup --config', () => {
 		expect(await fs.pathExists(join(dir, 'build.mjs'))).toBe(true)
 	})
 
-	it('accepts a .js-tooling.json lockfile and unwraps its config (#271)', async () => {
+	it('accepts a .repo-tooling.json lockfile and unwraps its config (#271)', async () => {
 		const dir = newTmpDir()
 		const config = buildPresetConfig('node-api', 'my-api')
 		// A lockfile wraps the config alongside version/writtenBy/etc — those extra
 		// keys would fail validation if not unwrapped.
 		const lockfile = {
-			$schema: 'https://rtorcato.github.io/js-tooling/schemas/lockfile.json',
+			$schema: 'https://rtorcato.github.io/repo-tooling/schemas/lockfile.json',
 			version: 2,
 			config,
-			writtenBy: '@rtorcato/js-tooling@0.0.0',
+			writtenBy: '@rtorcato/repo-tooling@0.0.0',
 			writtenAt: '2026-01-01T00:00:00.000Z',
 		}
-		const configPath = join(dir, '.js-tooling.json')
+		const configPath = join(dir, '.repo-tooling.json')
 		await fs.writeJson(configPath, lockfile)
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 		try {

@@ -4,7 +4,7 @@ Sample call to build.mjs in root of project.
 */
 
 import { buildCode, getEntrypointFolders } from './index.mjs'
-// import { buildCode, getEntrypointFolders } from '@rtorcato/js-tooling/esbuild/index.mjs'
+// import { buildCode, getEntrypointFolders } from '@rtorcato/repo-tooling/esbuild/index.mjs'
 
 const folders = await getEntrypointFolders('src')
 const libEntryPointsArrays = await Promise.all(folders.map((folder) => getEntryPoints(folder)))

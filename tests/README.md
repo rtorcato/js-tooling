@@ -1,6 +1,6 @@
 # Tests
 
-Vitest test suite for `@rtorcato/js-tooling`.
+Vitest test suite for `@rtorcato/repo-tooling`.
 
 ## Layout
 

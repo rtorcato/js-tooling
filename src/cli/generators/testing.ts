@@ -48,7 +48,7 @@ async function generateJestConfig(config: ProjectConfig, targetDir: string) {
 
 	const environment = config.testing.environment === 'browser' ? 'browser' : 'node'
 
-	const jestConfig = `export { default } from '@rtorcato/js-tooling/jest-presets/${environment}/jest-preset'
+	const jestConfig = `export { default } from '@rtorcato/repo-tooling/jest-presets/${environment}/jest-preset'
 `
 
 	await fs.writeFile(jestConfigPath, jestConfig)
@@ -56,7 +56,7 @@ async function generateJestConfig(config: ProjectConfig, targetDir: string) {
 
 export async function generatePlaywrightConfig(targetDir: string) {
 	const playwrightConfigPath = path.join(targetDir, 'playwright.config.ts')
-	const playwrightConfig = `export { default } from '@rtorcato/js-tooling/playwright'
+	const playwrightConfig = `export { default } from '@rtorcato/repo-tooling/playwright'
 `
 	await fs.writeFile(playwrightConfigPath, playwrightConfig)
 }
@@ -78,7 +78,7 @@ export async function generateCypressConfig(targetDir: string): Promise<string[]
 	const written: string[] = []
 	await fs.writeFile(
 		path.join(targetDir, 'cypress.config.ts'),
-		`export { default } from '@rtorcato/js-tooling/cypress'\n`
+		`export { default } from '@rtorcato/repo-tooling/cypress'\n`
 	)
 	written.push('cypress.config.ts')
 

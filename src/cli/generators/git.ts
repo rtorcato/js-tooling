@@ -88,7 +88,7 @@ export async function generatePrePushHook(targetDir: string) {
 export async function generateCommitlintConfig(targetDir: string) {
 	const commitlintConfigPath = path.join(targetDir, 'commitlint.config.mjs')
 
-	const commitlintConfig = `export { default } from '@rtorcato/js-tooling/commitlint/config'
+	const commitlintConfig = `export { default } from '@rtorcato/repo-tooling/commitlint/config'
 `
 
 	await fs.writeFile(commitlintConfigPath, commitlintConfig)

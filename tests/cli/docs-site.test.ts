@@ -8,7 +8,7 @@ import { useTmpDir } from '../helpers/tmp-dir.js'
 const newTmpDir = useTmpDir()
 
 const PKG = {
-	name: '@rtorcato/js-tooling',
+	name: '@rtorcato/repo-tooling',
 	description: 'JS/TS tooling.',
 	repository: 'git+https://github.com/rtorcato/js-tooling.git',
 }
@@ -39,14 +39,14 @@ describe('generateDocsSite', () => {
 
 		// Docs package name = <name>-docs; build chains sync-changelog.
 		const docsPkg = await fs.readJson(join(dir, 'apps/docs/package.json'))
-		expect(docsPkg.name).toBe('@rtorcato/js-tooling-docs')
+		expect(docsPkg.name).toBe('@rtorcato/repo-tooling-docs')
 		expect(docsPkg.scripts.build).toMatch(/sync-changelog/)
 		expect(docsPkg.scripts['test:e2e']).toBe('playwright test')
 		expect(docsPkg.devDependencies['@playwright/test']).toBeTruthy()
 
 		// Smoke test reuses the shipped preset and targets the site's base path.
 		const pw = await fs.readFile(join(dir, 'apps/docs/playwright.config.ts'), 'utf-8')
-		expect(pw).toContain("import base from '@rtorcato/js-tooling/playwright'")
+		expect(pw).toContain("import base from '@rtorcato/repo-tooling/playwright'")
 		expect(pw).toContain('http://localhost:3000/js-tooling/')
 
 		// Config infers org/repo → GitHub Pages url + baseUrl.
@@ -57,7 +57,7 @@ describe('generateDocsSite', () => {
 		// Workflow drives the shared reusable deploy with the docs package filter.
 		const wf = await fs.readFile(join(dir, '.github/workflows/docs.yml'), 'utf-8')
 		expect(wf).toContain('rtorcato/js-tooling/.github/workflows/docs-deploy.yml@main')
-		expect(wf).toContain("build-filter: '@rtorcato/js-tooling-docs'")
+		expect(wf).toContain("build-filter: '@rtorcato/repo-tooling-docs'")
 
 		// custom.css imports the shared tokens, then overrides the accent.
 		const css = await fs.readFile(join(dir, 'apps/docs/src/css/custom.css'), 'utf-8')
@@ -112,7 +112,7 @@ describe('generateDocsSite', () => {
 		await generateDocsSite(PKG, dir)
 		const intro = await fs.readFile(join(dir, 'apps/docs/docs/intro.md'), 'utf-8')
 		expect(intro).toContain('actions/workflows/ci.yml/badge.svg') // CI
-		expect(intro).toContain('img.shields.io/npm/v/@rtorcato/js-tooling') // npm version
+		expect(intro).toContain('img.shields.io/npm/v/@rtorcato/repo-tooling') // npm version
 		expect(intro).toContain('License: MIT')
 	})
 
@@ -151,7 +151,7 @@ describe('generateDocsSite', () => {
 		await generateDocsSite(modulePkg, dir, { typedoc: true })
 
 		const config = await fs.readFile(join(dir, 'apps/docs/docusaurus.config.ts'), 'utf-8')
-		expect(config).toContain("import { getTypedocPlugins } from '@rtorcato/js-tooling/docusaurus'")
+		expect(config).toContain("import { getTypedocPlugins } from '@rtorcato/repo-tooling/docusaurus'")
 		expect(config).toContain('getTypedocPlugins(["errors","env"])')
 		expect(config).not.toContain('typescript/base')
 

@@ -21,7 +21,7 @@ export interface CheckResult {
 	hint?: string
 }
 
-const PACKAGE = '@rtorcato/js-tooling'
+const PACKAGE = '@rtorcato/repo-tooling'
 
 const NODE_MIN_MAJOR = 22
 const NODE_LTS_REQUIREMENTS: Record<number, { minor: number; patch: number }> = {
@@ -82,30 +82,30 @@ const FILE_CHECKS: FileCheck[] = [
 		check: 'TypeScript',
 		candidates: ['tsconfig.json'],
 		expected: `extends "${PACKAGE}/typescript/*"`,
-		matcher: /@rtorcato\/js-tooling\/typescript\//,
-		hint: 'Set `"extends": "@rtorcato/js-tooling/typescript/base"` in tsconfig.json',
+		matcher: /@rtorcato\/(?:js|repo)-tooling\/typescript\//,
+		hint: 'Set `"extends": "@rtorcato/repo-tooling/typescript/base"` in tsconfig.json',
 	},
 	{
 		check: 'Biome',
 		candidates: ['biome.json', 'biome.jsonc'],
 		expected: `extends "${PACKAGE}/biome"`,
-		matcher: /@rtorcato\/js-tooling\/biome/,
+		matcher: /@rtorcato\/(?:js|repo)-tooling\/biome/,
 		optional: true,
-		hint: 'Run `npx @rtorcato/js-tooling copy biome` to scaffold',
+		hint: 'Run `npx @rtorcato/repo-tooling copy biome` to scaffold',
 	},
 	{
 		check: 'ESLint',
 		candidates: ['eslint.config.js', 'eslint.config.mjs', 'eslint.config.cjs'],
 		expected: `imports "${PACKAGE}/eslint/*"`,
-		matcher: /@rtorcato\/js-tooling\/eslint\//,
+		matcher: /@rtorcato\/(?:js|repo)-tooling\/eslint\//,
 		optional: true,
-		hint: 'Import from @rtorcato/js-tooling/eslint/base in eslint.config.mjs',
+		hint: 'Import from @rtorcato/repo-tooling/eslint/base in eslint.config.mjs',
 	},
 	{
 		check: 'Prettier',
 		candidates: ['prettier.config.js', 'prettier.config.mjs', 'prettier.config.cjs'],
 		expected: `imports "${PACKAGE}/prettier"`,
-		matcher: /@rtorcato\/js-tooling\/prettier/,
+		matcher: /@rtorcato\/(?:js|repo)-tooling\/prettier/,
 		optional: true,
 		hint: `Re-export from "${PACKAGE}/prettier" in prettier.config.mjs`,
 	},
@@ -113,14 +113,14 @@ const FILE_CHECKS: FileCheck[] = [
 		check: 'Vitest',
 		candidates: ['vitest.config.ts', 'vitest.config.js', 'vitest.config.mjs'],
 		expected: `imports "${PACKAGE}/vitest/config"`,
-		matcher: /@rtorcato\/js-tooling\/vitest\/config/,
+		matcher: /@rtorcato\/(?:js|repo)-tooling\/vitest\/config/,
 		optional: true,
 	},
 	{
 		check: 'Commitlint',
 		candidates: ['commitlint.config.js', 'commitlint.config.mjs', 'commitlint.config.cjs'],
 		expected: `exports "${PACKAGE}/commitlint/config"`,
-		matcher: /@rtorcato\/js-tooling\/commitlint\/config/,
+		matcher: /@rtorcato\/(?:js|repo)-tooling\/commitlint\/config/,
 		optional: true,
 	},
 	{
@@ -131,7 +131,7 @@ const FILE_CHECKS: FileCheck[] = [
 		expected: 'is a valid Oxlint configuration',
 		matcher: /"(rules|plugins|categories|extends)"/,
 		optional: true,
-		hint: 'Run `npx @rtorcato/js-tooling copy oxlint` to scaffold',
+		hint: 'Run `npx @rtorcato/repo-tooling copy oxlint` to scaffold',
 	},
 	{
 		check: 'Changesets',
@@ -139,7 +139,7 @@ const FILE_CHECKS: FileCheck[] = [
 		expected: 'is a valid Changesets configuration',
 		matcher: /"(changelog|access|baseBranch)"/,
 		optional: true,
-		hint: 'Run `npx @rtorcato/js-tooling copy changesets` to scaffold',
+		hint: 'Run `npx @rtorcato/repo-tooling copy changesets` to scaffold',
 	},
 	{
 		check: 'Release Please',
@@ -147,7 +147,7 @@ const FILE_CHECKS: FileCheck[] = [
 		expected: 'is a valid Release Please configuration',
 		matcher: /"(packages|release-type|bootstrap-sha)"/,
 		optional: true,
-		hint: 'Run `npx @rtorcato/js-tooling fix release-please` to scaffold',
+		hint: 'Run `npx @rtorcato/repo-tooling fix release-please` to scaffold',
 	},
 ]
 
@@ -330,7 +330,7 @@ async function checkVscodeExtensions(dir: string): Promise<CheckResult> {
 		check: 'VS Code extensions',
 		status: 'optional-missing',
 		detail: `enabled tools without a recommended extension: ${missing.join(', ')}`,
-		hint: 'Run `npx @rtorcato/js-tooling fix vscode-extensions` to recommend matching editor extensions',
+		hint: 'Run `npx @rtorcato/repo-tooling fix vscode-extensions` to recommend matching editor extensions',
 	}
 }
 
@@ -447,7 +447,7 @@ async function checkNodeVersionConsistency(dir: string, pkg: Pkg | null): Promis
 		check: 'Node version consistency',
 		status: 'drift',
 		detail: `Node major disagreement: ${summary}`,
-		hint: 'Run `npx @rtorcato/js-tooling fix node-version` to point workflows at `node-version-file: .nvmrc` (one source of truth)',
+		hint: 'Run `npx @rtorcato/repo-tooling fix node-version` to point workflows at `node-version-file: .nvmrc` (one source of truth)',
 	}
 }
 
@@ -502,7 +502,7 @@ async function checkHuskyPrePush(dir: string, pkg: Pkg | null): Promise<CheckRes
 			check: 'Husky pre-push',
 			status: 'optional-missing',
 			detail: 'husky not configured',
-			hint: 'Run `npx @rtorcato/js-tooling fix husky` to enable git hooks (includes pre-push)',
+			hint: 'Run `npx @rtorcato/repo-tooling fix husky` to enable git hooks (includes pre-push)',
 		}
 	}
 	const hookPath = path.join(dir, '.husky', 'pre-push')
@@ -511,7 +511,7 @@ async function checkHuskyPrePush(dir: string, pkg: Pkg | null): Promise<CheckRes
 			check: 'Husky pre-push',
 			status: 'optional-missing',
 			detail: 'no .husky/pre-push',
-			hint: 'Run `npx @rtorcato/js-tooling fix husky` to scaffold a pre-push hook that runs `pnpm verify`',
+			hint: 'Run `npx @rtorcato/repo-tooling fix husky` to scaffold a pre-push hook that runs `pnpm verify`',
 		}
 	}
 	const contents = await fs.readFile(hookPath, 'utf-8')
@@ -529,14 +529,14 @@ async function checkHuskyPrePush(dir: string, pkg: Pkg | null): Promise<CheckRes
 			check: 'Husky pre-push',
 			status: 'drift',
 			detail: '.husky/pre-push exists but no `verify` script in package.json',
-			hint: 'Run `npx @rtorcato/js-tooling fix verify` to add a verify script, then `fix husky` to align the hook',
+			hint: 'Run `npx @rtorcato/repo-tooling fix verify` to add a verify script, then `fix husky` to align the hook',
 		}
 	}
 	return {
 		check: 'Husky pre-push',
 		status: 'drift',
 		detail: '.husky/pre-push exists but does not call `pnpm verify`',
-		hint: 'Run `npx @rtorcato/js-tooling fix husky` to align the hook with `pnpm verify`',
+		hint: 'Run `npx @rtorcato/repo-tooling fix husky` to align the hook with `pnpm verify`',
 	}
 }
 
@@ -555,7 +555,7 @@ async function checkVerifyScript(dir: string, pkg: Pkg | null): Promise<CheckRes
 			check: 'verify script',
 			status: 'optional-missing',
 			detail: 'no `verify` script in package.json',
-			hint: 'Run `npx @rtorcato/js-tooling fix verify` to add a unified `pnpm verify` script',
+			hint: 'Run `npx @rtorcato/repo-tooling fix verify` to add a unified `pnpm verify` script',
 		}
 	}
 
@@ -582,7 +582,7 @@ async function checkVerifyScript(dir: string, pkg: Pkg | null): Promise<CheckRes
 			check: 'verify script',
 			status: 'drift',
 			detail: `\`verify\` script is missing: ${missing.join(', ')}`,
-			hint: 'Run `npx @rtorcato/js-tooling fix verify` to regenerate the verify chain',
+			hint: 'Run `npx @rtorcato/repo-tooling fix verify` to regenerate the verify chain',
 		}
 	}
 	return {
@@ -643,7 +643,7 @@ async function checkLintStaged(dir: string, pkg: Pkg | null): Promise<CheckResul
 				check: 'lint-staged',
 				status: 'drift',
 				detail: `${where} but no husky hook runs it`,
-				hint: 'Run `npx @rtorcato/js-tooling fix husky` to wire lint-staged into the pre-commit hook',
+				hint: 'Run `npx @rtorcato/repo-tooling fix husky` to wire lint-staged into the pre-commit hook',
 			}
 		}
 		return {
@@ -798,7 +798,7 @@ async function checkSemanticRelease(dir: string, pkg: Pkg | null): Promise<Check
 		}
 	}
 
-	const presetRegex = /@rtorcato\/js-tooling\/semantic-release/
+	const presetRegex = /@rtorcato\/(?:js|repo)-tooling\/semantic-release/
 	const pkgReleaseStr = inPkg ? JSON.stringify(pkg?.release ?? '') : ''
 	const usesPreset =
 		(configContent && presetRegex.test(configContent)) || presetRegex.test(pkgReleaseStr)
@@ -830,7 +830,7 @@ async function checkGitHubActions(dir: string): Promise<CheckResult> {
 			check: 'GitHub Actions',
 			status: 'optional-missing',
 			detail: 'no .github/workflows/',
-			hint: 'Run `npx @rtorcato/js-tooling setup` to scaffold a CI workflow',
+			hint: 'Run `npx @rtorcato/repo-tooling setup` to scaffold a CI workflow',
 		}
 	}
 
@@ -961,7 +961,7 @@ async function checkDependabot(dir: string): Promise<CheckResult> {
 					check: 'Dependabot',
 					status: 'drift',
 					detail: `${candidate} drifts from canonical (${deltas.join('; ')})`,
-					hint: 'Run `npx @rtorcato/js-tooling fix dependabot` to apply the canonical grouping + auto-merge workflow',
+					hint: 'Run `npx @rtorcato/repo-tooling fix dependabot` to apply the canonical grouping + auto-merge workflow',
 				}
 			}
 			return {
@@ -991,7 +991,7 @@ async function checkDependabot(dir: string): Promise<CheckResult> {
 		check: 'Dependabot',
 		status: 'optional-missing',
 		detail: 'no Dependabot or Renovate config',
-		hint: 'Run `npx @rtorcato/js-tooling fix dependabot` (or `fix renovate`) to scaffold weekly dep updates',
+		hint: 'Run `npx @rtorcato/repo-tooling fix dependabot` (or `fix renovate`) to scaffold weekly dep updates',
 	}
 }
 
@@ -1002,7 +1002,7 @@ async function checkCodeQL(dir: string): Promise<CheckResult> {
 			check: 'CodeQL',
 			status: 'optional-missing',
 			detail: 'no .github/workflows/',
-			hint: 'Run `npx @rtorcato/js-tooling fix codeql` to scaffold CodeQL security scanning',
+			hint: 'Run `npx @rtorcato/repo-tooling fix codeql` to scaffold CodeQL security scanning',
 		}
 	}
 	for (const candidate of ['codeql.yml', 'codeql.yaml']) {
@@ -1034,7 +1034,7 @@ async function checkCodeQL(dir: string): Promise<CheckResult> {
 		check: 'CodeQL',
 		status: 'optional-missing',
 		detail: 'no codeql workflow found',
-		hint: 'Run `npx @rtorcato/js-tooling fix codeql` to scaffold CodeQL security scanning',
+		hint: 'Run `npx @rtorcato/repo-tooling fix codeql` to scaffold CodeQL security scanning',
 	}
 }
 
@@ -1075,7 +1075,9 @@ async function checkTypedoc(dir: string, pkg: Pkg | null): Promise<CheckResult> 
 		...((pkg?.devDependencies as Record<string, string> | undefined) ?? {}),
 	}
 	const hasDep = !!deps['typedoc']
-	const usesPreset = configContent ? /@rtorcato\/js-tooling\/typedoc/.test(configContent) : false
+	const usesPreset = configContent
+		? /@rtorcato\/(?:js|repo)-tooling\/typedoc/.test(configContent)
+		: false
 
 	if (configFile && usesPreset) {
 		return {
@@ -1088,8 +1090,8 @@ async function checkTypedoc(dir: string, pkg: Pkg | null): Promise<CheckResult> 
 		return {
 			check: 'TypeDoc',
 			status: 'drift',
-			detail: `${configFile} found but does not extend @rtorcato/js-tooling/typedoc`,
-			hint: 'Add `"extends": ["@rtorcato/js-tooling/typedoc"]` to typedoc.json',
+			detail: `${configFile} found but does not extend @rtorcato/repo-tooling/typedoc`,
+			hint: 'Add `"extends": ["@rtorcato/repo-tooling/typedoc"]` to typedoc.json',
 		}
 	}
 	if (hasDep && !configFile) {
@@ -1097,14 +1099,14 @@ async function checkTypedoc(dir: string, pkg: Pkg | null): Promise<CheckResult> 
 			check: 'TypeDoc',
 			status: 'drift',
 			detail: 'typedoc installed but no typedoc.json found',
-			hint: 'Run `npx @rtorcato/js-tooling fix typedoc` to scaffold typedoc.json',
+			hint: 'Run `npx @rtorcato/repo-tooling fix typedoc` to scaffold typedoc.json',
 		}
 	}
 	return {
 		check: 'TypeDoc',
 		status: 'optional-missing',
 		detail: 'TypeDoc not configured',
-		hint: 'Run `npx @rtorcato/js-tooling fix typedoc` to scaffold API docs generation',
+		hint: 'Run `npx @rtorcato/repo-tooling fix typedoc` to scaffold API docs generation',
 	}
 }
 
@@ -1144,7 +1146,7 @@ async function checkAreTheTypesWrong(_dir: string, pkg: Pkg | null): Promise<Che
 			check: 'are-the-types-wrong',
 			status: 'drift',
 			detail: '@arethetypeswrong/cli installed but no script runs it',
-			hint: 'Run `npx @rtorcato/js-tooling fix attw` to add an `attw` script and wire it into verify',
+			hint: 'Run `npx @rtorcato/repo-tooling fix attw` to add an `attw` script and wire it into verify',
 		}
 	}
 
@@ -1152,7 +1154,7 @@ async function checkAreTheTypesWrong(_dir: string, pkg: Pkg | null): Promise<Che
 		check: 'are-the-types-wrong',
 		status: 'optional-missing',
 		detail: '@arethetypeswrong/cli not configured',
-		hint: 'Run `npx @rtorcato/js-tooling fix attw` to validate TypeScript exports before publishing',
+		hint: 'Run `npx @rtorcato/repo-tooling fix attw` to validate TypeScript exports before publishing',
 	}
 }
 
@@ -1187,7 +1189,7 @@ async function checkPublint(_dir: string, pkg: Pkg | null): Promise<CheckResult>
 			check: 'publint',
 			status: 'drift',
 			detail: 'publint installed but no script runs it',
-			hint: 'Run `npx @rtorcato/js-tooling fix publint` to add a `publint` script and wire it into verify',
+			hint: 'Run `npx @rtorcato/repo-tooling fix publint` to add a `publint` script and wire it into verify',
 		}
 	}
 
@@ -1195,7 +1197,7 @@ async function checkPublint(_dir: string, pkg: Pkg | null): Promise<CheckResult>
 		check: 'publint',
 		status: 'optional-missing',
 		detail: 'publint not configured',
-		hint: 'Run `npx @rtorcato/js-tooling fix publint` to lint your package before publishing',
+		hint: 'Run `npx @rtorcato/repo-tooling fix publint` to lint your package before publishing',
 	}
 }
 
@@ -1211,7 +1213,7 @@ async function checkReadmeBadges(dir: string, pkg: Pkg | null): Promise<CheckRes
 				check: 'README badges',
 				status: 'drift',
 				detail: 'README has npm/coverage badges but the package is private (they 404)',
-				hint: 'Run `npx @rtorcato/js-tooling fix badges` to rebuild badges for a private repo',
+				hint: 'Run `npx @rtorcato/repo-tooling fix badges` to rebuild badges for a private repo',
 			}
 		}
 		return { check: 'README badges', status: 'ok', detail: 'not applicable (private package)' }
@@ -1231,7 +1233,7 @@ async function checkReadmeBadges(dir: string, pkg: Pkg | null): Promise<CheckRes
 		check: 'README badges',
 		status: 'optional-missing',
 		detail: 'no status badges in README',
-		hint: 'Run `npx @rtorcato/js-tooling fix badges` to add CI/npm/coverage/license badges',
+		hint: 'Run `npx @rtorcato/repo-tooling fix badges` to add CI/npm/coverage/license badges',
 	}
 }
 
@@ -1274,7 +1276,7 @@ async function checkCoverageUpload(dir: string): Promise<CheckResult> {
 		check: 'Coverage upload',
 		status: 'drift',
 		detail: 'README has a Codecov badge but no CI step uploads coverage (badge stays red)',
-		hint: 'Run `npx @rtorcato/js-tooling fix github-actions` to regenerate ci.yml with a Codecov upload step',
+		hint: 'Run `npx @rtorcato/repo-tooling fix github-actions` to regenerate ci.yml with a Codecov upload step',
 	}
 }
 
@@ -1304,7 +1306,7 @@ async function checkTreeshakeSetup(dir: string, pkg: Pkg | null): Promise<CheckR
 		check: 'Tree-shake check',
 		status: 'optional-missing',
 		detail: `package exports ${subpaths.length} subpaths with sideEffects: false but no apps/treeshake-check/`,
-		hint: 'Run `npx @rtorcato/js-tooling fix treeshake-check` to scaffold an esbuild metafile assertion',
+		hint: 'Run `npx @rtorcato/repo-tooling fix treeshake-check` to scaffold an esbuild metafile assertion',
 	}
 }
 
@@ -1313,22 +1315,22 @@ function checkLockfile(lock: Lockfile | null): CheckResult {
 		return {
 			check: 'lockfile',
 			status: 'optional-missing',
-			detail: 'no .js-tooling.json — doctor cannot tell intentional opt-outs from drift',
-			hint: 'Run `npx @rtorcato/js-tooling fix lockfile` to record current choices',
+			detail: 'no .repo-tooling.json — doctor cannot tell intentional opt-outs from drift',
+			hint: 'Run `npx @rtorcato/repo-tooling fix lockfile` to record current choices',
 		}
 	}
 	if (lock.version > LOCKFILE_VERSION) {
 		return {
 			check: 'lockfile',
 			status: 'drift',
-			detail: `.js-tooling.json version ${lock.version} is newer than this CLI supports (v${LOCKFILE_VERSION})`,
-			hint: 'Upgrade @rtorcato/js-tooling to a release that supports this lockfile version',
+			detail: `.repo-tooling.json version ${lock.version} is newer than this CLI supports (v${LOCKFILE_VERSION})`,
+			hint: 'Upgrade @rtorcato/repo-tooling to a release that supports this lockfile version',
 		}
 	}
 	return {
 		check: 'lockfile',
 		status: 'ok',
-		detail: `.js-tooling.json v${lock.version} (written by ${lock.writtenBy})`,
+		detail: `.repo-tooling.json v${lock.version} (written by ${lock.writtenBy})`,
 	}
 }
 
@@ -1346,7 +1348,7 @@ async function checkCodeowners(dir: string): Promise<CheckResult> {
 		check: 'CODEOWNERS',
 		status: 'optional-missing',
 		detail: 'no CODEOWNERS file',
-		hint: 'Run `npx @rtorcato/js-tooling fix codeowners` to scaffold .github/CODEOWNERS',
+		hint: 'Run `npx @rtorcato/repo-tooling fix codeowners` to scaffold .github/CODEOWNERS',
 	}
 }
 
@@ -1364,7 +1366,7 @@ async function checkCommunityHealth(dir: string): Promise<CheckResult> {
 		check: 'Community health',
 		status: 'optional-missing',
 		detail: 'missing community-health files (CONTRIBUTING/SECURITY/templates)',
-		hint: 'Run `npx @rtorcato/js-tooling fix community-health` to scaffold them',
+		hint: 'Run `npx @rtorcato/repo-tooling fix community-health` to scaffold them',
 	}
 }
 
@@ -1387,7 +1389,7 @@ async function checkAiSetup(dir: string): Promise<CheckResult> {
 		check: 'AI setup',
 		status: 'optional-missing',
 		detail: 'no AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot rules, Claude skill)',
-		hint: 'Run `npx @rtorcato/js-tooling fix ai` to scaffold agent rules for every AI tool',
+		hint: 'Run `npx @rtorcato/repo-tooling fix ai` to scaffold agent rules for every AI tool',
 	}
 }
 
@@ -1411,7 +1413,7 @@ async function checkTurborepo(dir: string): Promise<CheckResult> {
 		check: 'Turborepo',
 		status: 'optional-missing',
 		detail: 'pnpm workspace without a task orchestrator',
-		hint: 'Run `npx @rtorcato/js-tooling fix turborepo` (or `fix nx`) to scaffold a task pipeline',
+		hint: 'Run `npx @rtorcato/repo-tooling fix turborepo` (or `fix nx`) to scaffold a task pipeline',
 	}
 }
 
@@ -1503,7 +1505,7 @@ async function checkTailwind(dir: string, pkg: Pkg | null): Promise<CheckResult>
 		check: 'Tailwind',
 		status: 'optional-missing',
 		detail: 'tailwindcss installed without a PostCSS (or Vite) plugin',
-		hint: 'Run `npx @rtorcato/js-tooling fix tailwind` to scaffold the v4 PostCSS wiring',
+		hint: 'Run `npx @rtorcato/repo-tooling fix tailwind` to scaffold the v4 PostCSS wiring',
 	}
 }
 
@@ -1521,7 +1523,7 @@ async function checkGitLabCI(dir: string): Promise<CheckResult> {
 		check: 'GitLab CI',
 		status: 'optional-missing',
 		detail: 'no .gitlab-ci.yml',
-		hint: 'Run `npx @rtorcato/js-tooling fix gitlab-ci` to scaffold a starter GitLab pipeline',
+		hint: 'Run `npx @rtorcato/repo-tooling fix gitlab-ci` to scaffold a starter GitLab pipeline',
 	}
 }
 
@@ -1607,7 +1609,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 			return {
 				check: r.check,
 				status: 'ok',
-				detail: 'intentionally declined (.js-tooling.json)',
+				detail: 'intentionally declined (.repo-tooling.json)',
 			}
 		})
 	}
@@ -1651,14 +1653,14 @@ export function nextStepSuggestions(results: CheckResult[]): string[] {
 			continue
 		}
 		const verb = r.status === 'drift' ? 'align' : 'scaffold'
-		lines.push(`Run \`npx @rtorcato/js-tooling fix ${target}\` to ${verb} ${r.check}`)
+		lines.push(`Run \`npx @rtorcato/repo-tooling fix ${target}\` to ${verb} ${r.check}`)
 	}
 	if (overflow > 0) {
 		lines.push(
-			`...and ${overflow} more — run \`npx @rtorcato/js-tooling fix\` to walk all findings`
+			`...and ${overflow} more — run \`npx @rtorcato/repo-tooling fix\` to walk all findings`
 		)
 	} else if (lines.length > 0) {
-		lines.push('Run `npx @rtorcato/js-tooling fix` to walk all findings interactively')
+		lines.push('Run `npx @rtorcato/repo-tooling fix` to walk all findings interactively')
 	}
 	return lines
 }

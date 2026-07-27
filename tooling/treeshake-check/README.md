@@ -2,7 +2,7 @@
 
 End-to-end tree-shaking verification for libraries that ship subpath exports + `sideEffects: false`.
 
-Use `npx @rtorcato/js-tooling fix treeshake-check` to scaffold an `apps/treeshake-check/` workspace package. It bundles a single subpath import via esbuild + metafile and fails the build if any other subpath leaks into the bundle inputs.
+Use `npx @rtorcato/repo-tooling fix treeshake-check` to scaffold an `apps/treeshake-check/` workspace package. It bundles a single subpath import via esbuild + metafile and fails the build if any other subpath leaks into the bundle inputs.
 
 The generated `check.mjs` script is parameterized on:
 

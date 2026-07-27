@@ -35,6 +35,9 @@ export const FIX_TARGETS: Record<string, string> = {
 	Turborepo: 'turborepo',
 	Tailwind: 'tailwind',
 	lockfile: 'lockfile',
+	'.repo-tooling.json': 'lockfile',
+	// Pre-rename lockfile name — still recognized as managed so doctor doesn't
+	// flag an un-migrated repo's lockfile as unmanaged (#272).
 	'.js-tooling.json': 'lockfile',
 	'are-the-types-wrong': 'attw',
 	publint: 'publint',

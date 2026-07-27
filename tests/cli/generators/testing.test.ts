@@ -52,7 +52,7 @@ describe('generateTestingConfigs', () => {
 		)
 
 		const jestConfig = await fs.readFile(join(dir, 'jest.config.mjs'), 'utf-8')
-		expect(jestConfig).toContain('@rtorcato/js-tooling/jest-presets/browser/jest-preset')
+		expect(jestConfig).toContain('@rtorcato/repo-tooling/jest-presets/browser/jest-preset')
 	})
 
 	it('writes a playwright config that re-exports our preset', async () => {
@@ -60,7 +60,7 @@ describe('generateTestingConfigs', () => {
 		await generateTestingConfigs(baseConfig({ testing: { framework: 'playwright' } }), dir)
 
 		const playwrightConfig = await fs.readFile(join(dir, 'playwright.config.ts'), 'utf-8')
-		expect(playwrightConfig).toContain("from '@rtorcato/js-tooling/playwright'")
+		expect(playwrightConfig).toContain("from '@rtorcato/repo-tooling/playwright'")
 	})
 
 	it('the shipped playwright preset references defineConfig and devices', async () => {
@@ -79,7 +79,7 @@ describe('generateTestingConfigs', () => {
 		await generateTestingConfigs(baseConfig({ testing: { framework: 'cypress' } }), dir)
 
 		const cypressConfig = await fs.readFile(join(dir, 'cypress.config.ts'), 'utf-8')
-		expect(cypressConfig).toContain("from '@rtorcato/js-tooling/cypress'")
+		expect(cypressConfig).toContain("from '@rtorcato/repo-tooling/cypress'")
 		expect(await fs.pathExists(join(dir, 'cypress/support/e2e.ts'))).toBe(true)
 		expect(await fs.pathExists(join(dir, 'cypress/support/commands.ts'))).toBe(true)
 		expect(await fs.pathExists(join(dir, 'tests/e2e/example.cy.ts'))).toBe(true)

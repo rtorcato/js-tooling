@@ -29,7 +29,7 @@ describe('generateLintingConfigs', () => {
 		await generateLintingConfigs(baseConfig({ linting: { tool: 'biome' } }), dir)
 
 		const biome = await fs.readJson(join(dir, 'biome.jsonc'))
-		expect(biome.extends).toEqual(['@rtorcato/js-tooling/biome'])
+		expect(biome.extends).toEqual(['@rtorcato/repo-tooling/biome'])
 		// Biome 2.x schema + shape — no 1.x `files.include`/`ignore` that would
 		// force consumers to run `biome migrate` before `biome check` runs.
 		expect(biome.$schema).toContain('biomejs.dev/schemas/2.')
@@ -46,7 +46,7 @@ describe('generateLintingConfigs', () => {
 		)
 
 		const eslint = await fs.readFile(join(dir, 'eslint.config.mjs'), 'utf-8')
-		expect(eslint).toContain("from '@rtorcato/js-tooling/eslint/base'")
+		expect(eslint).toContain("from '@rtorcato/repo-tooling/eslint/base'")
 
 		expect(await fs.pathExists(join(dir, 'prettier.config.mjs'))).toBe(true)
 		expect(await fs.pathExists(join(dir, 'biome.jsonc'))).toBe(false)
@@ -60,7 +60,7 @@ describe('generateLintingConfigs', () => {
 		)
 
 		const eslint = await fs.readFile(join(dir, 'eslint.config.mjs'), 'utf-8')
-		expect(eslint).toContain("from '@rtorcato/js-tooling/eslint/nextjs'")
+		expect(eslint).toContain("from '@rtorcato/repo-tooling/eslint/nextjs'")
 
 		expect(await fs.pathExists(join(dir, 'biome.jsonc'))).toBe(true)
 		// prettier is only emitted when eslint is the sole linter
@@ -72,7 +72,7 @@ describe('generateLintingConfigs', () => {
 		await generateLintingConfigs(baseConfig({ linting: { tool: 'eslint' } }), dir)
 
 		const eslint = await fs.readFile(join(dir, 'eslint.config.mjs'), 'utf-8')
-		expect(eslint).toContain("from '@rtorcato/js-tooling/eslint/base'")
+		expect(eslint).toContain("from '@rtorcato/repo-tooling/eslint/base'")
 	})
 
 	it('drops .oxlintrc.json when oxlint is enabled (additive to Biome)', async () => {

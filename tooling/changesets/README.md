@@ -1,6 +1,6 @@
 # Changesets preset
 
-Shared [Changesets](https://github.com/changesets/changesets) configuration for projects using `@rtorcato/js-tooling`.
+Shared [Changesets](https://github.com/changesets/changesets) configuration for projects using `@rtorcato/repo-tooling`.
 
 Changesets is a **monorepo-friendly alternative to semantic-release**. The release workflow is the same shape (CI bumps versions, generates a changelog, publishes to npm), but the *intent* is captured in changeset markdown files at PR time rather than parsed from commit messages.
 
@@ -9,7 +9,7 @@ Pick one — Changesets or semantic-release — per repo. The `doctor` check fla
 ## Usage
 
 ```bash
-npx @rtorcato/js-tooling copy changesets
+npx @rtorcato/repo-tooling copy changesets
 ```
 
 This scaffolds `.changeset/config.json` from this preset. After that:

@@ -13,7 +13,7 @@ import { copyPreset, PRESETS, type PresetName } from './utils/copy-preset.js'
 async function isSelfRepo(dir: string): Promise<boolean> {
 	try {
 		const pkg = await fs.readJson(path.join(dir, 'package.json'))
-		return pkg.name === '@rtorcato/js-tooling'
+		return pkg.name === '@rtorcato/repo-tooling'
 	} catch {
 		return false
 	}
@@ -22,7 +22,7 @@ async function isSelfRepo(dir: string): Promise<boolean> {
 const program = new Command()
 
 program
-	.name('@rtorcato/js-tooling')
+	.name('@rtorcato/repo-tooling')
 	.description('🛠️  JavaScript and TypeScript tooling setup for modern projects')
 	.version(packageJson.version)
 
@@ -35,7 +35,7 @@ program
 	.option('--preset <name>', 'Skip prompts; use defaults for a project type')
 	.option(
 		'--config <path>',
-		'Skip prompts; read a ProjectConfig or .js-tooling.json lockfile from <path>'
+		'Skip prompts; read a ProjectConfig or .repo-tooling.json lockfile from <path>'
 	)
 	.option('--dry-run', 'Print the resolved config and file list, write nothing')
 	.option('--config-schema', 'Print the JSON Schema for ProjectConfig and exit')
@@ -77,48 +77,48 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		name: 'TypeScript',
 		description: 'Base, React, Next.js, Node.js, Express, Bun tsconfig presets',
 		exports: [
-			'@rtorcato/js-tooling/typescript/base',
-			'@rtorcato/js-tooling/typescript/react',
-			'@rtorcato/js-tooling/typescript/next',
-			'@rtorcato/js-tooling/typescript/node',
-			'@rtorcato/js-tooling/typescript/express',
-			'@rtorcato/js-tooling/typescript/bun',
-			'@rtorcato/js-tooling/typescript/test',
-			'@rtorcato/js-tooling/typescript/reset',
+			'@rtorcato/repo-tooling/typescript/base',
+			'@rtorcato/repo-tooling/typescript/react',
+			'@rtorcato/repo-tooling/typescript/next',
+			'@rtorcato/repo-tooling/typescript/node',
+			'@rtorcato/repo-tooling/typescript/express',
+			'@rtorcato/repo-tooling/typescript/bun',
+			'@rtorcato/repo-tooling/typescript/test',
+			'@rtorcato/repo-tooling/typescript/reset',
 		],
 		fixTarget: 'tsconfig',
 	},
 	{
 		name: 'Bun',
 		description: 'Bun runtime/test-runner config (bunfig.toml + Bun-typed tsconfig)',
-		exports: ['@rtorcato/js-tooling/typescript/bun'],
+		exports: ['@rtorcato/repo-tooling/typescript/bun'],
 		fixTarget: 'bun',
 	},
 	{
 		name: 'ESLint',
 		description: 'Base and Next.js ESLint configurations',
-		exports: ['@rtorcato/js-tooling/eslint/base', '@rtorcato/js-tooling/eslint/nextjs'],
+		exports: ['@rtorcato/repo-tooling/eslint/base', '@rtorcato/repo-tooling/eslint/nextjs'],
 		fixTarget: 'eslint',
 	},
 	{
 		name: 'Biome',
 		description: 'Fast formatter and linter configuration',
-		exports: ['@rtorcato/js-tooling/biome'],
+		exports: ['@rtorcato/repo-tooling/biome'],
 		fixTarget: 'biome',
 	},
 	{
 		name: 'Prettier',
 		description: 'Code formatter configuration',
-		exports: ['@rtorcato/js-tooling/prettier'],
+		exports: ['@rtorcato/repo-tooling/prettier'],
 		fixTarget: 'prettier',
 	},
 	{
 		name: 'Vitest',
 		description: 'Testing framework configuration',
 		exports: [
-			'@rtorcato/js-tooling/vitest/config',
-			'@rtorcato/js-tooling/vitest/react',
-			'@rtorcato/js-tooling/vitest/setup',
+			'@rtorcato/repo-tooling/vitest/config',
+			'@rtorcato/repo-tooling/vitest/react',
+			'@rtorcato/repo-tooling/vitest/setup',
 		],
 		fixTarget: 'vitest',
 	},
@@ -126,27 +126,27 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		name: 'Jest',
 		description: 'Testing framework presets for browser and Node.js',
 		exports: [
-			'@rtorcato/js-tooling/jest-presets/browser/jest-preset',
-			'@rtorcato/js-tooling/jest-presets/node/jest-preset',
+			'@rtorcato/repo-tooling/jest-presets/browser/jest-preset',
+			'@rtorcato/repo-tooling/jest-presets/node/jest-preset',
 		],
 		fixTarget: null,
 	},
 	{
 		name: 'Playwright',
 		description: 'End-to-end testing configuration',
-		exports: ['@rtorcato/js-tooling/playwright'],
+		exports: ['@rtorcato/repo-tooling/playwright'],
 		fixTarget: null,
 	},
 	{
 		name: 'Cypress',
 		description: 'End-to-end testing configuration',
-		exports: ['@rtorcato/js-tooling/cypress'],
+		exports: ['@rtorcato/repo-tooling/cypress'],
 		fixTarget: 'cypress',
 	},
 	{
 		name: 'Commitlint',
 		description: 'Conventional commit linting',
-		exports: ['@rtorcato/js-tooling/commitlint/config'],
+		exports: ['@rtorcato/repo-tooling/commitlint/config'],
 		fixTarget: 'commitlint',
 	},
 	{
@@ -165,40 +165,40 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		name: 'Semantic Release',
 		description: 'Automated versioning and publishing',
 		exports: [
-			'@rtorcato/js-tooling/semantic-release',
-			'@rtorcato/js-tooling/semantic-release/github',
-			'@rtorcato/js-tooling/semantic-release/docker',
+			'@rtorcato/repo-tooling/semantic-release',
+			'@rtorcato/repo-tooling/semantic-release/github',
+			'@rtorcato/repo-tooling/semantic-release/docker',
 		],
 		fixTarget: 'semantic-release',
 	},
 	{
 		name: 'Changesets',
 		description: 'Monorepo-friendly release tool (alternative to semantic-release)',
-		exports: ['@rtorcato/js-tooling/changesets'],
+		exports: ['@rtorcato/repo-tooling/changesets'],
 		fixTarget: 'changesets',
 	},
 	{
 		name: 'Release Please',
 		description: 'Release-PR-driven release tool (alternative to semantic-release)',
-		exports: ['@rtorcato/js-tooling/release-please'],
+		exports: ['@rtorcato/repo-tooling/release-please'],
 		fixTarget: 'release-please',
 	},
 	{
 		name: 'Oxlint',
 		description: 'Rust-based linter (additive to Biome/ESLint)',
-		exports: ['@rtorcato/js-tooling/oxlint'],
+		exports: ['@rtorcato/repo-tooling/oxlint'],
 		fixTarget: 'oxlint',
 	},
 	{
 		name: 'tsup',
 		description: 'TypeScript bundler configuration',
-		exports: ['@rtorcato/js-tooling/tsup'],
+		exports: ['@rtorcato/repo-tooling/tsup'],
 		fixTarget: null,
 	},
 	{
 		name: 'TypeDoc',
 		description: 'API documentation generation for TypeScript library projects',
-		exports: ['@rtorcato/js-tooling/typedoc'],
+		exports: ['@rtorcato/repo-tooling/typedoc'],
 		fixTarget: 'typedoc',
 	},
 	{
@@ -210,13 +210,13 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 	{
 		name: 'esbuild',
 		description: 'Fast JavaScript bundler configuration',
-		exports: ['@rtorcato/js-tooling/esbuild'],
+		exports: ['@rtorcato/repo-tooling/esbuild'],
 		fixTarget: null,
 	},
 	{
 		name: 'Vite',
 		description: 'Modern web app build tool configuration',
-		exports: ['@rtorcato/js-tooling/vite'],
+		exports: ['@rtorcato/repo-tooling/vite'],
 		fixTarget: null,
 	},
 	{
@@ -278,13 +278,13 @@ program
 		for (const { name, description } of TOOL_CATALOG) {
 			console.log(`  ${chalk.green('●')} ${chalk.bold(name)}: ${chalk.gray(description)}`)
 		}
-		console.log(chalk.dim('\n💡 Run `js-tooling setup` for a new project'))
-		console.log(chalk.dim('   or `js-tooling fix` to apply missing pieces to an existing one\n'))
+		console.log(chalk.dim('\n💡 Run `repo-tooling setup` for a new project'))
+		console.log(chalk.dim('   or `repo-tooling fix` to apply missing pieces to an existing one\n'))
 	})
 
 program
 	.command('doctor')
-	.description('🩺 Diagnose project alignment with @rtorcato/js-tooling presets')
+	.description('🩺 Diagnose project alignment with @rtorcato/repo-tooling presets')
 	.option('-d, --directory <path>', 'Target directory to diagnose', process.cwd())
 	.option('--json', 'Emit machine-readable JSON output')
 	.action(doctorCommand)
@@ -297,7 +297,7 @@ program
 	.option('--dry-run', 'Print what would change without writing files')
 	.option('--json', 'Emit machine-readable JSON output (implies --yes)')
 	.option('--list', 'List all registered fix targets and exit')
-	.option('--resync', 'Re-scaffold every file recorded in .js-tooling.json')
+	.option('--resync', 'Re-scaffold every file recorded in .repo-tooling.json')
 	.option('--diff', 'Show a unified diff of each change before confirming')
 	.action((target: string | undefined, options) =>
 		fixCommand(target, {
@@ -320,7 +320,7 @@ program.hook('preAction', async (_, actionCommand) => {
 		if (await isSelfRepo(dir)) {
 			console.log(
 				chalk.yellow(
-					'\n⚠️  This command cannot be run inside the @rtorcato/js-tooling repo itself.\n'
+					'\n⚠️  This command cannot be run inside the @rtorcato/repo-tooling repo itself.\n'
 				)
 			)
 			console.log(

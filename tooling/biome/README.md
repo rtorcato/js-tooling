@@ -5,7 +5,7 @@ This package provides a standardized Biome configuration for consistent code for
 ## Installation
 
 ```bash
-npm install -D @rtorcato/js-tooling @biomejs/biome
+npm install -D @rtorcato/repo-tooling @biomejs/biome
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install -D @rtorcato/js-tooling @biomejs/biome
 ### Option 1: CLI Copy Command (Recommended)
 
 ```bash
-npx @rtorcato/js-tooling copy biome
+npx @rtorcato/repo-tooling copy biome
 ```
 
 This will copy the base `biome.json` configuration to your project root.
@@ -21,7 +21,7 @@ This will copy the base `biome.json` configuration to your project root.
 ### Option 2: Manual Copy
 
 ```bash
-cp node_modules/@rtorcato/js-tooling/tooling/biome/biome.json ./biome.json
+cp node_modules/@rtorcato/repo-tooling/tooling/biome/biome.json ./biome.json
 ```
 
 ### Option 3: Reference in package.json

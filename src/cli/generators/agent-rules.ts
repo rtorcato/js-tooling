@@ -65,7 +65,7 @@ export async function upsertBlock(
 export async function installClaudeMd(targetDir: string): Promise<string> {
 	const rel = 'CLAUDE.md'
 	const body =
-		'See @AGENTS.md for project and agent guidance (kept in sync by `js-tooling fix ai`).'
+		'See @AGENTS.md for project and agent guidance (kept in sync by `repo-tooling fix ai`).'
 	await upsertBlock(path.join(targetDir, rel), body)
 	return rel
 }
@@ -91,7 +91,7 @@ export async function installAiSetup(targetDir: string): Promise<string[]> {
 	return written
 }
 
-/** Install the js-tooling rules for one agent. Returns the written path (relative). */
+/** Install the repo-tooling rules for one agent. Returns the written path (relative). */
 export async function installAgentRules(targetDir: string, agent: AgentTarget): Promise<string> {
 	const { description, body } = await readSkill()
 	switch (agent) {

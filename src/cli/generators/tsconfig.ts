@@ -12,7 +12,7 @@ export async function generateTSConfig(config: ProjectConfig, targetDir: string)
 	// regardless of the chosen project config — Bun is a runtime flag, not a type.
 	const preset = config.bun ? 'bun' : config.typescript.config
 	const tsconfig: any = {
-		extends: `@rtorcato/js-tooling/typescript/${preset}`,
+		extends: `@rtorcato/repo-tooling/typescript/${preset}`,
 		compilerOptions: {},
 		include: ['src/**/*', 'reset.d.ts'],
 		exclude: ['node_modules', 'dist', 'build'],
