@@ -1,3 +1,10 @@
+# [2.60.0](https://github.com/rtorcato/js-tooling/compare/v2.59.0...v2.60.0) (2026-07-27)
+
+
+### Features
+
+* **setup:** single config file — accept lockfile as --config ([#271](https://github.com/rtorcato/js-tooling/issues/271)) ([#275](https://github.com/rtorcato/js-tooling/issues/275)) ([dd7eb0f](https://github.com/rtorcato/js-tooling/commit/dd7eb0feb9e39d19eacd1be5d09626c1707a49cc)), closes [#272](https://github.com/rtorcato/js-tooling/issues/272)
+
 # [2.59.0](https://github.com/rtorcato/js-tooling/compare/v2.58.1...v2.59.0) (2026-07-24)
 
 
