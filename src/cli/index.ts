@@ -33,7 +33,10 @@ program
 	.option('-d, --directory <path>', 'Target directory for setup', process.cwd())
 	.option('--skip-install', 'Skip installing dependencies')
 	.option('--preset <name>', 'Skip prompts; use defaults for a project type')
-	.option('--config <path>', 'Skip prompts; read a JSON ProjectConfig from <path>')
+	.option(
+		'--config <path>',
+		'Skip prompts; read a ProjectConfig or .js-tooling.json lockfile from <path>'
+	)
 	.option('--dry-run', 'Print the resolved config and file list, write nothing')
 	.option('--config-schema', 'Print the JSON Schema for ProjectConfig and exit')
 	.action(setupProject)

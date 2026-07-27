@@ -83,6 +83,15 @@ Generate or refresh it from what's currently on disk:
 npx @rtorcato/js-tooling fix lockfile
 ```
 
+**It's the only config file you need.** Don't keep a separate hand-authored
+`.js-tooling.config.json` next to it — the lockfile already embeds the full
+`ProjectConfig` under `config`, and `setup --config` accepts the lockfile
+directly, so you can re-run a non-interactive setup from it:
+
+```bash
+npx @rtorcato/js-tooling setup --config .js-tooling.json
+```
+
 Each `config.*` key mirrors a setup answer — see the
 [schema](https://rtorcato.github.io/js-tooling/schemas/lockfile.json) for the
 full field reference. The keys `doctor` acts on:
