@@ -25,7 +25,7 @@ field, or the JSON output contract) must also carry these in the **same PR**:
 - [ ] **Docs site** — update `apps/docs/docs/` for the new/changed command, flag, preset, or field.
 - [ ] **README** — update the command table / examples / options if the public surface changed.
 - [ ] **AGENTS.md + `skills/*/SKILL.md`** — keep the agent guidance in sync when the CLI contract changes (agents read these; they must not drift from reality).
-- [ ] **ROADMAP.md** — tick the relevant item and, if it closes a themed goal, the matching [GitHub milestone](https://github.com/rtorcato/repo-tooling/milestones).
+- [ ] **GitHub issue/milestone** — close the issue the change resolves and, if it completes a themed goal, the matching [milestone](https://github.com/rtorcato/repo-tooling/milestones). (Direction is tracked on GitHub, not in a roadmap file.)
 
 Version bumps are automated; this checklist is only for the API- and doc-facing
 work that isn't.

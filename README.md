@@ -173,8 +173,9 @@ See [CHANGELOG.md](CHANGELOG.md) for the full history.
 
 ## Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for direction and the current
-[milestones](https://github.com/rtorcato/repo-tooling/milestones).
+Direction and progress are tracked entirely on GitHub — see the
+[milestones](https://github.com/rtorcato/repo-tooling/milestones) and
+[open issues](https://github.com/rtorcato/repo-tooling/issues).
 
 ## Contributing
 
