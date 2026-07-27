@@ -9,7 +9,7 @@ Extend a preset in your `tsconfig.json`:
 
 ```json
 {
-  "extends": "@rtorcato/js-tooling/typescript/base"
+  "extends": "@rtorcato/repo-tooling/typescript/base"
 }
 ```
 
@@ -28,5 +28,5 @@ Extend a preset in your `tsconfig.json`:
 The wizard copies a `reset.d.ts` that imports `@total-typescript/ts-reset`, giving you stricter array and JSON types out of the box. Available at:
 
 ```bash
-npx @rtorcato/js-tooling copy reset
+npx @rtorcato/repo-tooling copy reset
 ```

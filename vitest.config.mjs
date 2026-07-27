@@ -1,7 +1,7 @@
 import { defineConfig, mergeConfig } from 'vitest/config'
 import base from './tooling/vitest/vitest.config.mjs'
 
-// js-tooling-specific coverage scope and thresholds. The shared preset only
+// repo-tooling-specific coverage scope and thresholds. The shared preset only
 // provides generic v8 defaults so consumers don't inherit our paths.
 export default mergeConfig(
 	base,

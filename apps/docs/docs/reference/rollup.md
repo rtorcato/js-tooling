@@ -14,14 +14,14 @@ Re-export the default config:
 
 ```javascript
 // rollup.config.mjs
-export { default } from '@rtorcato/js-tooling/rollup'
+export { default } from '@rtorcato/repo-tooling/rollup'
 ```
 
 …or customize the entry point:
 
 ```javascript
 // rollup.config.mjs
-import { getConfig } from '@rtorcato/js-tooling/rollup'
+import { getConfig } from '@rtorcato/repo-tooling/rollup'
 
 export default getConfig({ input: 'src/main.ts' })
 ```
@@ -38,7 +38,7 @@ Then wire it into `package.json`:
 ```
 
 `setup --preset library` scaffolds this for you when you pick Rollup, and
-`npx @rtorcato/js-tooling fix rollup` drops the `rollup.config.mjs` into an
+`npx @rtorcato/repo-tooling fix rollup` drops the `rollup.config.mjs` into an
 existing project.
 
 ## Peer dependencies

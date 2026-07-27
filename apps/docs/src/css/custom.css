@@ -1,11 +1,11 @@
 /**
- * js-tooling — Docusaurus theme.
+ * repo-tooling — Docusaurus theme.
  *
  * Green accent (#10b981 light / #34d399 dark) over the shared @rtorcato base.
  * This file owns only the per-project bits — the accent/surface token block,
  * the accent `::selection`, and the repo-namespaced mobile-drawer swizzle CSS —
  * then @imports the shared, accent-agnostic component sheet
- * (tooling/docusaurus/theme.css, refresh with `js-tooling copy docusaurus-theme`).
+ * (tooling/docusaurus/theme.css, refresh with `repo-tooling copy docusaurus-theme`).
  */
 
 /* ---------- Fonts ---------- */
@@ -39,7 +39,7 @@
 	--ifm-code-background: #f3f6f9;
 	--docusaurus-highlighted-code-line-bg: rgba(16, 185, 129, 0.12);
 
-	/* js-tooling custom tokens */
+	/* repo-tooling custom tokens */
 	--jt-accent: #10b981;
 	--jt-accent-fill: #10b981;
 	--jt-on-accent: #ffffff;

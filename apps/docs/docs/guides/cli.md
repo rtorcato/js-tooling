@@ -1,6 +1,6 @@
 ---
 title: CLI Commands
-description: Full reference for the js-tooling CLI.
+description: Full reference for the repo-tooling CLI.
 ---
 
 ## setup / init
@@ -8,9 +8,9 @@ description: Full reference for the js-tooling CLI.
 Launches the interactive wizard. `init` is an alias for `setup`.
 
 ```bash
-npx @rtorcato/js-tooling setup              # current directory
-npx @rtorcato/js-tooling setup -d ./my-app  # specific directory
-npx @rtorcato/js-tooling setup --skip-install  # skip npm/pnpm install
+npx @rtorcato/repo-tooling setup              # current directory
+npx @rtorcato/repo-tooling setup -d ./my-app  # specific directory
+npx @rtorcato/repo-tooling setup --skip-install  # skip npm/pnpm install
 ```
 
 ## copy \<name\>
@@ -18,8 +18,8 @@ npx @rtorcato/js-tooling setup --skip-install  # skip npm/pnpm install
 Copies a standalone config file into the current directory without running the full wizard.
 
 ```bash
-npx @rtorcato/js-tooling copy biome     # → biome.json
-npx @rtorcato/js-tooling copy tsconfig  # → tsconfig.json
+npx @rtorcato/repo-tooling copy biome     # → biome.json
+npx @rtorcato/repo-tooling copy tsconfig  # → tsconfig.json
 ```
 
 Available presets: `biome`, `tsconfig`, `bun`, `nx`, `changesets`, `release-please`, `oxlint`, `claude-skill`, `mcp-example`, `docusaurus-sync-changelog`, `docusaurus-theme-tokens`, `docusaurus-theme`.
@@ -31,7 +31,7 @@ Available presets: `biome`, `tsconfig`, `bun`, `nx`, `changesets`, `release-plea
 Prints all available tooling configurations.
 
 ```bash
-npx @rtorcato/js-tooling list
+npx @rtorcato/repo-tooling list
 ```
 
 ## doctor
@@ -39,9 +39,9 @@ npx @rtorcato/js-tooling list
 Audits an existing project against the presets and reports drift.
 
 ```bash
-npx @rtorcato/js-tooling doctor              # current dir
-npx @rtorcato/js-tooling doctor -d ./app     # specific dir
-npx @rtorcato/js-tooling doctor --json       # machine-readable output
+npx @rtorcato/repo-tooling doctor              # current dir
+npx @rtorcato/repo-tooling doctor -d ./app     # specific dir
+npx @rtorcato/repo-tooling doctor --json       # machine-readable output
 ```
 
 Each row reports one of:
@@ -69,10 +69,10 @@ After the per-row results, doctor prints a **Next steps:** footer listing the ex
 
 ```ansi
   Next steps:
-    - Run `npx @rtorcato/js-tooling fix engines` to align engines.node
-    - Run `npx @rtorcato/js-tooling fix editorconfig` to scaffold EditorConfig
-    - Run `npx @rtorcato/js-tooling fix dependabot` to scaffold Dependabot
-    - Run `npx @rtorcato/js-tooling fix` to walk all findings interactively
+    - Run `npx @rtorcato/repo-tooling fix engines` to align engines.node
+    - Run `npx @rtorcato/repo-tooling fix editorconfig` to scaffold EditorConfig
+    - Run `npx @rtorcato/repo-tooling fix dependabot` to scaffold Dependabot
+    - Run `npx @rtorcato/repo-tooling fix` to walk all findings interactively
 ```
 
 Exits non-zero on `drift` or `missing` — useful as a CI gate.
@@ -82,11 +82,11 @@ Exits non-zero on `drift` or `missing` — useful as a CI gate.
 Applies scaffolders for items `doctor` flagged. Without a target it walks every non-ok result, prompting per item; with a target it applies just that one.
 
 ```bash
-npx @rtorcato/js-tooling fix                    # walk all findings interactively
-npx @rtorcato/js-tooling fix dependabot         # scaffold dependabot.yml + auto-merge workflow
-npx @rtorcato/js-tooling fix --yes              # apply every recommended fix without prompts
-npx @rtorcato/js-tooling fix biome --dry-run    # print what would change, write nothing
-npx @rtorcato/js-tooling fix biome --diff       # show the exact diff before confirming
+npx @rtorcato/repo-tooling fix                    # walk all findings interactively
+npx @rtorcato/repo-tooling fix dependabot         # scaffold dependabot.yml + auto-merge workflow
+npx @rtorcato/repo-tooling fix --yes              # apply every recommended fix without prompts
+npx @rtorcato/repo-tooling fix biome --dry-run    # print what would change, write nothing
+npx @rtorcato/repo-tooling fix biome --diff       # show the exact diff before confirming
 ```
 
 ### Flags
@@ -110,7 +110,7 @@ When you want to see *exactly* what would change before saying yes, pass `--diff
 - a `modify <path>` header followed by a unified diff comparing the current file to what the fixer would write.
 
 ```text
-$ npx @rtorcato/js-tooling fix biome --diff
+$ npx @rtorcato/repo-tooling fix biome --diff
 🔧 biome — Biome is drift
 
   modify biome.json
@@ -122,7 +122,7 @@ $ npx @rtorcato/js-tooling fix biome --diff
     -}
     +{
     +  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
-    +  "extends": ["@rtorcato/js-tooling/biome"],
+    +  "extends": ["@rtorcato/repo-tooling/biome"],
     +  …
     +}
 ? ⚠️  Scaffold biome.json … — overwrite existing file? user customizations will be lost (y/N)
@@ -145,7 +145,7 @@ Implementation note: the preview is computed by shadow-running the fixer in a te
 
 | Target | Scaffolds |
 |---|---|
-| `package-json` | adds `@rtorcato/js-tooling` to `devDependencies` |
+| `package-json` | adds `@rtorcato/repo-tooling` to `devDependencies` |
 | `engines` | `engines.node` in `package.json` (never overwrites) |
 | `tsconfig` | `tsconfig.json` |
 | `biome` | `biome.json` |
@@ -190,7 +190,7 @@ Implementation note: the preview is computed by shadow-running the fixer in a te
 | `github-settings` | branch protection + auto-merge + workflow permissions + a code-scanning branch ruleset (when CodeQL is on) via `gh api` (mutates the remote repo) |
 | `codeowners` | `.github/CODEOWNERS` with commented examples |
 | `community-health` | `CONTRIBUTING.md`, `SECURITY.md`, PR + issue templates |
-| `lockfile` | records current tool choices in the js-tooling lockfile |
+| `lockfile` | records current tool choices in the repo-tooling lockfile |
 
 **Build, bundling & monorepo**
 
@@ -226,7 +226,7 @@ Implementation note: the preview is computed by shadow-running the fixer in a te
 ### Typical workflow
 
 ```bash
-npx @rtorcato/js-tooling doctor   # see what's missing
-npx @rtorcato/js-tooling fix      # walk the list, accept defaults
-npx @rtorcato/js-tooling doctor   # confirm everything is now ok
+npx @rtorcato/repo-tooling doctor   # see what's missing
+npx @rtorcato/repo-tooling fix      # walk the list, accept defaults
+npx @rtorcato/repo-tooling doctor   # confirm everything is now ok
 ```

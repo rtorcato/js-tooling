@@ -4,7 +4,7 @@ description: Starter nx.json task orchestrator for pnpm-workspace monorepos. Alt
 ---
 
 [Nx](https://nx.dev) is a monorepo task orchestrator with an affected-build model
-and a deep plugin ecosystem. js-tooling scaffolds a minimal `nx.json` with a
+and a deep plugin ecosystem. repo-tooling scaffolds a minimal `nx.json` with a
 `targetDefaults` pipeline covering build/lint/typecheck/test — a peer to
 [Turborepo](./turborepo.md). Plugin generators are deferred; start from the
 minimal pnpm-workspace shape and add plugins as you need them.
@@ -19,7 +19,7 @@ flags a repo running both.
 Scaffold it into an existing monorepo:
 
 ```bash
-npx @rtorcato/js-tooling fix nx
+npx @rtorcato/repo-tooling fix nx
 ```
 
 The fixer is **safe-add** — it never overwrites an existing `nx.json`.

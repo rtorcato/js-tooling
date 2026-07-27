@@ -5,7 +5,7 @@ description: Cypress end-to-end testing preset — a peer to the Playwright pres
 
 Cypress is offered as a peer to Playwright for end-to-end testing. Pick it in
 the setup wizard (`🌲 Cypress (E2E)`) or scaffold it into an existing project
-with `js-tooling fix cypress`.
+with `repo-tooling fix cypress`.
 
 ## Config
 
@@ -13,7 +13,7 @@ The generated `cypress.config.ts` re-exports the shipped preset:
 
 ```typescript
 // cypress.config.ts
-export { default } from '@rtorcato/js-tooling/cypress'
+export { default } from '@rtorcato/repo-tooling/cypress'
 ```
 
 The preset points Cypress at `tests/e2e/`, retries twice in CI, and reads its
@@ -38,7 +38,7 @@ To override, spread the preset and extend it:
 ```typescript
 // cypress.config.ts
 import { defineConfig } from 'cypress'
-import preset from '@rtorcato/js-tooling/cypress'
+import preset from '@rtorcato/repo-tooling/cypress'
 
 export default defineConfig({
   ...preset,
@@ -74,4 +74,4 @@ Cypress and Playwright are interchangeable there.
 
 | Export | Use case |
 |---|---|
-| `@rtorcato/js-tooling/cypress` | Cypress `defineConfig` preset |
+| `@rtorcato/repo-tooling/cypress` | Cypress `defineConfig` preset |

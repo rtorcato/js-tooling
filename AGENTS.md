@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Orientation for coding agents working with `@rtorcato/js-tooling`. Human-readable docs live at https://rtorcato.github.io/js-tooling/.
+Orientation for coding agents working with `@rtorcato/repo-tooling`. Human-readable docs live at https://rtorcato.github.io/repo-tooling/.
 
 ## What this is
 
@@ -28,14 +28,14 @@ Every command supports `--json` and a non-interactive mode. Combine with `--yes`
 ### Scaffolding a new project from scratch
 
 ```bash
-npx @rtorcato/js-tooling setup --preset library -d ./my-lib --skip-install
+npx @rtorcato/repo-tooling setup --preset library -d ./my-lib --skip-install
 ```
 
 For full control:
 
 ```bash
 # 1. Get the schema
-npx @rtorcato/js-tooling setup --config-schema > project-config.schema.json
+npx @rtorcato/repo-tooling setup --config-schema > project-config.schema.json
 
 # 2. Write a config matching it
 cat > project.json <<EOF
@@ -55,31 +55,31 @@ cat > project.json <<EOF
 EOF
 
 # 3. Preview, then scaffold
-npx @rtorcato/js-tooling setup --config project.json --dry-run
-npx @rtorcato/js-tooling setup --config project.json -d ./my-lib --skip-install
+npx @rtorcato/repo-tooling setup --config project.json --dry-run
+npx @rtorcato/repo-tooling setup --config project.json -d ./my-lib --skip-install
 ```
 
 ### Auditing an existing project
 
 ```bash
 # Get findings
-npx @rtorcato/js-tooling doctor --json -d ./existing-repo > doctor.json
+npx @rtorcato/repo-tooling doctor --json -d ./existing-repo > doctor.json
 
 # Apply every fixable finding (no prompts, no surprises)
-npx @rtorcato/js-tooling fix --yes --json -d ./existing-repo > applied.json
+npx @rtorcato/repo-tooling fix --yes --json -d ./existing-repo > applied.json
 
 # Re-audit to confirm clean
-npx @rtorcato/js-tooling doctor --json -d ./existing-repo
+npx @rtorcato/repo-tooling doctor --json -d ./existing-repo
 ```
 
 ### Targeted fixes
 
 ```bash
 # Apply one fixer from the list (run `list --json` for every target)
-npx @rtorcato/js-tooling fix dependabot --yes --json
-npx @rtorcato/js-tooling fix engines --yes --json
-npx @rtorcato/js-tooling fix docs-site --yes --json   # scaffold a Docusaurus docs site under apps/docs
-npx @rtorcato/js-tooling fix bun --yes --json         # Bun runtime/test config
+npx @rtorcato/repo-tooling fix dependabot --yes --json
+npx @rtorcato/repo-tooling fix engines --yes --json
+npx @rtorcato/repo-tooling fix docs-site --yes --json   # scaffold a Docusaurus docs site under apps/docs
+npx @rtorcato/repo-tooling fix bun --yes --json         # Bun runtime/test config
 ```
 
 ## Drift policy (important)
@@ -105,7 +105,7 @@ npx @rtorcato/js-tooling fix bun --yes --json         # Bun runtime/test config
 
 ## Pointers
 
-- Site index for LLMs: https://rtorcato.github.io/js-tooling/llms.txt
-- Full CLI guide: https://rtorcato.github.io/js-tooling/guides/cli/
-- For AI agents: https://rtorcato.github.io/js-tooling/guides/for-ai-agents/
-- Source: https://github.com/rtorcato/js-tooling
+- Site index for LLMs: https://rtorcato.github.io/repo-tooling/llms.txt
+- Full CLI guide: https://rtorcato.github.io/repo-tooling/guides/cli/
+- For AI agents: https://rtorcato.github.io/repo-tooling/guides/for-ai-agents/
+- Source: https://github.com/rtorcato/repo-tooling

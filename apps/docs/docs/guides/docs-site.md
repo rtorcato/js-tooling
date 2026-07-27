@@ -18,7 +18,7 @@ Scaffold the whole site in one command — it infers the name, org, and repo fro
 GitHub Pages workflow:
 
 ```sh
-npx @rtorcato/js-tooling fix docs-site
+npx @rtorcato/repo-tooling fix docs-site
 ```
 
 It writes `apps/docs/` (Docusaurus config, sidebars, `src/css`, a starter
@@ -58,7 +58,7 @@ generated from `src/<mod>/index.ts`:
 
 ```ts
 // apps/docs/docusaurus.config.ts
-import { getTypedocPlugins } from '@rtorcato/js-tooling/docusaurus'
+import { getTypedocPlugins } from '@rtorcato/repo-tooling/docusaurus'
 
 const MODULES = ['errors', 'env', 'kv'] // add a module here when it ships
 
@@ -101,7 +101,7 @@ permissions:
   id-token: write
 jobs:
   docs:
-    uses: rtorcato/js-tooling/.github/workflows/docs-deploy.yml@main
+    uses: rtorcato/repo-tooling/.github/workflows/docs-deploy.yml@main
     with:
       build-filter: '@rtorcato/<pkg>-docs'
 ```

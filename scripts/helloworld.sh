@@ -2,4 +2,4 @@
 
 # chmod +x scripts/helloworld.sh
 
-echo "👋 Hello, world from js-tooling!"
+echo "👋 Hello, world from repo-tooling!"

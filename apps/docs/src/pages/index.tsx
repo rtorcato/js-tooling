@@ -185,9 +185,9 @@ type Example = {
 const EXAMPLES: Example[] = [
 	{
 		label: 'setup',
-		file: 'npx @rtorcato/js-tooling setup',
+		file: 'npx @rtorcato/repo-tooling setup',
 		language: 'bash',
-		code: `$ npx @rtorcato/js-tooling setup
+		code: `$ npx @rtorcato/repo-tooling setup
 
 🛠️  Welcome to JS Tooling Setup!
 ? Project type:    📚 Library/Package
@@ -201,12 +201,12 @@ const EXAMPLES: Example[] = [
 	},
 	{
 		label: 'doctor',
-		file: 'npx @rtorcato/js-tooling doctor',
+		file: 'npx @rtorcato/repo-tooling doctor',
 		language: 'bash',
-		code: `$ npx @rtorcato/js-tooling doctor
+		code: `$ npx @rtorcato/repo-tooling doctor
 
 ⚕️  Checking project health…
-✔ TypeScript      base config extends @rtorcato/js-tooling
+✔ TypeScript      base config extends @rtorcato/repo-tooling
 ✔ Biome           config present
 ⚠ Vitest          coverage thresholds drifted
 ⚠ Dependabot      not configured
@@ -216,9 +216,9 @@ const EXAMPLES: Example[] = [
 	},
 	{
 		label: 'fix',
-		file: 'npx @rtorcato/js-tooling fix --yes',
+		file: 'npx @rtorcato/repo-tooling fix --yes',
 		language: 'bash',
-		code: `$ npx @rtorcato/js-tooling fix --yes
+		code: `$ npx @rtorcato/repo-tooling fix --yes
 
 🔧 Applying fixes…
 ✔ vitest          reset coverage thresholds
@@ -264,7 +264,7 @@ function Hero(): ReactElement {
 							CLI reference
 						</Link>
 					</div>
-					<InstallTabs pkg="@rtorcato/js-tooling" />
+					<InstallTabs pkg="@rtorcato/repo-tooling" />
 				</div>
 			</div>
 		</header>
@@ -343,8 +343,8 @@ function Categories(): ReactElement {
 }
 
 // Sibling projects from the shared single source of truth
-// (@rtorcato/shared-docs), excluding js-tooling itself.
-const SIBLINGS = siblings('@rtorcato/js-tooling')
+// (@rtorcato/shared-docs), excluding repo-tooling itself.
+const SIBLINGS = siblings('@rtorcato/repo-tooling')
 
 function Siblings(): ReactElement {
 	return (
@@ -377,7 +377,7 @@ function Siblings(): ReactElement {
 export default function Home(): ReactElement {
 	return (
 		<Layout
-			title="js-tooling"
+			title="repo-tooling"
 			description="One package, full dev toolchain. TypeScript, linting, testing, commits, releases — wired together and validated against each other."
 		>
 			<main>

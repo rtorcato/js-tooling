@@ -33,8 +33,8 @@ const ITEMS: Item[] = [
 	{ label: 'Guides', to: '/docs/guides' },
 	{ label: 'Reference', to: '/docs/reference' },
 	{ label: 'Changelog', to: '/docs/changelog' },
-	{ label: 'GitHub', href: 'https://github.com/rtorcato/js-tooling' },
-	{ label: 'npm', href: 'https://www.npmjs.com/package/@rtorcato/js-tooling' },
+	{ label: 'GitHub', href: 'https://github.com/rtorcato/repo-tooling' },
+	{ label: 'npm', href: 'https://www.npmjs.com/package/@rtorcato/repo-tooling' },
 ]
 
 function closeDrawer(): void {

@@ -7,7 +7,7 @@ description: Automated versioning and publishing configuration.
 
 ```javascript
 // release.config.js
-import config from '@rtorcato/js-tooling/semantic-release/github'
+import config from '@rtorcato/repo-tooling/semantic-release/github'
 export default config
 ```
 

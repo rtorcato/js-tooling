@@ -25,7 +25,7 @@ field, or the JSON output contract) must also carry these in the **same PR**:
 - [ ] **Docs site** — update `apps/docs/docs/` for the new/changed command, flag, preset, or field.
 - [ ] **README** — update the command table / examples / options if the public surface changed.
 - [ ] **AGENTS.md + `skills/*/SKILL.md`** — keep the agent guidance in sync when the CLI contract changes (agents read these; they must not drift from reality).
-- [ ] **ROADMAP.md** — tick the relevant item and, if it closes a themed goal, the matching [GitHub milestone](https://github.com/rtorcato/js-tooling/milestones).
+- [ ] **ROADMAP.md** — tick the relevant item and, if it closes a themed goal, the matching [GitHub milestone](https://github.com/rtorcato/repo-tooling/milestones).
 
 Version bumps are automated; this checklist is only for the API- and doc-facing
 work that isn't.
@@ -59,10 +59,10 @@ A 401 `EINVALIDNPMTOKEN` in the `release` job means the token is invalid, expire
 
 OIDC eliminates the long-lived `NPM_TOKEN`. To set it up:
 
-1. On npmjs.com, open the package page for `@rtorcato/js-tooling` → **Settings → Trusted Publishers**.
+1. On npmjs.com, open the package page for `@rtorcato/repo-tooling` → **Settings → Trusted Publishers**.
 2. Add a publisher with:
    - Provider: **GitHub Actions**
-   - Repository: `rtorcato/js-tooling`
+   - Repository: `rtorcato/repo-tooling`
    - Workflow filename: `ci.yml`
    - Environment: *(leave blank unless one is configured)*
 3. The `release` job already has `permissions: id-token: write`, which is all OIDC requires from CI.

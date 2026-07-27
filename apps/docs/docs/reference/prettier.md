@@ -7,7 +7,7 @@ description: Prettier code formatter configuration.
 
 ```javascript
 // prettier.config.js
-import config from '@rtorcato/js-tooling/prettier'
+import config from '@rtorcato/repo-tooling/prettier'
 export default config
 ```
 
@@ -23,7 +23,7 @@ Spread and override:
 
 ```javascript
 // prettier.config.js
-import base from '@rtorcato/js-tooling/prettier'
+import base from '@rtorcato/repo-tooling/prettier'
 
 export default {
   ...base,

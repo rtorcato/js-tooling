@@ -7,7 +7,7 @@ description: Conventional commit message linting configuration.
 
 ```javascript
 // commitlint.config.js
-import config from '@rtorcato/js-tooling/commitlint/config'
+import config from '@rtorcato/repo-tooling/commitlint/config'
 export default config
 ```
 

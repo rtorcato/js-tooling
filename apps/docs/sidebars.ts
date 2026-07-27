@@ -18,7 +18,7 @@ const sidebars: SidebarsConfig = {
         type: 'generated-index',
         title: 'Guides',
         description:
-          'How to set up, audit, and keep a project in sync with the js-tooling standard.',
+          'How to set up, audit, and keep a project in sync with the repo-tooling standard.',
         slug: '/guides',
       },
       items: [
@@ -41,7 +41,7 @@ const sidebars: SidebarsConfig = {
       link: {
         type: 'generated-index',
         title: 'Configuration Reference',
-        description: 'The base config for each tool js-tooling ships. Pick a tool below.',
+        description: 'The base config for each tool repo-tooling ships. Pick a tool below.',
         slug: '/reference',
       },
       items: [

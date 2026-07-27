@@ -1,6 +1,6 @@
-# Contributing to js-tooling
+# Contributing to repo-tooling
 
-Thank you for your interest in contributing to js-tooling! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to repo-tooling! This document provides guidelines and information for contributors.
 
 ## 🚀 Getting Started
 
@@ -14,8 +14,8 @@ Thank you for your interest in contributing to js-tooling! This document provide
 
 1. **Fork and clone the repository:**
    ```bash
-   git clone https://github.com/your-username/js-tooling.git
-   cd js-tooling
+   git clone https://github.com/your-username/repo-tooling.git
+   cd repo-tooling
    ```
 
 2. **Install dependencies:**
@@ -105,7 +105,7 @@ pnpm run test
 ## 🛠️ Project Structure
 
 ```
-js-tooling/
+repo-tooling/
 ├── src/cli/              # CLI source code
 │   ├── index.ts          # Main CLI entry point
 │   ├── commands/         # CLI commands
@@ -152,7 +152,7 @@ When adding support for a new development tool:
 - Include examples in tool documentation
 - Setting up a library docs site? See the
   [Docs site that stays in sync](apps/docs/docs/guides/docs-site.md) guide —
-  shared TypeDoc helper (`@rtorcato/js-tooling/docusaurus`) + reusable
+  shared TypeDoc helper (`@rtorcato/repo-tooling/docusaurus`) + reusable
   `docs-deploy.yml` workflow.
 
 ## 🧪 Testing
@@ -240,13 +240,13 @@ Brief description of changes
 
 ## 💬 Getting Help
 
-- **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/rtorcato/js-tooling/issues)
-- **Discussions**: Ask questions in [GitHub Discussions](https://github.com/rtorcato/js-tooling/discussions)
-- **CLI Help**: Run `npx @rtorcato/js-tooling --help` for usage information
+- **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/rtorcato/repo-tooling/issues)
+- **Discussions**: Ask questions in [GitHub Discussions](https://github.com/rtorcato/repo-tooling/discussions)
+- **CLI Help**: Run `npx @rtorcato/repo-tooling --help` for usage information
 
 ## 📄 License
 
-By contributing to js-tooling, you agree that your contributions will be licensed under the MIT License.
+By contributing to repo-tooling, you agree that your contributions will be licensed under the MIT License.
 
 ## 🙏 Recognition
 
@@ -255,4 +255,4 @@ Contributors will be recognized in:
 - Release notes (for significant contributions)
 - Documentation acknowledgments
 
-Thank you for contributing to js-tooling! 🎉
+Thank you for contributing to repo-tooling! 🎉

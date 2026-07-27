@@ -1,11 +1,11 @@
 ---
 title: For AI Agents
-description: Use @rtorcato/js-tooling non-interactively from automated agents, CI bots, and scripts.
+description: Use @rtorcato/repo-tooling non-interactively from automated agents, CI bots, and scripts.
 ---
 
 This page is for autonomous agents (Claude Code, Cursor, GitHub Copilot, CI bots, self-hosted assistants) that need to scaffold, audit, or fix JS/TS projects without human prompts. Every CLI command supports a non-interactive mode and emits structured JSON.
 
-Quick orientation: [llms.txt](pathname:///llms.txt) is a single-file index of every doc URL. The repo also ships an [AGENTS.md](https://github.com/rtorcato/js-tooling/blob/main/AGENTS.md) for agents working from a checkout.
+Quick orientation: [llms.txt](pathname:///llms.txt) is a single-file index of every doc URL. The repo also ships an [AGENTS.md](https://github.com/rtorcato/repo-tooling/blob/main/AGENTS.md) for agents working from a checkout.
 
 ## Agent-friendly command catalog
 
@@ -15,18 +15,18 @@ All commands take `-d <path>` for the target directory (defaults to `process.cwd
 
 ```bash
 # Sane defaults per project type (no prompts)
-npx @rtorcato/js-tooling setup --preset library -d ./my-lib --skip-install
-npx @rtorcato/js-tooling setup --preset react-app -d ./my-app --skip-install
-npx @rtorcato/js-tooling setup --preset nextjs-app -d ./my-site --skip-install
+npx @rtorcato/repo-tooling setup --preset library -d ./my-lib --skip-install
+npx @rtorcato/repo-tooling setup --preset react-app -d ./my-app --skip-install
+npx @rtorcato/repo-tooling setup --preset nextjs-app -d ./my-site --skip-install
 
 # Full control via a JSON config file
-npx @rtorcato/js-tooling setup --config ./project.json --skip-install
+npx @rtorcato/repo-tooling setup --config ./project.json --skip-install
 
 # Get the JSON Schema for the config file
-npx @rtorcato/js-tooling setup --config-schema > project-config.schema.json
+npx @rtorcato/repo-tooling setup --config-schema > project-config.schema.json
 
 # Preview without writing
-npx @rtorcato/js-tooling setup --preset library --dry-run
+npx @rtorcato/repo-tooling setup --preset library --dry-run
 ```
 
 Available presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`.
@@ -58,7 +58,7 @@ Available presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`.
 ### `doctor` — audit an existing project
 
 ```bash
-npx @rtorcato/js-tooling doctor --json -d ./existing-repo
+npx @rtorcato/repo-tooling doctor --json -d ./existing-repo
 ```
 
 **Output shape:**
@@ -68,9 +68,9 @@ npx @rtorcato/js-tooling doctor --json -d ./existing-repo
   "directory": "/path/to/repo",
   "results": [
     { "check": "Node", "status": "ok", "detail": "v24.16.0" },
-    { "check": "TypeScript", "status": "ok", "detail": "tsconfig.json extends \"@rtorcato/js-tooling/typescript/*\"" },
-    { "check": "Biome", "status": "drift", "detail": "biome.json found but does not extend \"@rtorcato/js-tooling/biome\"", "hint": "Run `npx @rtorcato/js-tooling copy biome` to scaffold" },
-    { "check": "Dependabot", "status": "optional-missing", "detail": "no .github/dependabot.yml", "hint": "Run `npx @rtorcato/js-tooling fix dependabot` to scaffold weekly dep updates" }
+    { "check": "TypeScript", "status": "ok", "detail": "tsconfig.json extends \"@rtorcato/repo-tooling/typescript/*\"" },
+    { "check": "Biome", "status": "drift", "detail": "biome.json found but does not extend \"@rtorcato/repo-tooling/biome\"", "hint": "Run `npx @rtorcato/repo-tooling copy biome` to scaffold" },
+    { "check": "Dependabot", "status": "optional-missing", "detail": "no .github/dependabot.yml", "hint": "Run `npx @rtorcato/repo-tooling fix dependabot` to scaffold weekly dep updates" }
   ]
 }
 ```
@@ -81,14 +81,14 @@ Status values: `ok`, `drift` (file exists but doesn't extend the preset), `missi
 
 ```bash
 # Walk every doctor finding, apply each (no prompts, no surprises)
-npx @rtorcato/js-tooling fix --yes --json -d ./repo
+npx @rtorcato/repo-tooling fix --yes --json -d ./repo
 
 # Apply a single fixer
-npx @rtorcato/js-tooling fix dependabot --yes --json
-npx @rtorcato/js-tooling fix engines --yes --json
+npx @rtorcato/repo-tooling fix dependabot --yes --json
+npx @rtorcato/repo-tooling fix engines --yes --json
 
 # Preview without writing
-npx @rtorcato/js-tooling fix --yes --dry-run --json
+npx @rtorcato/repo-tooling fix --yes --dry-run --json
 ```
 
 **Output shape (`FixJsonResult`):**
@@ -112,7 +112,7 @@ Action statuses: `applied` (fixer ran, files written), `dry-run` (would have wri
 ### `list` — enumerate the library's surface area
 
 ```bash
-npx @rtorcato/js-tooling list --json
+npx @rtorcato/repo-tooling list --json
 ```
 
 **Output shape:**
@@ -124,8 +124,8 @@ npx @rtorcato/js-tooling list --json
       "name": "TypeScript",
       "description": "Base, React, Next.js, Node.js, Express tsconfig presets",
       "exports": [
-        "@rtorcato/js-tooling/typescript/base",
-        "@rtorcato/js-tooling/typescript/react",
+        "@rtorcato/repo-tooling/typescript/base",
+        "@rtorcato/repo-tooling/typescript/react",
         "..."
       ],
       "fixTarget": "tsconfig"
@@ -133,7 +133,7 @@ npx @rtorcato/js-tooling list --json
     {
       "name": "Biome",
       "description": "Fast formatter and linter configuration",
-      "exports": ["@rtorcato/js-tooling/biome"],
+      "exports": ["@rtorcato/repo-tooling/biome"],
       "fixTarget": "biome"
     }
   ]
@@ -151,10 +151,10 @@ Use this to discover what's available and to map between named tools and the `fi
 PRESET=library  # or web-app, node-api, nextjs-app, react-app
 
 # 2. Preview
-npx @rtorcato/js-tooling setup --preset $PRESET --dry-run
+npx @rtorcato/repo-tooling setup --preset $PRESET --dry-run
 
 # 3. Scaffold
-npx @rtorcato/js-tooling setup --preset $PRESET -d . --skip-install
+npx @rtorcato/repo-tooling setup --preset $PRESET -d . --skip-install
 
 # 4. Install deps yourself (the CLI skips install when --skip-install is set)
 pnpm install
@@ -164,22 +164,22 @@ pnpm install
 
 ```bash
 # 1. Audit
-DOCTOR=$(npx @rtorcato/js-tooling doctor --json -d .)
+DOCTOR=$(npx @rtorcato/repo-tooling doctor --json -d .)
 
 # 2. Parse, decide whether to fix everything or specific items
 #    (For agents: filter results where status !== "ok" && status !== "optional-missing")
 
 # 3. Apply all fixable findings
-npx @rtorcato/js-tooling fix --yes --json -d .
+npx @rtorcato/repo-tooling fix --yes --json -d .
 
 # 4. Confirm
-npx @rtorcato/js-tooling doctor --json -d .
+npx @rtorcato/repo-tooling doctor --json -d .
 ```
 
 ### "Add Dependabot to this repo (and nothing else)"
 
 ```bash
-npx @rtorcato/js-tooling fix dependabot --yes --json -d .
+npx @rtorcato/repo-tooling fix dependabot --yes --json -d .
 ```
 
 ## Exit codes
@@ -194,8 +194,8 @@ npx @rtorcato/js-tooling fix dependabot --yes --json -d .
 
 The TypeScript types for every JSON payload are exported from the package:
 
-- `import type { CheckResult, CheckStatus } from '@rtorcato/js-tooling/...'` (doctor)
-- `import type { FixActionRecord, FixJsonResult } from '@rtorcato/js-tooling/...'` (fix)
+- `import type { CheckResult, CheckStatus } from '@rtorcato/repo-tooling/...'` (doctor)
+- `import type { FixActionRecord, FixJsonResult } from '@rtorcato/repo-tooling/...'` (fix)
 - `setup --config-schema` ships the canonical `ProjectConfig` JSON Schema
 
 Versions of these shapes follow semver (additive changes only within a major).

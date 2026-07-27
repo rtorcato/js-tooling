@@ -8,7 +8,7 @@ description: Vitest configuration presets for Node.js and React projects.
 ```javascript
 // vitest.config.js
 import { defineConfig } from 'vitest/config'
-import baseConfig from '@rtorcato/js-tooling/vitest/config'
+import baseConfig from '@rtorcato/repo-tooling/vitest/config'
 
 export default defineConfig({
   ...baseConfig,
@@ -22,7 +22,7 @@ Extends the base config with `@vitejs/plugin-react`, jsdom environment, CSS stub
 
 ```javascript
 // vitest.config.js
-import reactConfig from '@rtorcato/js-tooling/vitest/react'
+import reactConfig from '@rtorcato/repo-tooling/vitest/react'
 export default reactConfig
 ```
 
@@ -35,13 +35,13 @@ A minimal setup file that mocks all `*.module.css` imports:
 ```javascript
 // vitest.config.js
 import { defineConfig } from 'vitest/config'
-import baseConfig from '@rtorcato/js-tooling/vitest/config'
+import baseConfig from '@rtorcato/repo-tooling/vitest/config'
 
 export default defineConfig({
   ...baseConfig,
   test: {
     ...baseConfig.test,
-    setupFiles: ['@rtorcato/js-tooling/vitest/setup'],
+    setupFiles: ['@rtorcato/repo-tooling/vitest/setup'],
   },
 })
 ```
@@ -50,6 +50,6 @@ export default defineConfig({
 
 | Export | Use case |
 |---|---|
-| `@rtorcato/js-tooling/vitest/config` | Node.js / library projects |
-| `@rtorcato/js-tooling/vitest/react` | React + jsdom projects |
-| `@rtorcato/js-tooling/vitest/setup` | CSS module mocking setup file |
+| `@rtorcato/repo-tooling/vitest/config` | Node.js / library projects |
+| `@rtorcato/repo-tooling/vitest/react` | React + jsdom projects |
+| `@rtorcato/repo-tooling/vitest/setup` | CSS module mocking setup file |

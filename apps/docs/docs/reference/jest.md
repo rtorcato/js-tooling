@@ -11,7 +11,7 @@ Two presets are available — pick the one that matches your test environment.
 
 ```javascript
 // jest.config.js
-import preset from '@rtorcato/js-tooling/jest-presets/node/jest-preset'
+import preset from '@rtorcato/repo-tooling/jest-presets/node/jest-preset'
 export default { ...preset }
 ```
 
@@ -20,7 +20,7 @@ Or in `package.json`:
 ```json
 {
   "jest": {
-    "preset": "@rtorcato/js-tooling/jest-presets/node/jest-preset"
+    "preset": "@rtorcato/repo-tooling/jest-presets/node/jest-preset"
   }
 }
 ```
@@ -29,7 +29,7 @@ Or in `package.json`:
 
 ```javascript
 // jest.config.js
-import preset from '@rtorcato/js-tooling/jest-presets/browser/jest-preset'
+import preset from '@rtorcato/repo-tooling/jest-presets/browser/jest-preset'
 export default { ...preset }
 ```
 

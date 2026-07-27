@@ -7,7 +7,7 @@ description: esbuild bundler helper functions.
 
 ```javascript
 // build.mjs
-import { buildCode, getEntryPoints, getEntrypointFolders } from '@rtorcato/js-tooling/esbuild'
+import { buildCode, getEntryPoints, getEntrypointFolders } from '@rtorcato/repo-tooling/esbuild'
 
 const folders = await getEntrypointFolders('src')
 const entryPoints = (await Promise.all(folders.map(getEntryPoints))).flat()

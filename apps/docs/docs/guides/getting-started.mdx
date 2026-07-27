@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Install js-tooling and scaffold your project in one command.
+description: Install repo-tooling and scaffold your project in one command.
 ---
 
 import Tabs from '@theme/Tabs'
@@ -11,18 +11,18 @@ import TabItem from '@theme/TabItem'
 <Tabs>
   <TabItem value="npx" label="npx">
     ```bash
-    npx @rtorcato/js-tooling setup
+    npx @rtorcato/repo-tooling setup
     ```
   </TabItem>
   <TabItem value="pnpm" label="pnpm dlx">
     ```bash
-    pnpm --package=@rtorcato/js-tooling dlx setup
+    pnpm --package=@rtorcato/repo-tooling dlx setup
     ```
   </TabItem>
   <TabItem value="global" label="global">
     ```bash
-    npm install -g @rtorcato/js-tooling
-    js-tooling setup
+    npm install -g @rtorcato/repo-tooling
+    repo-tooling setup
     ```
   </TabItem>
 </Tabs>
@@ -30,7 +30,7 @@ import TabItem from '@theme/TabItem'
 ## What it looks like
 
 ```ansi title="Terminal"
-$ npx @rtorcato/js-tooling setup
+$ npx @rtorcato/repo-tooling setup
 
 🛠️  Welcome to JS Tooling Setup!
 
@@ -88,7 +88,7 @@ A universal baseline (`.editorconfig`, `.nvmrc`, `engines.node`, `knip.json`, `.
 Skip the prompts entirely by scaffolding from a named preset:
 
 ```bash
-npx @rtorcato/js-tooling setup --preset library -d ./my-lib --skip-install
+npx @rtorcato/repo-tooling setup --preset library -d ./my-lib --skip-install
 ```
 
 Presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`.
@@ -96,9 +96,9 @@ Presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`.
 For full control, drive setup from a `ProjectConfig` JSON file — print the schema, write a config, preview, then scaffold:
 
 ```bash
-npx @rtorcato/js-tooling setup --config-schema > project-config.schema.json
-npx @rtorcato/js-tooling setup --config project.json --dry-run   # preview file list
-npx @rtorcato/js-tooling setup --config project.json -d ./my-lib --skip-install
+npx @rtorcato/repo-tooling setup --config-schema > project-config.schema.json
+npx @rtorcato/repo-tooling setup --config project.json --dry-run   # preview file list
+npx @rtorcato/repo-tooling setup --config project.json -d ./my-lib --skip-install
 ```
 
 ## Files generated
@@ -122,9 +122,9 @@ npx @rtorcato/js-tooling setup --config project.json -d ./my-lib --skip-install
 For repos that already exist, don't rerun `setup` (it's a fresh-project wizard and would clobber your configs). Use `doctor` to find drift, then `fix` to apply scaffolders incrementally:
 
 ```bash
-npx @rtorcato/js-tooling doctor          # see what's missing or drifted
-npx @rtorcato/js-tooling fix             # walk every finding, prompting per item
-npx @rtorcato/js-tooling fix dependabot  # or apply just one
+npx @rtorcato/repo-tooling doctor          # see what's missing or drifted
+npx @rtorcato/repo-tooling fix             # walk every finding, prompting per item
+npx @rtorcato/repo-tooling fix dependabot  # or apply just one
 ```
 
 `fix` defaults to **No** when overwriting existing files — your customisations are preserved unless you explicitly opt in (or pass `--yes`). See [CLI reference](./cli.md#fix-target) for full details.
@@ -134,11 +134,11 @@ npx @rtorcato/js-tooling fix dependabot  # or apply just one
 If you only need one config file, use `copy`:
 
 ```bash
-npx @rtorcato/js-tooling copy biome        # → biome.json
-npx @rtorcato/js-tooling copy tsconfig     # → tsconfig.json
-npx @rtorcato/js-tooling copy changesets   # → .changeset/config.json
-npx @rtorcato/js-tooling copy oxlint       # → .oxlintrc.json
-npx @rtorcato/js-tooling copy claude-skill # → .claude/skills/js-tooling.md
+npx @rtorcato/repo-tooling copy biome        # → biome.json
+npx @rtorcato/repo-tooling copy tsconfig     # → tsconfig.json
+npx @rtorcato/repo-tooling copy changesets   # → .changeset/config.json
+npx @rtorcato/repo-tooling copy oxlint       # → .oxlintrc.json
+npx @rtorcato/repo-tooling copy claude-skill # → .claude/skills/js-tooling.md
 ```
 
 `copy` drops the raw preset as-is. For configs you might later customise (`biome`, `tsconfig`, `vitest`, …) prefer `fix <target>` — it won't clobber an existing file without `--yes`, and `doctor` verifies it afterwards.
@@ -146,7 +146,7 @@ npx @rtorcato/js-tooling copy claude-skill # → .claude/skills/js-tooling.md
 Or import configs directly in your own files:
 
 ```javascript
-import '@rtorcato/js-tooling/typescript/base'
+import '@rtorcato/repo-tooling/typescript/base'
 ```
 
 ## CI/CD secrets

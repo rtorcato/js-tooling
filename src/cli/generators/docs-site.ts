@@ -103,7 +103,7 @@ async function ensureWorkspace(targetDir: string): Promise<string | null> {
 	return rel
 }
 
-/** The GitHub Pages base path Docusaurus serves under, e.g. `/js-tooling/`. */
+/** The GitHub Pages base path Docusaurus serves under, e.g. `/repo-tooling/`. */
 function siteBaseUrl(meta: SiteMeta): string {
 	return `/${meta.repo ?? meta.title}/`
 }
@@ -365,7 +365,7 @@ jobs:
       contents: read
       pages: write
       id-token: write
-    uses: rtorcato/js-tooling/.github/workflows/docs-deploy.yml@main
+    uses: rtorcato/repo-tooling/.github/workflows/docs-deploy.yml@main
     with:
       build-filter: '${meta.docsPkgName}'
 `

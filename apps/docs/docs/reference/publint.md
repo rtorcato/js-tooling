@@ -16,7 +16,7 @@ publint validates the package shape, attw validates the type resolution.
 libraries). To add it to an existing project:
 
 ```bash
-npx @rtorcato/js-tooling fix publint
+npx @rtorcato/repo-tooling fix publint
 ```
 
 This installs `publint`, adds a `publint --strict` script, and appends
