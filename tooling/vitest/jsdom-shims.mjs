@@ -3,7 +3,7 @@
 // vitest setupFiles to install no-op polyfills for all of them:
 //
 //   // vitest.config.ts -> test.setupFiles
-//   import '@rtorcato/js-tooling/vitest/jsdom-shims'
+//   import '@rtorcato/repo-tooling/vitest/jsdom-shims'
 //
 // Side-effect only; nothing is exported.
 

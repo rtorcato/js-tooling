@@ -30,7 +30,7 @@ describe('generateReadme', () => {
 
 		const content = await fs.readFile(join(dir, 'README.md'), 'utf-8')
 		expect(content).toContain('# super-lib')
-		expect(content).toContain('@rtorcato/js-tooling')
+		expect(content).toContain('@rtorcato/repo-tooling')
 	})
 
 	it('inserts a badge block after the title when badges is enabled', async () => {

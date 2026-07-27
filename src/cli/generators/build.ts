@@ -68,7 +68,7 @@ export async function generateBuildConfigs(config: ProjectConfig, targetDir: str
 async function generateTsupConfig(targetDir: string) {
 	const tsupConfigPath = path.join(targetDir, 'tsup.config.ts')
 
-	const tsupConfig = `import { getConfig } from '@rtorcato/js-tooling/tsup'
+	const tsupConfig = `import { getConfig } from '@rtorcato/repo-tooling/tsup'
 
 export default getConfig({
   entry: ['src/index.ts'],
@@ -112,7 +112,7 @@ console.log('Build completed!')
 export async function generateRollupConfig(targetDir: string) {
 	const rollupConfigPath = path.join(targetDir, 'rollup.config.mjs')
 
-	const rollupConfig = `export { default } from '@rtorcato/js-tooling/rollup'
+	const rollupConfig = `export { default } from '@rtorcato/repo-tooling/rollup'
 `
 
 	await fs.writeFile(rollupConfigPath, rollupConfig)
@@ -121,7 +121,7 @@ export async function generateRollupConfig(targetDir: string) {
 export async function generateRolldownConfig(targetDir: string) {
 	const rolldownConfigPath = path.join(targetDir, 'rolldown.config.mjs')
 
-	const rolldownConfig = `export { default } from '@rtorcato/js-tooling/rolldown'
+	const rolldownConfig = `export { default } from '@rtorcato/repo-tooling/rolldown'
 `
 
 	await fs.writeFile(rolldownConfigPath, rolldownConfig)
@@ -133,13 +133,13 @@ export async function generateViteConfig(config: ProjectConfig, targetDir: strin
 	// React apps need the plugin; we layer it on top of the shipped preset.
 	const viteConfig =
 		config.projectType === 'react-app'
-			? `import preset from '@rtorcato/js-tooling/vite'
+			? `import preset from '@rtorcato/repo-tooling/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, mergeConfig } from 'vite'
 
 export default mergeConfig(preset, defineConfig({ plugins: [react()] }))
 `
-			: `export { default } from '@rtorcato/js-tooling/vite'
+			: `export { default } from '@rtorcato/repo-tooling/vite'
 `
 
 	await fs.writeFile(viteConfigPath, viteConfig)
@@ -157,7 +157,7 @@ const RELEASE_PLUGIN_DEPS: Record<string, string> = {
 export async function generateSemanticReleaseConfig(targetDir: string): Promise<string[]> {
 	const releaseConfigPath = path.join(targetDir, 'release.config.mjs')
 
-	const releaseConfig = `export { default } from '@rtorcato/js-tooling/semantic-release/github'
+	const releaseConfig = `export { default } from '@rtorcato/repo-tooling/semantic-release/github'
 `
 
 	await fs.writeFile(releaseConfigPath, releaseConfig)

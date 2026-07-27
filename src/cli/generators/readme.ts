@@ -9,7 +9,7 @@ export async function generateReadme(config: ProjectConfig, targetDir: string) {
 
 	const readme = `# ${config.projectName}
 ${badges ? `\n${badges}\n` : ''}
-> Generated with [@rtorcato/js-tooling](https://www.npmjs.com/package/@rtorcato/js-tooling)
+> Generated with [@rtorcato/repo-tooling](https://www.npmjs.com/package/@rtorcato/repo-tooling)
 
 ## Description
 

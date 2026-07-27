@@ -89,7 +89,7 @@ async function resolveConfig(options: SetupOptions): Promise<ProjectConfig> {
 			throw new Error(`Config file not found: ${configPath}`)
 		}
 		const raw = await fs.readJson(configPath)
-		// Accept the `.js-tooling.json` lockfile itself as the config source, so a
+		// Accept the `.repo-tooling.json` lockfile itself as the config source, so a
 		// repo needs only one file: the lockfile already embeds the full
 		// ProjectConfig under `config`. Unwrap it here rather than requiring a
 		// separate hand-authored config file (#271).
@@ -485,34 +485,34 @@ function showNextSteps(config: ProjectConfig, _targetDir: string) {
 function collectSkippedFixSuggestions(config: ProjectConfig): string[] {
 	const suggestions: string[] = []
 	if (!config.gitHooks) {
-		suggestions.push('Run `npx @rtorcato/js-tooling fix husky` to add git hooks later')
+		suggestions.push('Run `npx @rtorcato/repo-tooling fix husky` to add git hooks later')
 	}
 	if (!config.commitLint) {
 		suggestions.push(
-			'Run `npx @rtorcato/js-tooling fix commitlint` to add conventional-commit linting'
+			'Run `npx @rtorcato/repo-tooling fix commitlint` to add conventional-commit linting'
 		)
 	}
 	if (!config.semanticRelease && config.projectType === 'library') {
 		suggestions.push(
-			'Run `npx @rtorcato/js-tooling fix semantic-release` to add automated releases'
+			'Run `npx @rtorcato/repo-tooling fix semantic-release` to add automated releases'
 		)
 	}
 	if (!config.securityAutomation) {
 		suggestions.push(
-			'Run `npx @rtorcato/js-tooling fix dependabot` and `fix codeql` for security automation'
+			'Run `npx @rtorcato/repo-tooling fix dependabot` and `fix codeql` for security automation'
 		)
 	}
 	if (config.linting.tool === 'none') {
-		suggestions.push('Run `npx @rtorcato/js-tooling fix biome` or `fix eslint` to add linting')
+		suggestions.push('Run `npx @rtorcato/repo-tooling fix biome` or `fix eslint` to add linting')
 	}
 	if (config.testing.framework === 'none') {
-		suggestions.push('Run `npx @rtorcato/js-tooling fix vitest` to add a test runner')
+		suggestions.push('Run `npx @rtorcato/repo-tooling fix vitest` to add a test runner')
 	}
 	if (config.projectType === 'library' && !config.treeshakeCheck) {
 		suggestions.push(
-			'Run `npx @rtorcato/js-tooling fix treeshake-check` to add an esbuild-based tree-shake assertion'
+			'Run `npx @rtorcato/repo-tooling fix treeshake-check` to add an esbuild-based tree-shake assertion'
 		)
 	}
-	suggestions.push('Run `npx @rtorcato/js-tooling doctor` any time to audit drift')
+	suggestions.push('Run `npx @rtorcato/repo-tooling doctor` any time to audit drift')
 	return suggestions
 }

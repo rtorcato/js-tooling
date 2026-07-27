@@ -32,7 +32,7 @@ async function seedPackageJson(dir: string, extra: Record<string, unknown> = {})
 	await fs.writeJson(join(dir, 'package.json'), {
 		name: 'demo',
 		version: '0.0.0',
-		devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+		devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		...extra,
 	})
 }
@@ -97,7 +97,7 @@ describe('fix cypress', () => {
 		await seedPackageJson(dir)
 		await fixCommand('cypress', { directory: dir, yes: true })
 		expect(await fs.readFile(join(dir, 'cypress.config.ts'), 'utf-8')).toContain(
-			"from '@rtorcato/js-tooling/cypress'"
+			"from '@rtorcato/repo-tooling/cypress'"
 		)
 		expect(await fs.pathExists(join(dir, 'cypress', 'support', 'e2e.ts'))).toBe(true)
 		expect(await fs.pathExists(join(dir, 'tests', 'e2e', 'example.cy.ts'))).toBe(true)
@@ -138,7 +138,7 @@ describe('fix bun', () => {
 		await fixCommand('bun', { directory: dir, yes: true })
 		expect(await fs.pathExists(join(dir, 'bunfig.toml'))).toBe(true)
 		expect((await fs.readJson(join(dir, 'tsconfig.json'))).extends).toBe(
-			'@rtorcato/js-tooling/typescript/bun'
+			'@rtorcato/repo-tooling/typescript/bun'
 		)
 	})
 })
@@ -149,7 +149,7 @@ describe('fix rolldown', () => {
 		await seedPackageJson(dir)
 		await fixCommand('rolldown', { directory: dir, yes: true })
 		expect(await fs.readFile(join(dir, 'rolldown.config.mjs'), 'utf-8')).toContain(
-			"from '@rtorcato/js-tooling/rolldown'"
+			"from '@rtorcato/repo-tooling/rolldown'"
 		)
 	})
 })
@@ -361,12 +361,12 @@ describe('fix targeted', () => {
 		expect(pkg.engines.node).toBe('>=24')
 	})
 
-	it('fix package-json adds @rtorcato/js-tooling to devDependencies', async () => {
+	it('fix package-json adds @rtorcato/repo-tooling to devDependencies', async () => {
 		const dir = newTmpDir()
 		await fs.writeJson(join(dir, 'package.json'), { name: 'demo', version: '0.0.0' })
 		await fixCommand('package-json', { directory: dir, yes: true })
 		const pkg = await fs.readJson(join(dir, 'package.json'))
-		expect(pkg.devDependencies['@rtorcato/js-tooling']).toBe('latest')
+		expect(pkg.devDependencies['@rtorcato/repo-tooling']).toBe('latest')
 	})
 
 	it('fix biome on existing biome.json respects "no" on overwrite prompt', async () => {
@@ -445,7 +445,7 @@ describe('fix targeted', () => {
 			version: '0.0.0',
 			scripts: { typecheck: 'tsc --noEmit', check: 'biome check .' },
 			devDependencies: {
-				'@rtorcato/js-tooling': '^2.0.0',
+				'@rtorcato/repo-tooling': '^2.0.0',
 				'@biomejs/biome': '^2.0.0',
 				vitest: '^4.0.0',
 			},
@@ -464,7 +464,7 @@ describe('fix targeted', () => {
 			type: 'module',
 			exports: { '.': { import: './dist/index.js', require: './dist/index.cjs' } },
 			scripts: { verify: 'pnpm typecheck && pnpm check' },
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fixCommand('attw', { directory: dir, yes: true })
 		const pkg = await fs.readJson(join(dir, 'package.json'))
@@ -482,7 +482,7 @@ describe('fix targeted', () => {
 			type: 'module',
 			exports: { '.': './dist/index.js' }, // ESM-only: no require condition
 			scripts: { verify: 'pnpm typecheck && pnpm attw' }, // already wired
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fixCommand('attw', { directory: dir, yes: true })
 		const pkg = await fs.readJson(join(dir, 'package.json'))
@@ -499,7 +499,7 @@ describe('fix targeted', () => {
 			type: 'module',
 			exports: { '.': { import: './dist/index.js', require: './dist/index.cjs' } },
 			scripts: { verify: 'pnpm typecheck && pnpm check' },
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fixCommand('publint', { directory: dir, yes: true })
 		const pkg = await fs.readJson(join(dir, 'package.json'))
@@ -515,7 +515,7 @@ describe('fix targeted', () => {
 			version: '0.0.0',
 			exports: { '.': './dist/index.js' },
 			scripts: { verify: 'pnpm typecheck && pnpm publint' }, // already wired
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fixCommand('publint', { directory: dir, yes: true })
 		const pkg = await fs.readJson(join(dir, 'package.json'))
@@ -591,7 +591,7 @@ describe('fix targeted', () => {
 		await fs.writeJson(join(dir, 'package.json'), {
 			name: 'demo',
 			version: '0.0.0',
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fixCommand('verify', { directory: dir, yes: true })
 		const pkg = await fs.readJson(join(dir, 'package.json'))
@@ -604,7 +604,7 @@ describe('fix targeted', () => {
 			name: 'demo',
 			version: '0.0.0',
 			scripts: { verify: 'pnpm typecheck && pnpm check' },
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fixCommand('husky', { directory: dir, yes: true })
 		const prePush = await fs.readFile(join(dir, '.husky', 'pre-push'), 'utf-8')
@@ -621,7 +621,7 @@ describe('fix targeted', () => {
 			version: '0.0.0',
 			scripts: { prepare: 'husky', verify: 'pnpm typecheck && pnpm check' },
 			'lint-staged': { '*.ts': 'biome check' },
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fs.ensureDir(join(dir, '.husky'))
 		await fs.writeFile(join(dir, '.husky', 'pre-commit'), 'npx lint-staged\n')
@@ -643,7 +643,7 @@ describe('fix targeted', () => {
 				'./clipboard': './dist/clipboard/index.js',
 				'./geolocation': './dist/geolocation/index.js',
 			},
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fixCommand('treeshake-check', { directory: dir, yes: true })
 		expect(await fs.pathExists(join(dir, 'apps', 'treeshake-check', 'check.mjs'))).toBe(true)
@@ -660,7 +660,7 @@ describe('fix targeted', () => {
 			name: '@my-org/my-lib',
 			version: '0.0.0',
 			exports: { '.': './dist/index.js' },
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fixCommand('treeshake-check', { directory: dir, yes: true })
 		expect(await fs.pathExists(join(dir, 'apps', 'treeshake-check'))).toBe(false)
@@ -673,7 +673,7 @@ describe('fix targeted', () => {
 			version: '0.0.0',
 			scripts: { typecheck: 'tsc --noEmit', check: 'biome check .' },
 			devDependencies: {
-				'@rtorcato/js-tooling': '^2.0.0',
+				'@rtorcato/repo-tooling': '^2.0.0',
 				'@biomejs/biome': '^2.0.0',
 				vitest: '^4.0.0',
 			},
@@ -830,19 +830,19 @@ describe('fix + lockfile', () => {
 			bundler: 'tsup',
 			...configPatch,
 		}
-		await fs.writeJson(join(dir, '.js-tooling.json'), {
+		await fs.writeJson(join(dir, '.repo-tooling.json'), {
 			version: 1,
 			config,
-			writtenBy: '@rtorcato/js-tooling@test',
+			writtenBy: '@rtorcato/repo-tooling@test',
 			writtenAt: new Date().toISOString(),
 		})
 	}
 
-	it('fix lockfile --yes writes .js-tooling.json inferred from package.json', async () => {
+	it('fix lockfile --yes writes .repo-tooling.json inferred from package.json', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fixCommand('lockfile', { directory: dir, yes: true })
-		const lock = await fs.readJson(join(dir, '.js-tooling.json'))
+		const lock = await fs.readJson(join(dir, '.repo-tooling.json'))
 		expect(lock.version).toBe(2)
 		expect(lock.config.projectName).toBe('demo')
 		expect(lock.config.linting.tool).toBe('biome')
@@ -853,7 +853,7 @@ describe('fix + lockfile', () => {
 		await seedPackageJson(dir)
 		await writeLock(dir, { testing: { framework: 'jest', environment: 'node' } })
 		await fixCommand('vitest', { directory: dir, yes: true })
-		const lock = await fs.readJson(join(dir, '.js-tooling.json'))
+		const lock = await fs.readJson(join(dir, '.repo-tooling.json'))
 		expect(lock.config.testing.framework).toBe('vitest')
 	})
 
@@ -865,7 +865,7 @@ describe('fix + lockfile', () => {
 			formatting: { tool: 'prettier' },
 		})
 		await fixCommand('biome', { directory: dir, yes: true })
-		const lock = await fs.readJson(join(dir, '.js-tooling.json'))
+		const lock = await fs.readJson(join(dir, '.repo-tooling.json'))
 		expect(lock.config.linting.tool).toBe('biome')
 		expect(lock.config.formatting.tool).toBe('biome')
 	})
@@ -874,7 +874,7 @@ describe('fix + lockfile', () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fixCommand('vitest', { directory: dir, yes: true })
-		expect(await fs.pathExists(join(dir, '.js-tooling.json'))).toBe(false)
+		expect(await fs.pathExists(join(dir, '.repo-tooling.json'))).toBe(false)
 	})
 
 	it('emits lockfileConflict in JSON mode when overriding a declined choice', async () => {
@@ -910,7 +910,7 @@ describe('fix + lockfile', () => {
 
 describe('fix --resync', () => {
 	async function writeLock(dir: string): Promise<void> {
-		await fs.writeJson(join(dir, '.js-tooling.json'), {
+		await fs.writeJson(join(dir, '.repo-tooling.json'), {
 			version: 1,
 			config: {
 				projectName: 'demo',
@@ -925,7 +925,7 @@ describe('fix --resync', () => {
 				securityAutomation: false,
 				bundler: 'tsup',
 			},
-			writtenBy: '@rtorcato/js-tooling@test',
+			writtenBy: '@rtorcato/repo-tooling@test',
 			writtenAt: new Date().toISOString(),
 		})
 	}
@@ -940,7 +940,7 @@ describe('fix --resync', () => {
 		try {
 			await expect(fixCommand(undefined, { directory: dir, resync: true })).rejects.toThrow('exit')
 			expect(exitSpy).toHaveBeenCalledWith(1)
-			expect(errSpy.mock.calls.flat().join('\n')).toMatch(/No \.js-tooling\.json/)
+			expect(errSpy.mock.calls.flat().join('\n')).toMatch(/No \.repo-tooling\.json/)
 		} finally {
 			exitSpy.mockRestore()
 			errSpy.mockRestore()

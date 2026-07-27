@@ -35,7 +35,7 @@ describe('generatePackageJson', () => {
 		expect(pkg.name).toBe('cool-lib')
 		expect(pkg.version).toBe('0.1.0')
 		expect(pkg.type).toBe('module')
-		expect(pkg.devDependencies['@rtorcato/js-tooling']).toBe('latest')
+		expect(pkg.devDependencies['@rtorcato/repo-tooling']).toBe('latest')
 		// packageManager is the single source of truth for pnpm/action-setup
 		expect(pkg.packageManager).toMatch(/^pnpm@\d+\.\d+\.\d+$/)
 	})
@@ -58,7 +58,7 @@ describe('generatePackageJson', () => {
 		expect(pkg.description).toBe('keep me')
 		expect(pkg.packageManager).toBe('pnpm@10.0.0')
 		// new devDependencies are still injected
-		expect(pkg.devDependencies['@rtorcato/js-tooling']).toBe('latest')
+		expect(pkg.devDependencies['@rtorcato/repo-tooling']).toBe('latest')
 	})
 
 	it('wires commitizen alongside commitlint when commitLint is on', async () => {

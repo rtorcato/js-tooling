@@ -41,7 +41,7 @@ export async function generateBiomeConfig(targetDir: string) {
 	// would run at all.
 	const biomeConfig = {
 		$schema: 'https://biomejs.dev/schemas/2.5.0/schema.json',
-		extends: ['@rtorcato/js-tooling/biome'],
+		extends: ['@rtorcato/repo-tooling/biome'],
 	}
 
 	await fs.writeJson(biomeConfigPath, biomeConfig, { spaces: 2 })
@@ -52,7 +52,7 @@ export async function generateESLintConfig(config: ProjectConfig, targetDir: str
 
 	const configType = config.linting.eslintConfig || 'base'
 
-	const eslintConfig = `import { default as config } from '@rtorcato/js-tooling/eslint/${configType}'
+	const eslintConfig = `import { default as config } from '@rtorcato/repo-tooling/eslint/${configType}'
 
 export default config
 `
@@ -63,7 +63,7 @@ export default config
 export async function generatePrettierConfig(targetDir: string) {
 	const prettierConfigPath = path.join(targetDir, 'prettier.config.mjs')
 
-	const prettierConfig = `export { default } from '@rtorcato/js-tooling/prettier'
+	const prettierConfig = `export { default } from '@rtorcato/repo-tooling/prettier'
 `
 
 	await fs.writeFile(prettierConfigPath, prettierConfig)

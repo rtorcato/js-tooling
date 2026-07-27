@@ -30,7 +30,7 @@ jobs:
 export async function generateTypedocConfig(pkg: Pkg, targetDir: string) {
 	const name = (pkg?.name as string | undefined) ?? 'My Library'
 	const config = {
-		extends: ['@rtorcato/js-tooling/typedoc'],
+		extends: ['@rtorcato/repo-tooling/typedoc'],
 		entryPoints: ['./src/index.ts'],
 		name,
 	}

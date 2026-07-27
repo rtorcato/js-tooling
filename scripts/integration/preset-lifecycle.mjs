@@ -4,7 +4,7 @@
 // scaffold defects that only surface on a real install/build — the class of
 // bug tracked in #91–#99 that no unit test exercises.
 //
-// The scaffold's `@rtorcato/js-tooling` dep is repointed at a `pnpm pack`
+// The scaffold's `@rtorcato/repo-tooling` dep is repointed at a `pnpm pack`
 // tarball of this repo, so the test validates THIS branch's generated output +
 // presets, not whatever `latest` is on npm.
 //
@@ -50,12 +50,12 @@ try {
 	// 2. Scaffold the preset (files only; we install ourselves after repointing the dep).
 	run('node', [CLI, 'setup', '--preset', PRESET, '--directory', projectDir, '--skip-install'])
 
-	// 3. Repoint @rtorcato/js-tooling at the local tarball.
+	// 3. Repoint @rtorcato/repo-tooling at the local tarball.
 	const pkgPath = path.join(projectDir, 'package.json')
 	const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
-	if (!pkg.devDependencies?.['@rtorcato/js-tooling'])
-		fail('scaffold has no @rtorcato/js-tooling devDependency')
-	pkg.devDependencies['@rtorcato/js-tooling'] = `file:${tarball}`
+	if (!pkg.devDependencies?.['@rtorcato/repo-tooling'])
+		fail('scaffold has no @rtorcato/repo-tooling devDependency')
+	pkg.devDependencies['@rtorcato/repo-tooling'] = `file:${tarball}`
 	fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
 
 	// 4. Seed what a real consumer writes: an entry module + one test. The base

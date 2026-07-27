@@ -1,13 +1,13 @@
 # Oxlint preset
 
-Shared [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) configuration for projects using `@rtorcato/js-tooling`.
+Shared [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) configuration for projects using `@rtorcato/repo-tooling`.
 
 Oxlint is a Rust-based linter that's 50–100× faster than ESLint. It is intentionally **additive** to Biome — Biome handles formatting and the broad lint baseline, Oxlint adds a faster pass for the type-aware and import rules Biome doesn't cover yet.
 
 ## Usage
 
 ```bash
-npx @rtorcato/js-tooling copy oxlint
+npx @rtorcato/repo-tooling copy oxlint
 ```
 
 This drops `.oxlintrc.json` at the project root, extending the conventions in this preset. Run it with:

@@ -16,7 +16,7 @@ async function seedPackageJson(dir: string, withDep = true) {
 	await fs.writeJson(join(dir, 'package.json'), {
 		name: 'demo',
 		version: '0.0.0',
-		devDependencies: withDep ? { '@rtorcato/js-tooling': '^2.0.0' } : {},
+		devDependencies: withDep ? { '@rtorcato/repo-tooling': '^2.0.0' } : {},
 	})
 }
 
@@ -37,7 +37,7 @@ describe('doctor', () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.writeJson(join(dir, 'tsconfig.json'), {
-			extends: '@rtorcato/js-tooling/typescript/base',
+			extends: '@rtorcato/repo-tooling/typescript/base',
 		})
 
 		const results = await runDoctor(dir)
@@ -61,10 +61,10 @@ describe('doctor', () => {
 	it('detects biome.jsonc and eslint configs that import our presets', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
-		await fs.writeFile(join(dir, 'biome.jsonc'), '{ "extends": ["@rtorcato/js-tooling/biome"] }\n')
+		await fs.writeFile(join(dir, 'biome.jsonc'), '{ "extends": ["@rtorcato/repo-tooling/biome"] }\n')
 		await fs.writeFile(
 			join(dir, 'eslint.config.mjs'),
-			"export { default } from '@rtorcato/js-tooling/eslint/base'\n"
+			"export { default } from '@rtorcato/repo-tooling/eslint/base'\n"
 		)
 
 		const results = await runDoctor(dir)
@@ -78,7 +78,7 @@ describe('doctor', () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.writeJson(join(dir, 'tsconfig.json'), {
-			extends: '@rtorcato/js-tooling/typescript/base',
+			extends: '@rtorcato/repo-tooling/typescript/base',
 		})
 
 		const results = await runDoctor(dir)
@@ -333,7 +333,7 @@ describe('doctor extended checks', () => {
 		await seedPackageJson(dir)
 		await fs.writeFile(
 			join(dir, 'release.config.mjs'),
-			"export { default } from '@rtorcato/js-tooling/semantic-release/github'\n"
+			"export { default } from '@rtorcato/repo-tooling/semantic-release/github'\n"
 		)
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'semantic-release')?.status).toBe('ok')
@@ -356,7 +356,7 @@ describe('doctor extended checks', () => {
 		await seedPackageJson(dir)
 		await fs.writeFile(
 			join(dir, 'release.config.mjs'),
-			"export { default } from '@rtorcato/js-tooling/semantic-release/github'\n"
+			"export { default } from '@rtorcato/repo-tooling/semantic-release/github'\n"
 		)
 		await fs.writeJson(join(dir, 'release-please-config.json'), {
 			packages: { '.': { 'release-type': 'node' } },
@@ -395,7 +395,7 @@ describe('doctor extended checks', () => {
 				check: 'biome check .',
 				verify: 'pnpm typecheck && pnpm check && pnpm exec vitest run',
 			},
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0', vitest: '^4.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0', vitest: '^4.0.0' },
 		})
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'verify script')?.status).toBe('ok')
@@ -411,7 +411,7 @@ describe('doctor extended checks', () => {
 				check: 'biome check .',
 				verify: 'pnpm typecheck && pnpm check && pnpm exec vitest run && pnpm treeshake',
 			},
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0', vitest: '^4.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0', vitest: '^4.0.0' },
 		})
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'verify script')?.status).toBe('ok')
@@ -427,7 +427,7 @@ describe('doctor extended checks', () => {
 				check: 'biome check .',
 				verify: 'pnpm check',
 			},
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		const results = await runDoctor(dir)
 		const verify = results.find((r) => r.check === 'verify script')
@@ -449,7 +449,7 @@ describe('doctor extended checks', () => {
 		await fs.writeJson(join(dir, 'package.json'), {
 			name: 'demo',
 			version: '0.0.0',
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 			scripts: { verify: 'pnpm typecheck && pnpm check' },
 		})
 		await fs.ensureDir(join(dir, '.husky'))
@@ -465,7 +465,7 @@ describe('doctor extended checks', () => {
 		await fs.writeJson(join(dir, 'package.json'), {
 			name: 'demo',
 			version: '0.0.0',
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 			scripts: { verify: 'pnpm typecheck && pnpm check' },
 		})
 		await fs.ensureDir(join(dir, '.husky'))
@@ -493,7 +493,7 @@ describe('doctor extended checks', () => {
 				'./a': './dist/a.js',
 				'./b': './dist/b.js',
 			},
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		const results = await runDoctor(dir)
 		const ts = results.find((r) => r.check === 'Tree-shake check')
@@ -507,7 +507,7 @@ describe('doctor extended checks', () => {
 			name: 'demo',
 			version: '0.0.0',
 			exports: { '.': './dist/index.js' },
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		const results = await runDoctor(dir)
 		const ts = results.find((r) => r.check === 'Tree-shake check')
@@ -525,7 +525,7 @@ describe('doctor extended checks', () => {
 				check: 'biome check .',
 				verify: 'pnpm typecheck && pnpm check',
 			},
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fs.ensureDir(join(dir, 'apps', 'treeshake-check'))
 		await fs.writeFile(join(dir, 'apps', 'treeshake-check', 'check.mjs'), '// stub\n')
@@ -546,7 +546,7 @@ describe('doctor extended checks', () => {
 				'./a': './dist/a.js',
 				'./b': './dist/b.js',
 			},
-			devDependencies: { '@rtorcato/js-tooling': '^2.0.0' },
+			devDependencies: { '@rtorcato/repo-tooling': '^2.0.0' },
 		})
 		await fs.ensureDir(join(dir, 'apps', 'treeshake-check'))
 		await fs.writeFile(join(dir, 'apps', 'treeshake-check', 'check.mjs'), '// stub\n')
@@ -691,10 +691,10 @@ describe('doctor + lockfile', () => {
 			bundler: 'tsup',
 			...configPatch,
 		}
-		await fs.writeJson(join(dir, '.js-tooling.json'), {
+		await fs.writeJson(join(dir, '.repo-tooling.json'), {
 			version: 1,
 			config,
-			writtenBy: '@rtorcato/js-tooling@test',
+			writtenBy: '@rtorcato/repo-tooling@test',
 			writtenAt: new Date().toISOString(),
 		})
 	}
@@ -719,7 +719,7 @@ describe('doctor + lockfile', () => {
 	it('reports lockfile drift when version is from a newer CLI', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
-		await fs.writeJson(join(dir, '.js-tooling.json'), {
+		await fs.writeJson(join(dir, '.repo-tooling.json'), {
 			version: 99,
 			config: {
 				projectName: 'demo',
@@ -820,10 +820,10 @@ describe('nextStepSuggestions', () => {
 			{ check: 'ESLint', status: 'optional-missing', detail: '' },
 			{ check: 'TypeScript', status: 'missing', detail: '' },
 		])
-		expect(suggestions).toContain('Run `npx @rtorcato/js-tooling fix biome` to align Biome')
-		expect(suggestions).toContain('Run `npx @rtorcato/js-tooling fix eslint` to scaffold ESLint')
+		expect(suggestions).toContain('Run `npx @rtorcato/repo-tooling fix biome` to align Biome')
+		expect(suggestions).toContain('Run `npx @rtorcato/repo-tooling fix eslint` to scaffold ESLint')
 		expect(suggestions).toContain(
-			'Run `npx @rtorcato/js-tooling fix tsconfig` to scaffold TypeScript'
+			'Run `npx @rtorcato/repo-tooling fix tsconfig` to scaffold TypeScript'
 		)
 	})
 

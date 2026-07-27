@@ -11,11 +11,11 @@ import { defineConfig } from 'rolldown'
  *
  * Consumers scaffold a `rolldown.config.mjs` that re-exports the default:
  *
- *   export { default } from '@rtorcato/js-tooling/rolldown'
+ *   export { default } from '@rtorcato/repo-tooling/rolldown'
  *
  * …or customize the entry / output:
  *
- *   import { getConfig } from '@rtorcato/js-tooling/rolldown'
+ *   import { getConfig } from '@rtorcato/repo-tooling/rolldown'
  *   export default getConfig({ input: 'src/main.ts' })
  *
  * Type declarations (`.d.ts`) are not emitted here — run `tsc --emitDeclarationOnly`

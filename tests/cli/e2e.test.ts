@@ -42,7 +42,7 @@ describe.skipIf(!fs.existsSync(CLI))('CLI smoke tests (requires pnpm build)', ()
 		expect(payload.tools.length).toBeGreaterThan(10)
 		const biome = payload.tools.find((t: { name: string }) => t.name === 'Biome')
 		expect(biome.fixTarget).toBe('biome')
-		expect(biome.exports).toContain('@rtorcato/js-tooling/biome')
+		expect(biome.exports).toContain('@rtorcato/repo-tooling/biome')
 	})
 
 	it('copy biome writes biome.json to target dir', () => {

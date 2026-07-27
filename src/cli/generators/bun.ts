@@ -4,7 +4,7 @@ import fs from 'fs-extra'
 /**
  * Scaffold Bun toolchain files: a bunfig.toml and — only when no tsconfig.json
  * exists yet — a tsconfig.json that extends the Bun-typed preset
- * (`@rtorcato/js-tooling/typescript/bun`, which adds `types: ['bun']`). Both are
+ * (`@rtorcato/repo-tooling/typescript/bun`, which adds `types: ['bun']`). Both are
  * safe-add: an existing bunfig.toml or tsconfig.json is never clobbered (an
  * existing project points its tsconfig at the bun preset by hand — see the docs).
  * Returns the relative paths written.
@@ -23,7 +23,7 @@ export async function generateBun(targetDir: string): Promise<string[]> {
 	if (!(await fs.pathExists(tsconfigPath))) {
 		await fs.writeJson(
 			tsconfigPath,
-			{ extends: '@rtorcato/js-tooling/typescript/bun' },
+			{ extends: '@rtorcato/repo-tooling/typescript/bun' },
 			{ spaces: 2 }
 		)
 		written.push('tsconfig.json')

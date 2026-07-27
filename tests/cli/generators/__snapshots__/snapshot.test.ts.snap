@@ -273,7 +273,7 @@ exports[`generator output snapshots > package.json (library) 1`] = `
   },
   "dependencies": {},
   "devDependencies": {
-    "@rtorcato/js-tooling": "latest",
+    "@rtorcato/repo-tooling": "latest",
     "knip": "^6.0.0",
     "typescript": "^5.9.3",
     "@types/node": "^26.0.1",

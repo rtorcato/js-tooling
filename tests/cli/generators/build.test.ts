@@ -29,7 +29,7 @@ describe('generateBuildConfigs', () => {
 		await generateBuildConfigs(baseConfig({ bundler: 'tsup' }), dir)
 
 		const content = await fs.readFile(join(dir, 'tsup.config.ts'), 'utf-8')
-		expect(content).toContain("from '@rtorcato/js-tooling/tsup'")
+		expect(content).toContain("from '@rtorcato/repo-tooling/tsup'")
 		expect(content).toContain("entry: ['src/index.ts']")
 		expect(await fs.pathExists(join(dir, 'build.mjs'))).toBe(false)
 		expect(await fs.pathExists(join(dir, 'vite.config.ts'))).toBe(false)
@@ -50,7 +50,7 @@ describe('generateBuildConfigs', () => {
 		await generateBuildConfigs(baseConfig({ bundler: 'rollup' }), dir)
 
 		const content = await fs.readFile(join(dir, 'rollup.config.mjs'), 'utf-8')
-		expect(content).toContain("from '@rtorcato/js-tooling/rollup'")
+		expect(content).toContain("from '@rtorcato/repo-tooling/rollup'")
 		expect(await fs.pathExists(join(dir, 'tsup.config.ts'))).toBe(false)
 		expect(await fs.pathExists(join(dir, 'build.mjs'))).toBe(false)
 	})
@@ -60,7 +60,7 @@ describe('generateBuildConfigs', () => {
 		await generateBuildConfigs(baseConfig({ bundler: 'rolldown' }), dir)
 
 		const content = await fs.readFile(join(dir, 'rolldown.config.mjs'), 'utf-8')
-		expect(content).toContain("from '@rtorcato/js-tooling/rolldown'")
+		expect(content).toContain("from '@rtorcato/repo-tooling/rolldown'")
 		expect(await fs.pathExists(join(dir, 'rollup.config.mjs'))).toBe(false)
 	})
 
@@ -78,7 +78,7 @@ describe('generateBuildConfigs', () => {
 		await generateBuildConfigs(baseConfig({ bundler: 'vite' }), dir)
 
 		const content = await fs.readFile(join(dir, 'vite.config.ts'), 'utf-8')
-		expect(content).toContain("from '@rtorcato/js-tooling/vite'")
+		expect(content).toContain("from '@rtorcato/repo-tooling/vite'")
 		expect(await fs.pathExists(join(dir, 'tsup.config.ts'))).toBe(false)
 	})
 
@@ -87,7 +87,7 @@ describe('generateBuildConfigs', () => {
 		await generateBuildConfigs(baseConfig({ bundler: 'vite', projectType: 'react-app' }), dir)
 
 		const content = await fs.readFile(join(dir, 'vite.config.ts'), 'utf-8')
-		expect(content).toContain("from '@rtorcato/js-tooling/vite'")
+		expect(content).toContain("from '@rtorcato/repo-tooling/vite'")
 		expect(content).toContain("from '@vitejs/plugin-react'")
 		expect(content).toContain('mergeConfig')
 		expect(content).toContain('react()')
@@ -113,7 +113,7 @@ describe('generateBuildConfigs', () => {
 		await generateBuildConfigs(baseConfig({ semanticRelease: true }), dir)
 
 		const content = await fs.readFile(join(dir, 'release.config.mjs'), 'utf-8')
-		expect(content).toContain('@rtorcato/js-tooling/semantic-release/github')
+		expect(content).toContain('@rtorcato/repo-tooling/semantic-release/github')
 	})
 
 	it('writes .changeset/config.json when changesets is true', async () => {

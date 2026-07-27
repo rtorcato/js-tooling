@@ -1,4 +1,4 @@
-import base from '@rtorcato/js-tooling/vitest/config'
+import base from '@rtorcato/repo-tooling/vitest/config'
 import react from '@vitejs/plugin-react'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

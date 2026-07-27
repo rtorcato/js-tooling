@@ -4,11 +4,15 @@ import packageJson from '../../../package.json' with { type: 'json' }
 import { validateProjectConfig } from '../commands/setup-presets.js'
 import type { ProjectConfig } from '../commands/setup.js'
 
-export const LOCKFILE_NAME = '.js-tooling.json'
+export const LOCKFILE_NAME = '.repo-tooling.json'
+// Name used before the js-tooling→repo-tooling rename (#272). Repos set up on an
+// older version still have it: readLockfile falls back to it, and writeLockfile
+// migrates to the new name (removing the old file) on the next write.
+export const LEGACY_LOCKFILE_NAME = '.js-tooling.json'
 // v2 added ProjectConfig.language (multi-language seam, #140). v1 files are
 // migrated to v2 on read, defaulting language to 'js'.
 export const LOCKFILE_VERSION = 2
-const LOCKFILE_SCHEMA_URL = 'https://rtorcato.github.io/js-tooling/schemas/lockfile.json'
+const LOCKFILE_SCHEMA_URL = 'https://rtorcato.github.io/repo-tooling/schemas/lockfile.json'
 
 export interface Lockfile {
 	$schema?: string
@@ -33,8 +37,13 @@ function migrate(lock: Lockfile): Lockfile {
 }
 
 export async function readLockfile(dir: string): Promise<Lockfile | null> {
-	const filepath = path.join(dir, LOCKFILE_NAME)
-	if (!(await fs.pathExists(filepath))) return null
+	let filepath = path.join(dir, LOCKFILE_NAME)
+	if (!(await fs.pathExists(filepath))) {
+		// Fall back to the pre-rename name so existing repos keep working (#272).
+		const legacy = path.join(dir, LEGACY_LOCKFILE_NAME)
+		if (!(await fs.pathExists(legacy))) return null
+		filepath = legacy
+	}
 	try {
 		const raw = (await fs.readJson(filepath)) as unknown
 		if (typeof raw !== 'object' || raw === null) return null
@@ -57,10 +66,14 @@ export async function writeLockfile(dir: string, config: ProjectConfig): Promise
 		$schema: LOCKFILE_SCHEMA_URL,
 		version: LOCKFILE_VERSION,
 		config,
-		writtenBy: `@rtorcato/js-tooling@${packageJson.version}`,
+		writtenBy: `@rtorcato/repo-tooling@${packageJson.version}`,
 		writtenAt: new Date().toISOString(),
 	}
 	await fs.writeJson(filepath, lockfile, { spaces: 2 })
+	// Migrate a pre-rename repo to the new name: now that the canonical file is
+	// written, drop the stale legacy lockfile so there's only one (#272).
+	const legacy = path.join(dir, LEGACY_LOCKFILE_NAME)
+	if (await fs.pathExists(legacy)) await fs.remove(legacy)
 	return filepath
 }
 

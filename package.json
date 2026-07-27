@@ -1,5 +1,5 @@
 {
-	"name": "@rtorcato/js-tooling",
+	"name": "@rtorcato/repo-tooling",
 	"version": "2.59.0",
 	"description": "JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.",
 	"type": "module",
@@ -449,7 +449,7 @@
 		]
 	},
 	"bin": {
-		"js-tooling": "./dist/cli/index.js"
+		"repo-tooling": "./dist/cli/index.js"
 	},
 	"config": {
 		"commitizen": {

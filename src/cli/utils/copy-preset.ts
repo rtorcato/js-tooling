@@ -60,7 +60,7 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 	'claude-skill': {
 		source: 'tooling/claude/js-tooling.md',
 		target: '.claude/skills/js-tooling.md',
-		desc: 'Claude Code skill for driving the js-tooling CLI',
+		desc: 'Claude Code skill for driving the repo-tooling CLI',
 	},
 	'mcp-example': {
 		source: 'tooling/mcp/mcp.json.example',

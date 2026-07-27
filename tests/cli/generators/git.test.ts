@@ -71,7 +71,7 @@ describe('generateGitConfigs', () => {
 		await generateGitConfigs(baseConfig(), dir)
 
 		const config = await fs.readFile(join(dir, 'commitlint.config.mjs'), 'utf-8')
-		expect(config).toContain('@rtorcato/js-tooling/commitlint/config')
+		expect(config).toContain('@rtorcato/repo-tooling/commitlint/config')
 	})
 
 	it('uses eslint + prettier in lint-staged when linting tool is eslint', async () => {

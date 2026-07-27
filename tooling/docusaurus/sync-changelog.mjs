@@ -1,5 +1,5 @@
 // Canonical sync-changelog for @rtorcato/* docs sites (shipped by
-// @rtorcato/js-tooling — copy via `js-tooling copy docusaurus-sync-changelog`).
+// @rtorcato/repo-tooling — copy via `repo-tooling copy docusaurus-sync-changelog`).
 //
 // Copies the root CHANGELOG.md into the docs site's changelog page with
 // frontmatter, so semantic-release keeps owning a single canonical changelog

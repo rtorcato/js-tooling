@@ -29,7 +29,7 @@ describe('generateTSConfig', () => {
 		await generateTSConfig(baseConfig({ typescript: { enabled: true, config: 'react' } }), dir)
 
 		const tsconfig = await fs.readJson(join(dir, 'tsconfig.json'))
-		expect(tsconfig.extends).toBe('@rtorcato/js-tooling/typescript/react')
+		expect(tsconfig.extends).toBe('@rtorcato/repo-tooling/typescript/react')
 		// paths/baseUrl are inherited from the shared preset (anchored via ${configDir}),
 		// not redeclared per project — baseUrl is deprecated in TS 7.0.
 		expect(tsconfig.compilerOptions.baseUrl).toBeUndefined()
@@ -53,7 +53,7 @@ describe('generateTSConfig', () => {
 			dir
 		)
 		const tsconfig = await fs.readJson(join(dir, 'tsconfig.json'))
-		expect(tsconfig.extends).toBe('@rtorcato/js-tooling/typescript/bun')
+		expect(tsconfig.extends).toBe('@rtorcato/repo-tooling/typescript/bun')
 	})
 
 	it('switches include/exclude for Next.js projects', async () => {

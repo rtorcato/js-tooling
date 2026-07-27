@@ -207,7 +207,7 @@ const GH_WORKFLOW_FIXERS: Fixer[] = GH_WORKFLOWS.map((name) => ({
 const FIXERS: Fixer[] = [
 	{
 		target: 'biome',
-		description: 'Scaffold biome.json extending the @rtorcato/js-tooling preset',
+		description: 'Scaffold biome.json extending the @rtorcato/repo-tooling preset',
 		appliesTo: ['Biome'],
 		outputs: ['biome.json'],
 		canFixDrift: true,
@@ -218,7 +218,7 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'tsconfig',
-		description: 'Scaffold tsconfig.json extending the @rtorcato/js-tooling preset',
+		description: 'Scaffold tsconfig.json extending the @rtorcato/repo-tooling preset',
 		appliesTo: ['TypeScript'],
 		outputs: ['tsconfig.json'],
 		canFixDrift: true,
@@ -229,7 +229,7 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'eslint',
-		description: 'Scaffold eslint.config.mjs importing the @rtorcato/js-tooling preset',
+		description: 'Scaffold eslint.config.mjs importing the @rtorcato/repo-tooling preset',
 		appliesTo: ['ESLint'],
 		outputs: ['eslint.config.mjs'],
 		canFixDrift: true,
@@ -925,7 +925,7 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'claude-skill',
-		description: 'Install the js-tooling Claude Code skill into .claude/skills/',
+		description: 'Install the repo-tooling Claude Code skill into .claude/skills/',
 		appliesTo: ['Claude skill'],
 		outputs: ['.claude/skills/js-tooling.md'],
 		riskLevel: 'safe-add',
@@ -937,7 +937,7 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'cursor-rules',
-		description: 'Install the js-tooling rules for Cursor (.cursor/rules/js-tooling.mdc)',
+		description: 'Install the repo-tooling rules for Cursor (.cursor/rules/js-tooling.mdc)',
 		appliesTo: ['Cursor rules'],
 		outputs: ['.cursor/rules/js-tooling.mdc'],
 		riskLevel: 'safe-add',
@@ -950,7 +950,7 @@ const FIXERS: Fixer[] = [
 	{
 		target: 'copilot-instructions',
 		description:
-			'Install the js-tooling rules for GitHub Copilot (.github/copilot-instructions.md)',
+			'Install the repo-tooling rules for GitHub Copilot (.github/copilot-instructions.md)',
 		appliesTo: ['Copilot instructions'],
 		outputs: ['.github/copilot-instructions.md'],
 		// Upserts a delimited block — never clobbers the consumer's own instructions.
@@ -963,7 +963,7 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'agents-md',
-		description: 'Install the js-tooling rules into AGENTS.md (universal agent instructions)',
+		description: 'Install the repo-tooling rules into AGENTS.md (universal agent instructions)',
 		appliesTo: ['AGENTS.md rules'],
 		outputs: ['AGENTS.md'],
 		// Upserts a delimited block — never clobbers existing AGENTS.md content.
@@ -976,7 +976,7 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'package-json',
-		description: 'Add @rtorcato/js-tooling to devDependencies',
+		description: 'Add @rtorcato/repo-tooling to devDependencies',
 		appliesTo: ['package.json'],
 		outputs: ['package.json (devDependencies)'],
 		riskLevel: 'safe-merge',
@@ -991,7 +991,7 @@ const FIXERS: Fixer[] = [
 			const devDeps = {
 				...((updated.devDependencies as Record<string, string> | undefined) ?? {}),
 			}
-			devDeps['@rtorcato/js-tooling'] = 'latest'
+			devDeps['@rtorcato/repo-tooling'] = 'latest'
 			updated.devDependencies = devDeps
 			await fs.writeJson(pkgPath, updated, { spaces: 2 })
 			console.log(chalk.dim('   reminder: run `pnpm install` to install the new dep'))
@@ -1121,7 +1121,7 @@ async function previewFixer(
 	if (tmpRoot === resolvedTarget || tmpRoot.startsWith(resolvedTarget + path.sep)) {
 		tmpRoot = path.dirname(resolvedTarget)
 	}
-	const tmpDir = await fs.mkdtemp(path.join(tmpRoot, 'js-tooling-fix-preview-'))
+	const tmpDir = await fs.mkdtemp(path.join(tmpRoot, 'repo-tooling-fix-preview-'))
 	try {
 		await fs.copy(targetDir, tmpDir, {
 			filter: (src) => {

@@ -14,7 +14,7 @@ describe('generateBun', () => {
 
 		expect(await fs.readFile(join(dir, 'bunfig.toml'), 'utf-8')).toContain('[test]')
 		const tsconfig = await fs.readJson(join(dir, 'tsconfig.json'))
-		expect(tsconfig.extends).toBe('@rtorcato/js-tooling/typescript/bun')
+		expect(tsconfig.extends).toBe('@rtorcato/repo-tooling/typescript/bun')
 	})
 
 	it('never clobbers an existing tsconfig.json or bunfig.toml', async () => {

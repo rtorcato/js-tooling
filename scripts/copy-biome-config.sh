@@ -1,19 +1,19 @@
 #!/bin/bash
 
-# Copy Biome configuration from js-tooling
+# Copy Biome configuration from repo-tooling
 # Usage: ./scripts/copy-biome-config.sh
 
-echo "📋 Copying Biome configuration from js-tooling..."
+echo "📋 Copying Biome configuration from repo-tooling..."
 
-# Check if this is being run from a project that has js-tooling as dependency
-if [ ! -d "node_modules/@rtorcato/js-tooling" ]; then
-    echo "❌ Error: @rtorcato/js-tooling not found in node_modules"
-    echo "   Please install it first: npm install @rtorcato/js-tooling"
+# Check if this is being run from a project that has repo-tooling as dependency
+if [ ! -d "node_modules/@rtorcato/repo-tooling" ]; then
+    echo "❌ Error: @rtorcato/repo-tooling not found in node_modules"
+    echo "   Please install it first: npm install @rtorcato/repo-tooling"
     exit 1
 fi
 
 # Copy the base configuration
-cp node_modules/@rtorcato/js-tooling/tooling/biome/biome.json ./biome.json
+cp node_modules/@rtorcato/repo-tooling/tooling/biome/biome.json ./biome.json
 
 echo "✅ Biome configuration copied successfully!"
 echo ""
