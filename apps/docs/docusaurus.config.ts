@@ -11,7 +11,7 @@ const PROJECT_FAMILY = projectFamilyItems()
 
 const config: Config = {
   title: 'repo-tooling',
-  tagline: 'JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.',
+  tagline: "One CLI to scaffold, audit and fix your repo's whole toolchain — linting, tests, commits, releases & CI.",
   favicon: 'img/favicon.ico',
 
   url: 'https://rtorcato.github.io',
