@@ -89,11 +89,19 @@ async function resolveConfig(options: SetupOptions): Promise<ProjectConfig> {
 			throw new Error(`Config file not found: ${configPath}`)
 		}
 		const raw = await fs.readJson(configPath)
-		const { valid, errors } = validateProjectConfig(raw)
+		// Accept the `.js-tooling.json` lockfile itself as the config source, so a
+		// repo needs only one file: the lockfile already embeds the full
+		// ProjectConfig under `config`. Unwrap it here rather than requiring a
+		// separate hand-authored config file (#271).
+		const candidate =
+			typeof raw === 'object' && raw !== null && 'config' in raw && 'version' in raw
+				? (raw as { config: unknown }).config
+				: raw
+		const { valid, errors } = validateProjectConfig(candidate)
 		if (!valid) {
 			throw new Error(`Invalid config:\n  - ${errors.join('\n  - ')}`)
 		}
-		return raw as ProjectConfig
+		return candidate as ProjectConfig
 	}
 	if (options.preset) {
 		if (!(PRESET_NAMES as readonly string[]).includes(options.preset)) {
