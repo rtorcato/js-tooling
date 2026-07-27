@@ -9,7 +9,7 @@ ESLint is available for projects that need specific plugins not yet covered by B
 
 ```javascript
 // eslint.config.js
-import baseConfig from '@rtorcato/js-tooling/eslint/base'
+import baseConfig from '@rtorcato/repo-tooling/eslint/base'
 
 export default [
   ...baseConfig,
@@ -21,7 +21,7 @@ For Next.js projects:
 
 ```javascript
 // eslint.config.js
-import nextjsConfig from '@rtorcato/js-tooling/eslint/nextjs'
+import nextjsConfig from '@rtorcato/repo-tooling/eslint/nextjs'
 
 export default [
   ...nextjsConfig,

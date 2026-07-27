@@ -16,7 +16,7 @@ description: Biome formatter and linter configuration.
 Because Biome doesn't support configuration extension, copy the base config into your project:
 
 ```bash
-npx @rtorcato/js-tooling copy biome
+npx @rtorcato/repo-tooling copy biome
 ```
 
 This creates a `biome.json` with:
@@ -46,5 +46,5 @@ After copying, edit `biome.json` directly:
 
 ```javascript
 // biome.json path for lint-staged or other scripts
-import config from '@rtorcato/js-tooling/biome'
+import config from '@rtorcato/repo-tooling/biome'
 ```

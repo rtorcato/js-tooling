@@ -13,7 +13,7 @@ Only the latest major version receives security fixes.
 
 Do **not** open a public GitHub issue for security vulnerabilities.
 
-Instead, use [GitHub's private vulnerability reporting](https://github.com/rtorcato/js-tooling/security/advisories/new) or email **rtorcato@me.com** with:
+Instead, use [GitHub's private vulnerability reporting](https://github.com/rtorcato/repo-tooling/security/advisories/new) or email **rtorcato@me.com** with:
 
 - A description of the vulnerability
 - Steps to reproduce

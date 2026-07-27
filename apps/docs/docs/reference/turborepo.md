@@ -4,7 +4,7 @@ description: Starter turbo.json task pipeline for pnpm-workspace monorepos.
 ---
 
 [Turborepo](https://turborepo.com) caches and parallelizes tasks across a
-pnpm-workspace monorepo. js-tooling scaffolds a starter `turbo.json` with a
+pnpm-workspace monorepo. repo-tooling scaffolds a starter `turbo.json` with a
 sensible build/lint/typecheck/test/dev pipeline — you tune the `outputs` to
 match what each package emits.
 
@@ -17,7 +17,7 @@ when the target directory already contains `pnpm-workspace.yaml`**, and
 Scaffold it into an existing monorepo:
 
 ```bash
-npx @rtorcato/js-tooling fix turborepo
+npx @rtorcato/repo-tooling fix turborepo
 ```
 
 `setup` also offers it interactively when it detects a `pnpm-workspace.yaml`.

@@ -23,7 +23,7 @@ If you pick Changesets, the wizard drops `.changeset/config.json` at the project
 ## Adding to an existing project
 
 ```bash
-npx @rtorcato/js-tooling copy changesets
+npx @rtorcato/repo-tooling copy changesets
 ```
 
 Install Changesets and the GitHub Action:

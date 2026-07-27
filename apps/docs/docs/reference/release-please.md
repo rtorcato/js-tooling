@@ -35,7 +35,7 @@ release-please-config.json        # what to release and how
 ## Adding to an existing project
 
 ```bash
-npx @rtorcato/js-tooling fix release-please
+npx @rtorcato/repo-tooling fix release-please
 ```
 
 The config is a single-package `node` release at the repo root:

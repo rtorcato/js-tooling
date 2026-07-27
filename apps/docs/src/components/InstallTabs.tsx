@@ -44,7 +44,7 @@ type InstallTabsProps = {
 }
 
 export default function InstallTabs({
-	pkg = '@rtorcato/js-tooling',
+	pkg = '@rtorcato/repo-tooling',
 }: InstallTabsProps): ReactElement {
 	const [active, setActive] = useState('npx')
 	const [copied, setCopied] = useState(false)

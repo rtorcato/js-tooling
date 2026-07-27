@@ -4,7 +4,7 @@ description: Shared assets for @rtorcato Docusaurus docs sites — sync-changelo
 ---
 
 The `@rtorcato/*` family runs near-identical Docusaurus docs sites. Rather than a
-full config factory (too project-specific to share), js-tooling ships the pieces
+full config factory (too project-specific to share), repo-tooling ships the pieces
 that are genuinely shared, so siblings stop drifting. A full **site generator**
 (`fix docs`) is planned separately — this page covers the shared-asset helpers.
 
@@ -13,7 +13,7 @@ that are genuinely shared, so siblings stop drifting. A full **site generator**
 Drops the canonical `scripts/sync-changelog.mjs` into your repo:
 
 ```bash
-npx @rtorcato/js-tooling copy docusaurus-sync-changelog
+npx @rtorcato/repo-tooling copy docusaurus-sync-changelog
 ```
 
 It copies the root `CHANGELOG.md` into `apps/docs/docs/changelog.md` with
@@ -38,7 +38,7 @@ hooks reliably, so chain it in `build`/`start` rather than relying on `prebuild`
 Drops the shared design-token base into `apps/docs/src/css/_jt-tokens.css`:
 
 ```bash
-npx @rtorcato/js-tooling copy docusaurus-theme-tokens
+npx @rtorcato/repo-tooling copy docusaurus-theme-tokens
 ```
 
 It carries the Geist font and the navy-surface `--jt-*` / `--ifm-*` token
@@ -66,7 +66,7 @@ Repos without a docs site don't see the check — it's opt-in.
 
 ## TypeDoc plugins
 
-For an API-reference section, `@rtorcato/js-tooling/docusaurus` also exports
+For an API-reference section, `@rtorcato/repo-tooling/docusaurus` also exports
 `getTypedocPlugins(modules)` — one `docusaurus-plugin-typedoc` instance per
 subpath module. Requires `docusaurus-plugin-typedoc`, `typedoc`, and
 `typedoc-plugin-markdown` in the docs app.

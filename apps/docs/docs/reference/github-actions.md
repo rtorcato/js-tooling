@@ -4,7 +4,7 @@ description: The CI workflow scaffolded by setup, plus optional deploy workflows
 ---
 
 Every scaffold gets a `ci.yml` (lint / typecheck / test / build, and release for
-libraries) out of the box. Beyond that, js-tooling ships **optional deploy
+libraries) out of the box. Beyond that, repo-tooling ships **optional deploy
 workflows** you add on demand — they're too deploy-target-specific to scaffold
 by default, so the setup wizard never prompts for them.
 
@@ -13,10 +13,10 @@ by default, so the setup wizard never prompts for them.
 Add any of these to an existing repo with `fix`:
 
 ```bash
-npx @rtorcato/js-tooling fix docker-publish
-npx @rtorcato/js-tooling fix vercel-deploy
-npx @rtorcato/js-tooling fix cloudflare-pages
-npx @rtorcato/js-tooling fix preview-deployments
+npx @rtorcato/repo-tooling fix docker-publish
+npx @rtorcato/repo-tooling fix vercel-deploy
+npx @rtorcato/repo-tooling fix cloudflare-pages
+npx @rtorcato/repo-tooling fix preview-deployments
 ```
 
 Each is **safe-add** — it writes `.github/workflows/<name>.yml` only if that

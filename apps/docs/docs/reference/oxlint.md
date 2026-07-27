@@ -19,7 +19,7 @@ If you opt in, the wizard drops `.oxlintrc.json` at the project root using the c
 ## Adding to an existing project
 
 ```bash
-npx @rtorcato/js-tooling copy oxlint
+npx @rtorcato/repo-tooling copy oxlint
 ```
 
 Add a script to your `package.json`:

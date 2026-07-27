@@ -19,7 +19,7 @@ overwrites a Tailwind-generated config.
 ## Usage
 
 ```bash
-npx @rtorcato/js-tooling fix postcss
+npx @rtorcato/repo-tooling fix postcss
 ```
 
 ## Generated `postcss.config.mjs`

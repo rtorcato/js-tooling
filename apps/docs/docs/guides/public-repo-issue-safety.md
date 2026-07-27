@@ -83,7 +83,7 @@ If any box is unchecked, **do not run it.**
    that auto-applies the label and states the body is treated as data.
 3. Add the gating check (label + `authorAssociation`) to whatever triggers the
    AI run (workflow or human runbook), with secret-free, least-privilege perms.
-4. Roll out to other public repos and scaffold the template via `js-tooling fix`.
+4. Roll out to other public repos and scaffold the template via `repo-tooling fix`.
 
 > **Plan only.** This documents the standard; it does not yet add an enforcing
 > workflow or the issue template. Those are the rollout steps above.

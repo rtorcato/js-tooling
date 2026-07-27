@@ -1,6 +1,6 @@
 ---
 name: npm-publish
-description: Use before releasing or publishing any @rtorcato/* package (js-tooling and the whole family publish the same way). Triggers on "publish", "cut a release", "bump the version", "tag a release", "npm publish", "how do releases work here". The hard rule — releases are automated by semantic-release on merge to main; an agent must NEVER run `npm publish`, `npm version`, or `git tag`, or hand-edit the version in package.json. NOT for the day-to-day tooling audit/fix flow — that's the js-tooling skill.
+description: Use before releasing or publishing any @rtorcato/* package (repo-tooling and the whole family publish the same way). Triggers on "publish", "cut a release", "bump the version", "tag a release", "npm publish", "how do releases work here". The hard rule — releases are automated by semantic-release on merge to main; an agent must NEVER run `npm publish`, `npm version`, or `git tag`, or hand-edit the version in package.json. NOT for the day-to-day tooling audit/fix flow — that's the repo-tooling skill.
 ---
 
 # npm-publish

@@ -16,14 +16,14 @@ Re-export the default config:
 
 ```javascript
 // rolldown.config.mjs
-export { default } from '@rtorcato/js-tooling/rolldown'
+export { default } from '@rtorcato/repo-tooling/rolldown'
 ```
 
 …or customize the entry point:
 
 ```javascript
 // rolldown.config.mjs
-import { getConfig } from '@rtorcato/js-tooling/rolldown'
+import { getConfig } from '@rtorcato/repo-tooling/rolldown'
 
 export default getConfig({ input: 'src/main.ts' })
 ```
@@ -40,7 +40,7 @@ Then wire it into `package.json`:
 ```
 
 `setup` scaffolds this for you when you pick Rolldown, and
-`npx @rtorcato/js-tooling fix rolldown` drops the `rolldown.config.mjs` into an
+`npx @rtorcato/repo-tooling fix rolldown` drops the `rolldown.config.mjs` into an
 existing project.
 
 ## Peer dependency

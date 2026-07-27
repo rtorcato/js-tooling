@@ -4,7 +4,7 @@ description: Tailwind CSS v4 scaffold (PostCSS plugin + CSS entry) for frontend 
 ---
 
 [Tailwind CSS](https://tailwindcss.com) v4 is **CSS-first** — there is no
-`tailwind.config.js` and content is auto-detected. js-tooling scaffolds the two
+`tailwind.config.js` and content is auto-detected. repo-tooling scaffolds the two
 files a v4 setup needs: a PostCSS config that loads the Tailwind plugin, and a
 CSS entry that imports Tailwind.
 
@@ -17,7 +17,7 @@ is already a dependency.
 Scaffold it into an existing project:
 
 ```bash
-npx @rtorcato/js-tooling fix tailwind
+npx @rtorcato/repo-tooling fix tailwind
 ```
 
 `setup` also offers it interactively for frontend projects. The fixer is

@@ -10,15 +10,15 @@ import { themes as prismThemes } from 'prism-react-renderer'
 const PROJECT_FAMILY = projectFamilyItems()
 
 const config: Config = {
-  title: 'js-tooling',
+  title: 'repo-tooling',
   tagline: 'JavaScript and TypeScript tooling for Node.js, React, Next.js, and Vitest.',
   favicon: 'img/favicon.ico',
 
   url: 'https://rtorcato.github.io',
-  baseUrl: '/js-tooling/',
+  baseUrl: '/repo-tooling/',
 
   organizationName: 'rtorcato',
-  projectName: 'js-tooling',
+  projectName: 'repo-tooling',
 
   onBrokenLinks: 'warn',
 
@@ -56,7 +56,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           routeBasePath: '/docs',
-          editUrl: 'https://github.com/rtorcato/js-tooling/edit/main/apps/docs/',
+          editUrl: 'https://github.com/rtorcato/repo-tooling/edit/main/apps/docs/',
         },
         blog: false,
         theme: {
@@ -86,9 +86,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'js-tooling',
+      title: 'repo-tooling',
       logo: {
-        alt: 'js-tooling',
+        alt: 'repo-tooling',
         src: 'img/logo.svg',
         srcDark: 'img/logo-dark.svg',
       },
@@ -103,12 +103,12 @@ const config: Config = {
           items: [{ label: 'All on GitHub →', href: GITHUB_PROFILE }, ...PROJECT_FAMILY],
         },
         {
-          href: 'https://github.com/rtorcato/js-tooling',
+          href: 'https://github.com/rtorcato/repo-tooling',
           label: 'GitHub',
           position: 'right',
         },
         {
-          href: 'https://www.npmjs.com/package/@rtorcato/js-tooling',
+          href: 'https://www.npmjs.com/package/@rtorcato/repo-tooling',
           label: 'npm',
           position: 'right',
         },
@@ -130,9 +130,9 @@ const config: Config = {
         {
           title: 'Resources',
           items: [
-            { label: 'GitHub', href: 'https://github.com/rtorcato/js-tooling' },
-            { label: 'npm', href: 'https://www.npmjs.com/package/@rtorcato/js-tooling' },
-            { label: 'Issues', href: 'https://github.com/rtorcato/js-tooling/issues' },
+            { label: 'GitHub', href: 'https://github.com/rtorcato/repo-tooling' },
+            { label: 'npm', href: 'https://www.npmjs.com/package/@rtorcato/repo-tooling' },
+            { label: 'Issues', href: 'https://github.com/rtorcato/repo-tooling/issues' },
           ],
         },
         {
@@ -142,10 +142,10 @@ const config: Config = {
         {
           title: 'Community',
           items: [
-            { label: 'Issues', href: 'https://github.com/rtorcato/js-tooling/issues' },
+            { label: 'Issues', href: 'https://github.com/rtorcato/repo-tooling/issues' },
             {
               label: 'License (MIT)',
-              href: 'https://github.com/rtorcato/js-tooling/blob/main/LICENSE',
+              href: 'https://github.com/rtorcato/repo-tooling/blob/main/LICENSE',
             },
             { label: '@rtorcato', href: GITHUB_PROFILE },
           ],

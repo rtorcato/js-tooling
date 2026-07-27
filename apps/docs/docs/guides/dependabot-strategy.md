@@ -4,9 +4,9 @@ description: The standard Dependabot setup every @rtorcato repo follows — grou
 ---
 
 This is the agreed dependency-update standard for all `@rtorcato/*` repos.
-js-tooling ships the canonical `dependabot.yml` and auto-merge workflow and
+repo-tooling ships the canonical `dependabot.yml` and auto-merge workflow and
 scaffolds both into new projects, so every repo converges by re-running
-`js-tooling fix`.
+`repo-tooling fix`.
 
 The goal: **safe updates land untouched, risky ones are batched and triaged on
 a fixed cadence, and the backlog can never go stale.**
@@ -45,7 +45,7 @@ using `dependabot/fetch-metadata` + `gh pr merge --auto --squash`, gated to
 > **Needs a public repo or a paid plan.** Both auto-merge (`allow_auto_merge`)
 > and classic branch protection are unavailable on **private repos on the free
 > tier** — GitHub returns 403 for branch protection and silently ignores
-> `allow_auto_merge`. On such repos `js-tooling fix github-settings` applies what
+> `allow_auto_merge`. On such repos `repo-tooling fix github-settings` applies what
 > it can (squash-merge, delete-branch-on-merge, workflow permissions) but leaves
 > auto-merge and protection off, so `doctor` keeps reporting them as drift. Make
 > the repo public or upgrade the plan to converge fully.
@@ -83,10 +83,10 @@ CI. Closing stale PRs is the normal, expected hygiene step — not a loss of wor
 
 ## 6. Single source of truth
 
-- js-tooling ships the canonical `.github/dependabot.yml` **and**
+- repo-tooling ships the canonical `.github/dependabot.yml` **and**
   `.github/workflows/dependabot-automerge.yml`, and its generator scaffolds
   **both** into new projects.
-- `js-tooling doctor` flags drift from the canonical config; `js-tooling fix`
+- `repo-tooling doctor` flags drift from the canonical config; `repo-tooling fix`
   re-applies it. A strategy change propagates to every repo via `fix`.
 
 ## Canonical `dependabot.yml`
@@ -134,7 +134,7 @@ updates:
 ## Rollout
 
 1. Apply branch protection on `main` (prerequisite for auto-merge).
-2. Update js-tooling's own `dependabot.yml` + `dependabot-automerge.yml` to the
+2. Update repo-tooling's own `dependabot.yml` + `dependabot-automerge.yml` to the
    above.
 3. Update the generator and add a `doctor` / `fix dependabot` target.
-4. Roll out to other repos via `js-tooling fix`.
+4. Roll out to other repos via `repo-tooling fix`.

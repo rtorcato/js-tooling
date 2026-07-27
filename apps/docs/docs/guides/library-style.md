@@ -3,7 +3,7 @@ title: Library style guide
 description: JSDoc shape, naming conventions, and type-test patterns for TypeScript libraries that use this tooling.
 ---
 
-This guide collects the conventions that emerged from building [`@rtorcato/browser-common`](https://github.com/rtorcato/browser-common) with `@rtorcato/js-tooling`. Nothing here is enforced by linting — Biome doesn't deep-check JSDoc — but every convention has paid off in IDE hover docs, refactor safety, or shipping confidence.
+This guide collects the conventions that emerged from building [`@rtorcato/browser-common`](https://github.com/rtorcato/browser-common) with `@rtorcato/repo-tooling`. Nothing here is enforced by linting — Biome doesn't deep-check JSDoc — but every convention has paid off in IDE hover docs, refactor safety, or shipping confidence.
 
 Apply them to any library where the public API matters more than internal implementation details.
 
@@ -93,14 +93,14 @@ Type tests are cheap to add, free to run, and catch regressions during refactors
 
 ## 4. Meta-tests for library contracts
 
-Two contracts are easy to break silently as a library grows: the `package.json` `exports` map drifting from the source folders, and modules accidentally gaining a top-level dependency on `window` / `document`. `@rtorcato/js-tooling` ships helpers for both.
+Two contracts are easy to break silently as a library grows: the `package.json` `exports` map drifting from the source folders, and modules accidentally gaining a top-level dependency on `window` / `document`. `@rtorcato/repo-tooling` ships helpers for both.
 
 ### Exports stay in sync with `src/`
 
 ```ts
 // src/tests/exports-resolution.test.ts
 import { fileURLToPath } from 'node:url'
-import { runExportsResolutionTest } from '@rtorcato/js-tooling/tests/exports-resolution'
+import { runExportsResolutionTest } from '@rtorcato/repo-tooling/tests/exports-resolution'
 
 runExportsResolutionTest({
 	packageJsonPath: fileURLToPath(new URL('../../package.json', import.meta.url)),
@@ -116,7 +116,7 @@ Fails when a new `src/<name>/` folder is added without a matching subpath export
 ```ts
 // src/tests/ssr-safety.test.ts
 import { fileURLToPath } from 'node:url'
-import { runSsrSafetyTest } from '@rtorcato/js-tooling/tests/ssr-safety'
+import { runSsrSafetyTest } from '@rtorcato/repo-tooling/tests/ssr-safety'
 
 runSsrSafetyTest({
 	srcDir: fileURLToPath(new URL('../', import.meta.url)),

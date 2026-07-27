@@ -27,7 +27,7 @@ labels: bug
 
 ## Environment
 
-- `@rtorcato/js-tooling` version:
+- `@rtorcato/repo-tooling` version:
 - Node version (`node -v`):
 - Package manager + version:
 - OS:

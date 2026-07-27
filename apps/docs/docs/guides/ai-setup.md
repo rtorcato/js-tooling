@@ -3,7 +3,7 @@ title: AI Setup
 description: Scaffold AI agent rules — AGENTS.md, CLAUDE.md, Cursor, Copilot, the Claude skill, and an MCP template — from one source of truth, in one command.
 ---
 
-`js-tooling` can scaffold the instruction files that AI coding tools read, so
+`repo-tooling` can scaffold the instruction files that AI coding tools read, so
 every agent (Claude Code, Cursor, GitHub Copilot, or anything that reads
 `AGENTS.md`) gets the same guidance for driving this project's tooling.
 
@@ -37,26 +37,26 @@ During scaffolding, `setup` asks:
 Or install / repair them any time on an existing repo:
 
 ```bash
-npx @rtorcato/js-tooling fix ai
+npx @rtorcato/repo-tooling fix ai
 ```
 
 `doctor` reports whether they're present (`AI setup` → `ok` /
-`optional-missing`), and the choice is recorded in `.js-tooling.json`, so
+`optional-missing`), and the choice is recorded in `.repo-tooling.json`, so
 `doctor` won't nag if you intentionally opt out.
 
 ## Install a skill in one command
 
 The skills ship in this repo under `skills/<name>/SKILL.md`, the standard layout
 the [`skills`](https://www.npmjs.com/package/skills) CLI reads. So any agent that
-supports it can install them straight from GitHub — no clone, no `js-tooling`
+supports it can install them straight from GitHub — no clone, no `repo-tooling`
 install needed:
 
 ```bash
 # The tooling skill (audit / fix / scaffold via the CLI)
-npx skills add https://github.com/rtorcato/js-tooling --skill js-tooling
+npx skills add https://github.com/rtorcato/repo-tooling --skill repo-tooling
 
 # The npm-publish skill
-npx skills add https://github.com/rtorcato/js-tooling --skill npm-publish
+npx skills add https://github.com/rtorcato/repo-tooling --skill npm-publish
 ```
 
 This drops the skill into your agent's skills directory (e.g.

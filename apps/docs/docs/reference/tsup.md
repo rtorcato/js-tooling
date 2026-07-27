@@ -7,7 +7,7 @@ description: tsup bundler configuration helpers.
 
 ```typescript
 // tsup.config.ts
-import { getConfig } from '@rtorcato/js-tooling/tsup'
+import { getConfig } from '@rtorcato/repo-tooling/tsup'
 
 export default getConfig({
   entry: ['src/index.ts'],

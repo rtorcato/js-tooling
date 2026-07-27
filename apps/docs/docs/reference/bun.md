@@ -5,7 +5,7 @@ description: Bun runtime/test-runner support — a Bun-typed tsconfig preset and
 
 [Bun](https://bun.sh) is a JavaScript runtime, test runner, and bundler. Even
 teams shipping Node-targeted libraries increasingly use Bun for the dev loop.
-js-tooling ships a Bun-typed TypeScript preset and a `bunfig.toml` template so
+repo-tooling ships a Bun-typed TypeScript preset and a `bunfig.toml` template so
 `bun test` / `bun run` work against the same source tree.
 
 Bun support is **opt-in and additive** — it doesn't change your package manager,
@@ -22,7 +22,7 @@ and Node-API projects. Answer yes and it emits `bunfig.toml` and a Bun-typed
 **Existing projects** — scaffold the Bun toolchain files with the fixer:
 
 ```bash
-npx @rtorcato/js-tooling fix bun
+npx @rtorcato/repo-tooling fix bun
 ```
 
 This is **safe-add** — it writes:
@@ -44,7 +44,7 @@ The Bun preset extends the shared base and adds `types: ["bun"]`:
 
 ```json
 // tsconfig.json
-{ "extends": "@rtorcato/js-tooling/typescript/bun" }
+{ "extends": "@rtorcato/repo-tooling/typescript/bun" }
 ```
 
 which resolves to:
@@ -90,4 +90,4 @@ You have two options:
 
 | Export | Use case |
 |---|---|
-| `@rtorcato/js-tooling/typescript/bun` | Bun-typed tsconfig (`types: ["bun"]`) |
+| `@rtorcato/repo-tooling/typescript/bun` | Bun-typed tsconfig (`types: ["bun"]`) |
