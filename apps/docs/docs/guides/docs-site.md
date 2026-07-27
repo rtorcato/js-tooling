@@ -113,5 +113,5 @@ Enable GitHub Pages with **GitHub Actions** as the source
 
 Each repo's `CONTRIBUTING.md` should spell out: add the module to `MODULES` +
 the sidebar, add a row to the README modules table and the docs Status table,
-tick the roadmap, and commit `feat(<mod>): …`. The release and docs deploy run
+update the tracking issue, and commit `feat(<mod>): …`. The release and docs deploy run
 on merge.
