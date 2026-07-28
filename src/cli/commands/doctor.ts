@@ -1,6 +1,7 @@
 import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
+import { resolveLanguageModule } from '../../languages/registry.js'
 import { BADGE_START, hasPublicOnlyBadges } from '../generators/badges.js'
 import { detectLanguage } from '../utils/detect-language.js'
 import { checkGitHubSettings } from '../utils/github-settings.js'
@@ -1533,18 +1534,19 @@ async function checkGitLabCI(dir: string): Promise<CheckResult> {
 export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	const targetDir = path.resolve(dir)
 
-	// Seam: gate the whole JS check suite by detected language. A Swift/Perl/
-	// Python repo gets a single informative result instead of ~26 JS "missing"
-	// findings. 'unknown' (bare dir) still runs the JS suite — that's a fresh
-	// repo mid-setup. ponytail: per-check language tagging is the umbrella (#139)
-	// follow-up; today the whole suite is JS, so a top-level guard is enough.
+	// Seam: gate the whole JS check suite by detected language via the language
+	// registry (#280). An unsupported (Swift/Perl/Python) repo gets a single
+	// informative result instead of ~26 JS "missing" findings. 'unknown' (bare
+	// dir) resolves to JS — a fresh repo mid-setup still runs the full suite.
+	// ponytail: this is still the coarse gate; per-module dispatch is #285.
 	const language = await detectLanguage(targetDir)
-	if (language !== 'js' && language !== 'unknown') {
+	const languageModule = resolveLanguageModule(language)
+	if (!languageModule.supported) {
 		return [
 			{
 				check: 'language',
 				status: 'ok',
-				detail: `detected ${language} project — ${PACKAGE} checks are JavaScript-focused and were skipped`,
+				detail: `detected ${languageModule.label} project — ${PACKAGE} checks are JavaScript-focused and were skipped`,
 			},
 		]
 	}
