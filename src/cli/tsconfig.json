@@ -11,8 +11,11 @@
     "moduleResolution": "NodeNext",
     "target": "ES2022",
     "lib": ["ES2022"],
-    "rootDir": ".",
-    "outDir": "../../dist/cli",
+    // rootDir is src/ (not src/cli) so the shared language modules in
+    // src/languages compile alongside the CLI (#280). Emit stays dist/cli/… for
+    // the CLI (bin unchanged) and adds dist/languages/….
+    "rootDir": "..",
+    "outDir": "../../dist",
     "noEmit": false,
     "declaration": false,
     "sourceMap": false,
@@ -25,6 +28,6 @@
     // access; adopt it fully in a follow-up if we want the last mile.
     "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["./**/*.ts"],
+  "include": ["../**/*.ts"],
   "exclude": ["node_modules", "../../dist"]
 }
