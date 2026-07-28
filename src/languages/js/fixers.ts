@@ -46,7 +46,7 @@ import { generateBun } from '../../cli/generators/bun.js'
 import { generateDocsSite } from '../../cli/generators/docs-site.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../../cli/generators/typedoc.js'
 import { copyPreset } from '../../cli/utils/copy-preset.js'
-import { applyGithubSettings } from '../../cli/utils/github-settings.js'
+import { applyGithubSettings } from '../../base/github-settings.js'
 import { type Lockfile, LOCKFILE_NAME, writeLockfile } from '../../cli/utils/lockfile.js'
 import type { ProjectConfig } from '../../cli/commands/setup.js'
 

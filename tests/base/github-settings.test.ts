@@ -7,8 +7,8 @@ import {
 	checkGitHubSettings,
 	type GhExec,
 	type GhResult,
-} from '../../../src/cli/utils/github-settings.js'
-import { useTmpDir } from '../../helpers/tmp-dir.js'
+} from '../../src/base/github-settings.js'
+import { useTmpDir } from '../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
 
