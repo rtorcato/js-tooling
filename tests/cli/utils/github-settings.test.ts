@@ -233,6 +233,15 @@ describe('checkGitHubSettings — drift', () => {
 		expect(ms?.detail).toContain('auto-merge disabled')
 	})
 
+	it('skips (not drifts) when the token cannot see merge fields (no admin:read)', async () => {
+		// A read/write token (CI's default GITHUB_TOKEN) omits the merge booleans
+		// entirely — they must not be read as "disabled".
+		const repo = ok(JSON.stringify({ full_name: 'owner/repo', default_branch: 'main' }))
+		const ms = byName(await checkGitHubSettings(gitRepo(), fakeGh({ repo })), 'Merge settings')
+		expect(ms?.status).toBe('ok')
+		expect(ms?.detail).toContain('skipped')
+	})
+
 	it('drifts when default workflow permissions are write', async () => {
 		const workflow = ok(
 			JSON.stringify({
