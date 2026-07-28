@@ -296,9 +296,9 @@ describe('fix targeted', () => {
 		for (const rel of [
 			'AGENTS.md',
 			'CLAUDE.md',
-			'.cursor/rules/js-tooling.mdc',
+			'.cursor/rules/repo-tooling.mdc',
 			'.github/copilot-instructions.md',
-			'.claude/skills/js-tooling.md',
+			'.claude/skills/repo-tooling.md',
 			'.mcp.json.example',
 		]) {
 			expect(await fs.pathExists(join(dir, rel))).toBe(true)
@@ -543,20 +543,35 @@ describe('fix targeted', () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fixCommand('claude-skill', { directory: dir, yes: true })
-		const skillPath = join(dir, '.claude', 'skills', 'js-tooling.md')
+		const skillPath = join(dir, '.claude', 'skills', 'repo-tooling.md')
 		expect(await fs.pathExists(skillPath)).toBe(true)
 		const body = await fs.readFile(skillPath, 'utf8')
-		expect(body).toContain('name: js-tooling')
+		expect(body).toContain('name: repo-tooling')
+	})
+
+	it('fix migrates the pre-rename js-tooling.md/.mdc artifacts (removes old, writes new)', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.outputFile(join(dir, '.claude', 'skills', 'js-tooling.md'), '# stale\n')
+		await fs.outputFile(join(dir, '.cursor', 'rules', 'js-tooling.mdc'), '# stale\n')
+
+		await fixCommand('claude-skill', { directory: dir, yes: true })
+		await fixCommand('cursor-rules', { directory: dir, yes: true })
+
+		expect(await fs.pathExists(join(dir, '.claude', 'skills', 'js-tooling.md'))).toBe(false)
+		expect(await fs.pathExists(join(dir, '.cursor', 'rules', 'js-tooling.mdc'))).toBe(false)
+		expect(await fs.pathExists(join(dir, '.claude', 'skills', 'repo-tooling.md'))).toBe(true)
+		expect(await fs.pathExists(join(dir, '.cursor', 'rules', 'repo-tooling.mdc'))).toBe(true)
 	})
 
 	it('fix cursor-rules --yes writes a .mdc rule with Cursor frontmatter', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fixCommand('cursor-rules', { directory: dir, yes: true })
-		const body = await fs.readFile(join(dir, '.cursor', 'rules', 'js-tooling.mdc'), 'utf8')
+		const body = await fs.readFile(join(dir, '.cursor', 'rules', 'repo-tooling.mdc'), 'utf8')
 		expect(body).toMatch(/^---\ndescription: .+\nglobs:\nalwaysApply: false\n---/)
-		expect(body).toContain('# js-tooling') // shared body, frontmatter stripped
-		expect(body).not.toContain('name: js-tooling') // Claude frontmatter not carried over
+		expect(body).toContain('# repo-tooling') // shared body, frontmatter stripped
+		expect(body).not.toContain('name: repo-tooling') // Claude frontmatter not carried over
 	})
 
 	it('fix agents-md --yes upserts a block without clobbering existing content', async () => {
@@ -567,7 +582,7 @@ describe('fix targeted', () => {
 		let body = await fs.readFile(join(dir, 'AGENTS.md'), 'utf8')
 		expect(body).toContain('Keep this.') // existing content preserved
 		expect(body).toContain('<!-- js-tooling:start -->')
-		expect(body).toContain('# js-tooling')
+		expect(body).toContain('# repo-tooling')
 
 		// re-run is idempotent — replaces the block, doesn't duplicate it
 		await fixCommand('agents-md', { directory: dir, yes: true })
@@ -582,7 +597,7 @@ describe('fix targeted', () => {
 		await fixCommand('copilot-instructions', { directory: dir, yes: true })
 		const body = await fs.readFile(join(dir, '.github', 'copilot-instructions.md'), 'utf8')
 		expect(body).toContain('<!-- js-tooling:start -->')
-		expect(body).toContain('# js-tooling')
+		expect(body).toContain('# repo-tooling')
 	})
 
 	it('fix verify --yes is a no-op when fewer than two tools are detectable', async () => {

@@ -46,7 +46,7 @@ npx @rtorcato/repo-tooling copy biome        # → biome.json
 npx @rtorcato/repo-tooling copy tsconfig     # → tsconfig.json
 npx @rtorcato/repo-tooling copy changesets   # → .changeset/config.json
 npx @rtorcato/repo-tooling copy oxlint       # → .oxlintrc.json
-npx @rtorcato/repo-tooling copy claude-skill # → .claude/skills/js-tooling.md
+npx @rtorcato/repo-tooling copy claude-skill # → .claude/skills/repo-tooling.md
 ```
 
 **Already have a project?** Don't rerun `setup` — use `doctor` + `fix`:
@@ -127,8 +127,8 @@ The package ships rules that teach AI coding agents to drive the CLI
 generated from one source, so guidance never drifts between them:
 
 ```bash
-npx @rtorcato/repo-tooling fix claude-skill --yes           # → .claude/skills/js-tooling.md
-npx @rtorcato/repo-tooling fix cursor-rules --yes           # → .cursor/rules/js-tooling.mdc
+npx @rtorcato/repo-tooling fix claude-skill --yes           # → .claude/skills/repo-tooling.md
+npx @rtorcato/repo-tooling fix cursor-rules --yes           # → .cursor/rules/repo-tooling.mdc
 npx @rtorcato/repo-tooling fix copilot-instructions --yes   # → .github/copilot-instructions.md
 npx @rtorcato/repo-tooling fix agents-md --yes              # → AGENTS.md
 ```
@@ -141,8 +141,8 @@ Prefer a symlink that auto-syncs the Claude skill on every upgrade?
 
 ```bash
 mkdir -p .claude/skills
-ln -sf ../../node_modules/@rtorcato/repo-tooling/tooling/claude/js-tooling.md \
-  .claude/skills/js-tooling.md
+ln -sf ../../node_modules/@rtorcato/repo-tooling/tooling/claude/repo-tooling.md \
+  .claude/skills/repo-tooling.md
 ```
 
 ### Use with Claude Code (plugin)
