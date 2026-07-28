@@ -199,6 +199,25 @@ describe('checkGitHubSettings — drift', () => {
 		expect(bp?.detail).toContain('typecheck')
 	})
 
+	it('accepts matrix status checks (`test (node 22)`) as satisfying `test`', async () => {
+		const protection = ok(
+			JSON.stringify({
+				required_status_checks: {
+					strict: false,
+					contexts: ['lint', 'typecheck', 'build', 'test (node 22)', 'test (node 24)'],
+				},
+				enforce_admins: { enabled: false },
+				allow_force_pushes: { enabled: false },
+				allow_deletions: { enabled: false },
+			})
+		)
+		const bp = byName(
+			await checkGitHubSettings(gitRepo(), fakeGh({ protection })),
+			'Branch protection'
+		)
+		expect(bp?.status).toBe('ok')
+	})
+
 	it('drifts when merge settings are off (from the repo probe)', async () => {
 		const repo = ok(
 			JSON.stringify({
@@ -212,6 +231,15 @@ describe('checkGitHubSettings — drift', () => {
 		const ms = byName(await checkGitHubSettings(gitRepo(), fakeGh({ repo })), 'Merge settings')
 		expect(ms?.status).toBe('drift')
 		expect(ms?.detail).toContain('auto-merge disabled')
+	})
+
+	it('skips (not drifts) when the token cannot see merge fields (no admin:read)', async () => {
+		// A read/write token (CI's default GITHUB_TOKEN) omits the merge booleans
+		// entirely — they must not be read as "disabled".
+		const repo = ok(JSON.stringify({ full_name: 'owner/repo', default_branch: 'main' }))
+		const ms = byName(await checkGitHubSettings(gitRepo(), fakeGh({ repo })), 'Merge settings')
+		expect(ms?.status).toBe('ok')
+		expect(ms?.detail).toContain('skipped')
 	})
 
 	it('drifts when default workflow permissions are write', async () => {

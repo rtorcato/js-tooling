@@ -124,6 +124,10 @@ interface RepoInfo {
 	autoMerge: boolean
 	squashMerge: boolean
 	deleteOnMerge: boolean
+	// The merge-setting booleans are only returned when the token has admin:read.
+	// A read/write token (e.g. CI's default GITHUB_TOKEN) omits them entirely, so
+	// we track visibility to skip the check rather than read `undefined` as "off".
+	mergeVisible: boolean
 }
 
 /**
@@ -151,6 +155,9 @@ async function probeRepo(exec: GhExec): Promise<{ info: RepoInfo } | { skip: str
 			autoMerge: d.allow_auto_merge === true,
 			squashMerge: d.allow_squash_merge === true,
 			deleteOnMerge: d.delete_branch_on_merge === true,
+			mergeVisible: ['allow_auto_merge', 'allow_squash_merge', 'delete_branch_on_merge'].every(
+				(k) => typeof d[k] === 'boolean'
+			),
 		},
 	}
 }
@@ -207,7 +214,11 @@ async function checkBranchProtection(
 
 	const deltas: string[] = []
 	const contexts: string[] = p.required_status_checks?.contexts ?? []
-	const missing = GITHUB_STANDARD.requiredContexts.filter((c) => !contexts.includes(c))
+	// A matrix job reports each leg as `test (node 22)`, `test (node 24)`, etc.
+	// Treat any `<ctx> (...)` variant as satisfying the bare `<ctx>` requirement,
+	// so matrix CIs aren't falsely flagged as missing the check.
+	const isSatisfied = (c: string) => contexts.some((ctx) => ctx === c || ctx.startsWith(`${c} (`))
+	const missing = GITHUB_STANDARD.requiredContexts.filter((c) => !isSatisfied(c))
 	if (missing.length) deltas.push(`missing required checks: ${missing.join(', ')}`)
 	if (p.required_status_checks?.strict === true)
 		deltas.push('strict status checks on (should be off)')
@@ -231,6 +242,9 @@ async function checkBranchProtection(
 
 function checkMergeSettings(info: RepoInfo): CheckResult {
 	const check = 'Merge settings'
+	// The token can't see the merge-setting fields (no admin:read) — skip rather
+	// than misreport the absent booleans as "disabled" (a false-positive drift).
+	if (!info.mergeVisible) return skip(check, 'token lacks admin:read for merge settings')
 	const deltas: string[] = []
 	if (!info.autoMerge) deltas.push('auto-merge disabled')
 	if (!info.squashMerge) deltas.push('squash-merge disabled')
