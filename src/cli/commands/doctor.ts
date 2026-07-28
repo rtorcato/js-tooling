@@ -160,28 +160,72 @@ function checkLockfile(lock: Lockfile | null): CheckResult {
 	}
 }
 
+// Lockfile-driven demotion: if the lock records an intentional opt-out for a
+// check that's currently optional-missing, demote it to ok with a clear detail.
+function demoteDeclined(results: CheckResult[], lock: Lockfile | null): CheckResult[] {
+	if (!lock) return results
+	return results.map((r) => {
+		if (r.status !== 'optional-missing') return r
+		if (!declinedInLock(lock, r.check)) return r
+		return {
+			check: r.check,
+			status: 'ok',
+			detail: 'intentionally declined (.repo-tooling.json)',
+		}
+	})
+}
+
+// The language-agnostic checks (src/base): repo hygiene, CI, security, and
+// GitHub repo-settings that apply to any repo regardless of language. Run for
+// every project; a supported language module layers its own checks on top.
+async function runBaseChecks(dir: string, lock: Lockfile | null): Promise<CheckResult[]> {
+	const results: CheckResult[] = []
+	results.push(checkLockfile(lock))
+	results.push(await checkEditorConfig(dir))
+	results.push(await checkGitHubActions(dir))
+	results.push(await checkDependabot(dir))
+	results.push(await checkCodeQL(dir))
+	// GitHub repo-settings drift (branch protection, merge settings, workflow
+	// permissions). Read-only; self-skips as `ok` outside a live GitHub repo.
+	results.push(...(await checkGitHubSettings(dir)))
+	results.push(await checkGitLabCI(dir))
+	results.push(await checkCodeowners(dir))
+	results.push(await checkCommunityHealth(dir))
+	results.push(await checkAiSetup(dir))
+	results.push(await checkCoverageUpload(dir))
+	return results
+}
+
 export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	const targetDir = path.resolve(dir)
 
-	// Seam: gate the whole JS check suite by detected language via the language
-	// registry (#280). An unsupported (Swift/Perl/Python) repo gets a single
-	// informative result instead of ~26 JS "missing" findings. 'unknown' (bare
-	// dir) resolves to JS — a fresh repo mid-setup still runs the full suite.
-	// ponytail: this is still the coarse gate; per-module dispatch is #285.
+	const lock = await readLockfile(targetDir)
+
+	// Per-module dispatch (#285): the base checks (repo hygiene, CI, security,
+	// GitHub settings) apply to any repo and run for every language. A supported
+	// module layers its own checks on top; an unsupported one (Swift/Perl/Python
+	// until their modules land) still gets the full base suite instead of the old
+	// wholesale skip. 'unknown' (bare dir mid-setup) resolves to JS so a fresh
+	// repo runs the full suite.
 	const language = await detectLanguage(targetDir)
 	const languageModule = resolveLanguageModule(language)
 	if (!languageModule.supported) {
-		return [
+		const results: CheckResult[] = [
 			{
 				check: 'language',
 				status: 'ok',
-				detail: `detected ${languageModule.label} project — ${PACKAGE} checks are JavaScript-focused and were skipped`,
+				detail: `detected ${languageModule.label} — running language-agnostic checks; ${languageModule.label}-specific checks land with its module (#139)`,
 			},
+			...(await runBaseChecks(targetDir, lock)),
 		]
+		return demoteDeclined(results, lock)
 	}
 
+	// JS suite. ponytail: JS is the only module carrying checks today, so its
+	// full (base + JS) suite stays inline here rather than behind a
+	// module.runChecks() seam with a single caller — unify when the second
+	// language module lands.
 	const pkg = await readPackageJson(targetDir)
-	const lock = await readLockfile(targetDir)
 	const results: CheckResult[] = []
 
 	results.push(evaluateNodeVersion(process.version))
@@ -234,21 +278,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 		results.push(await checkTailwind(targetDir, pkg))
 	}
 
-	// Lockfile-driven demotion: if the lock records an intentional opt-out for a
-	// check that's currently optional-missing, demote it to ok with a clear detail.
-	if (lock) {
-		return results.map((r) => {
-			if (r.status !== 'optional-missing') return r
-			if (!declinedInLock(lock, r.check)) return r
-			return {
-				check: r.check,
-				status: 'ok',
-				detail: 'intentionally declined (.repo-tooling.json)',
-			}
-		})
-	}
-
-	return results
+	return demoteDeclined(results, lock)
 }
 
 const STATUS_ICONS: Record<CheckStatus, string> = {
