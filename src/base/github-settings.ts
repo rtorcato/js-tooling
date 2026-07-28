@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process'
 import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
-import type { CheckResult } from '../commands/doctor.js'
+import type { CheckResult } from './types.js'
 
 /**
  * Machine-checks the GitHub side of the repo-tooling standard — branch
