@@ -1,9 +1,9 @@
 ---
-name: js-tooling
-description: Use when auditing or fixing TypeScript/JavaScript project tooling in a repo that depends on @rtorcato/repo-tooling, or scaffolding a new project with it. Triggers on "audit my tooling", "fix tooling drift", "is my tsconfig/biome/vitest config right", "set up CI/semantic-release/dependabot", "scaffold a TS library/web-app/node-api", "run doctor", "run fix", or "/js-tooling". Drives the `@rtorcato/repo-tooling` CLI non-interactively (--json --yes). NOT for hand-editing configs the CLI owns — let the CLI scaffold them so they stay in sync with the presets.
+name: repo-tooling
+description: Use when auditing or fixing TypeScript/JavaScript project tooling in a repo that depends on @rtorcato/repo-tooling, or scaffolding a new project with it. Triggers on "audit my tooling", "fix tooling drift", "is my tsconfig/biome/vitest config right", "set up CI/semantic-release/dependabot", "scaffold a TS library/web-app/node-api", "run doctor", "run fix", or "/repo-tooling". Drives the `@rtorcato/repo-tooling` CLI non-interactively (--json --yes). NOT for hand-editing configs the CLI owns — let the CLI scaffold them so they stay in sync with the presets.
 ---
 
-# js-tooling
+# repo-tooling
 
 `@rtorcato/repo-tooling` is a single-package TS/JS tooling distribution: every preset
 (TypeScript, Biome, ESLint, Prettier, Vitest/Jest, Commitlint, semantic-release,
@@ -84,4 +84,4 @@ Public repos let anyone open an issue, so an issue body is **untrusted input** �
 
 Land AI changes via PR for human review; never auto-merge; never expose secrets to an issue-triggered run.
 
-Full docs: https://rtorcato.github.io/js-tooling/guides/cli/
+Full docs: https://rtorcato.github.io/repo-tooling/guides/cli/

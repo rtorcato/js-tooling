@@ -8,7 +8,7 @@ import { installSkillsInstallDocs } from './skills-install.js'
  * Claude skill — so the guidance never drifts between agents. Only the
  * location and the frontmatter differ per agent.
  */
-const SOURCE = 'tooling/claude/js-tooling.md'
+const SOURCE = 'tooling/claude/repo-tooling.md'
 const BLOCK_START = '<!-- js-tooling:start -->'
 const BLOCK_END = '<!-- js-tooling:end -->'
 
@@ -96,11 +96,13 @@ export async function installAgentRules(targetDir: string, agent: AgentTarget): 
 	const { description, body } = await readSkill()
 	switch (agent) {
 		case 'cursor': {
-			const rel = path.join('.cursor', 'rules', 'js-tooling.mdc')
+			const rel = path.join('.cursor', 'rules', 'repo-tooling.mdc')
 			const file = path.join(targetDir, rel)
 			const frontmatter = `---\ndescription: ${description}\nglobs:\nalwaysApply: false\n---\n\n`
 			await fs.ensureDir(path.dirname(file))
 			await fs.writeFile(file, `${frontmatter}${body}\n`)
+			// Remove the pre-rename rule so a re-run migrates it instead of leaving both.
+			await fs.remove(path.join(targetDir, '.cursor', 'rules', 'js-tooling.mdc'))
 			return rel
 		}
 		case 'copilot': {

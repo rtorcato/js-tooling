@@ -256,9 +256,9 @@ export function computeFileList(config: ProjectConfig): string[] {
 		files.push(
 			'AGENTS.md',
 			'CLAUDE.md',
-			'.cursor/rules/js-tooling.mdc',
+			'.cursor/rules/repo-tooling.mdc',
 			'.github/copilot-instructions.md',
-			'.claude/skills/js-tooling.md',
+			'.claude/skills/repo-tooling.md',
 			'.mcp.json.example'
 		)
 	}

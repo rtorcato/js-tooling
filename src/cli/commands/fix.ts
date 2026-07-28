@@ -907,9 +907,9 @@ const FIXERS: Fixer[] = [
 		outputs: [
 			'AGENTS.md',
 			'CLAUDE.md',
-			'.cursor/rules/js-tooling.mdc',
+			'.cursor/rules/repo-tooling.mdc',
 			'.github/copilot-instructions.md',
-			'.claude/skills/js-tooling.md',
+			'.claude/skills/repo-tooling.md',
 			'.mcp.json.example',
 			// Only written when the repo ships its own skills/<name>/SKILL.md.
 			'README.md',
@@ -927,7 +927,7 @@ const FIXERS: Fixer[] = [
 		target: 'claude-skill',
 		description: 'Install the repo-tooling Claude Code skill into .claude/skills/',
 		appliesTo: ['Claude skill'],
-		outputs: ['.claude/skills/js-tooling.md'],
+		outputs: ['.claude/skills/repo-tooling.md'],
 		riskLevel: 'safe-add',
 		canFixDrift: true,
 		async run({ targetDir }) {
@@ -937,9 +937,9 @@ const FIXERS: Fixer[] = [
 	},
 	{
 		target: 'cursor-rules',
-		description: 'Install the repo-tooling rules for Cursor (.cursor/rules/js-tooling.mdc)',
+		description: 'Install the repo-tooling rules for Cursor (.cursor/rules/repo-tooling.mdc)',
 		appliesTo: ['Cursor rules'],
-		outputs: ['.cursor/rules/js-tooling.mdc'],
+		outputs: ['.cursor/rules/repo-tooling.mdc'],
 		riskLevel: 'safe-add',
 		canFixDrift: true,
 		async run({ targetDir }) {

@@ -19,6 +19,8 @@ export interface PresetDefinition {
 	source: string
 	target: string
 	desc: string
+	/** Pre-rename path removed after a successful copy, so consumers migrate cleanly. */
+	legacyTarget?: string
 }
 
 export const PRESETS: Record<PresetName, PresetDefinition> = {
@@ -58,9 +60,10 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		desc: 'TypeScript base configuration',
 	},
 	'claude-skill': {
-		source: 'tooling/claude/js-tooling.md',
-		target: '.claude/skills/js-tooling.md',
+		source: 'tooling/claude/repo-tooling.md',
+		target: '.claude/skills/repo-tooling.md',
 		desc: 'Claude Code skill for driving the repo-tooling CLI',
+		legacyTarget: '.claude/skills/js-tooling.md',
 	},
 	'mcp-example': {
 		source: 'tooling/mcp/mcp.json.example',
@@ -106,6 +109,12 @@ export async function copyPreset(
 	const targetPath = path.join(targetDir, preset.target)
 
 	await fs.copy(sourcePath, targetPath)
+
+	// Remove the pre-rename artifact so a re-run migrates it instead of leaving both.
+	if (preset.legacyTarget) {
+		const legacyPath = path.join(targetDir, preset.legacyTarget)
+		if (legacyPath !== targetPath) await fs.remove(legacyPath)
+	}
 
 	return {
 		source: preset.source,

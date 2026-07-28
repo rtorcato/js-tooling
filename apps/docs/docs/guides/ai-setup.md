@@ -8,7 +8,7 @@ every agent (Claude Code, Cursor, GitHub Copilot, or anything that reads
 `AGENTS.md`) gets the same guidance for driving this project's tooling.
 
 All of it derives from **one source of truth** — the shipped Claude skill
-(`tooling/claude/js-tooling.md`) — so the rules never drift between tools.
+(`tooling/claude/repo-tooling.md`) — so the rules never drift between tools.
 
 ## What gets written
 
@@ -16,9 +16,9 @@ All of it derives from **one source of truth** — the shipped Claude skill
 | --- | --- | --- |
 | `AGENTS.md` | The cross-tool standard | Merge-safe delimited block |
 | `CLAUDE.md` | Claude Code | Pointer: `@AGENTS.md` (no duplication) |
-| `.cursor/rules/js-tooling.mdc` | Cursor | Generated rule file |
+| `.cursor/rules/repo-tooling.mdc` | Cursor | Generated rule file |
 | `.github/copilot-instructions.md` | GitHub Copilot | Merge-safe delimited block |
-| `.claude/skills/js-tooling.md` | Claude Code skill | Copied verbatim |
+| `.claude/skills/repo-tooling.md` | Claude Code skill | Copied verbatim |
 | `.mcp.json.example` | Model Context Protocol | Commented template (see below) |
 | `README.md` | Your repo's own skills | Merge-safe block, only if this repo ships `skills/<name>/SKILL.md` |
 

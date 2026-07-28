@@ -1377,7 +1377,10 @@ async function checkAiSetup(dir: string): Promise<CheckResult> {
 	const hasAgentsBlock =
 		(await fs.pathExists(agentsPath)) &&
 		(await fs.readFile(agentsPath, 'utf8')).includes('<!-- js-tooling:start -->')
-	const hasSkill = await fs.pathExists(path.join(dir, '.claude', 'skills', 'js-tooling.md'))
+	const hasSkill =
+		(await fs.pathExists(path.join(dir, '.claude', 'skills', 'repo-tooling.md'))) ||
+		// Pre-rename name — still counts as present until `fix` migrates it.
+		(await fs.pathExists(path.join(dir, '.claude', 'skills', 'js-tooling.md')))
 	if (hasAgentsBlock || hasSkill) {
 		return {
 			check: 'AI setup',
