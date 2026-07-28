@@ -1096,4 +1096,31 @@ describe('doctor README badges check', () => {
 		const r = results.find((c) => c.check === 'VS Code extensions')
 		expect(r?.status).toBe('ok')
 	})
+
+	// Per-module dispatch (#285): a non-JS repo runs the language-agnostic base
+	// checks instead of the old single "skipped" note, and none of the JS suite.
+	it('runs base checks (not the JS suite) for a non-JS language', async () => {
+		const dir = newTmpDir()
+		await fs.writeFile(join(dir, 'Package.swift'), '// swift-tools-version:5.9\n')
+		await fs.writeFile(join(dir, '.editorconfig'), 'root = true\n')
+
+		const results = await runDoctor(dir)
+		const checks = new Set(results.map((r) => r.check))
+
+		// friendly language note, not a wholesale skip
+		expect(results.length).toBeGreaterThan(1)
+		const lang = results.find((r) => r.check === 'language')
+		expect(lang?.status).toBe('ok')
+		expect(lang?.detail).toContain('Swift')
+
+		// base checks run
+		expect(results.find((r) => r.check === 'EditorConfig')?.status).toBe('ok')
+		expect(checks.has('GitLab CI')).toBe(true)
+		expect(checks.has('CODEOWNERS')).toBe(true)
+
+		// JS-specific checks are absent
+		expect(checks.has('package.json')).toBe(false)
+		expect(checks.has('TypeScript')).toBe(false)
+		expect(checks.has('Node')).toBe(false)
+	})
 })
