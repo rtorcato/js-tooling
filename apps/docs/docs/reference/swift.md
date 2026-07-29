@@ -94,7 +94,34 @@ DerivedData/
 
 `.build` and `DerivedData` are the ones that matter — a single stray commit of either adds hundreds of megabytes to the repo's history.
 
+## CI
+
+```bash
+npx @rtorcato/repo-tooling fix swift-ci          # .github/workflows/ci.yml
+npx @rtorcato/repo-tooling fix swift-codeql      # .github/workflows/codeql.yml
+npx @rtorcato/repo-tooling fix swift-gitlab-ci   # .gitlab-ci.yml
+```
+
+The workflow is derived from `Package.swift` — there's no config object to fill in.
+
+| Job | Runner | What it does |
+|---|---|---|
+| `build-test` | `macos-latest` | `swift build` + `swift test`, with a SwiftPM cache keyed on `Package.resolved` |
+| `lint` | `macos-latest` | `swiftlint lint --strict` |
+| `dead-code` | `macos-latest` | `periphery scan --strict`, `continue-on-error` |
+| `platforms` | `macos-latest` | `xcodebuild` per declared platform |
+
+The `platforms` matrix is emitted only when the manifest declares both a `platforms:` clause and a library product (the product name becomes the xcodebuild scheme). A server-side or CLI package with neither gets `build-test` + `lint` + `dead-code` and nothing else — `xcodebuild` against a package with no deployment targets has nothing to build.
+
+`dead-code` is emitted unconditionally and always as `continue-on-error`. An established codebase almost always has unused declarations on day one, and a permanently red job trains people to ignore CI; drop the flag once the repo is clean.
+
+CodeQL uses `language: swift` rather than the JS matrix.
+
+### GitLab
+
+GitLab runs Swift in the official Linux image (`swift:6.0`), which has no Xcode — so `.gitlab-ci.yml` covers the Linux-portable half only, `swift build` then `swift test`. No SwiftLint, no platform matrix.
+
 ## What isn't covered yet
 
-- **CI generation.** `.github/workflows/ci.yml` for Swift (plus `language: swift` in the CodeQL matrix) lands in [#287](https://github.com/rtorcato/repo-tooling/issues/287).
-- **Language-agnostic fixers.** `doctor` reports base findings (Dependabot, CodeQL, CODEOWNERS, community health) on a Swift repo, but `fix` reports them as `unsupported` — those fixers still live in the JS module and haven't been split out yet.
+- **Language-agnostic fixers.** `doctor` reports base findings (Dependabot, CODEOWNERS, community health) on a Swift repo, but `fix` reports them as `unsupported` — those fixers still live in the JS module and haven't been split out. Tracked in [#303](https://github.com/rtorcato/repo-tooling/issues/303).
+- **Dependabot.** The generated config uses `package-ecosystem: npm`; a Swift repo wants `swift`. Part of #303.
