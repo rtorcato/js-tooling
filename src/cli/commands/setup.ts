@@ -2,7 +2,9 @@ import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
+import { LANGUAGES, type LanguageModule } from '../../languages/registry.js'
 import { generateConfigs } from '../generators/index.js'
+import { detectLanguage } from '../utils/detect-language.js'
 import { formatGeneratedFiles } from '../utils/format.js'
 import { installDependencies } from '../utils/install.js'
 import { LOCKFILE_NAME, writeLockfile } from '../utils/lockfile.js'
@@ -79,7 +81,8 @@ export interface SetupOptions {
 	configSchema?: boolean
 }
 
-async function resolveConfig(options: SetupOptions): Promise<ProjectConfig> {
+/** `null` means the run was declined, not that it failed — see promptForConfig. */
+async function resolveConfig(options: SetupOptions): Promise<ProjectConfig | null> {
 	if (options.config && options.preset) {
 		console.warn(chalk.yellow('⚠️  Both --config and --preset given; --config wins.\n'))
 	}
@@ -131,6 +134,10 @@ export async function setupProject(options: SetupOptions) {
 	try {
 		await fs.ensureDir(targetDir)
 		const config = await resolveConfig(options)
+		// The language picker bails out for a language whose module hasn't landed
+		// yet. It has already explained why — scaffolding a JS project into a Swift
+		// repo would be worse than doing nothing.
+		if (config === null) return
 
 		if (dryRun) {
 			const files = computeFileList(config)
@@ -163,7 +170,60 @@ export async function setupProject(options: SetupOptions) {
 	}
 }
 
-async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
+/**
+ * Ask which language this repo is, defaulting to whatever the target dir looks
+ * like. Languages without a module yet are still offered — hiding them reads as
+ * "repo-tooling is JS-only" when the honest answer is "not yet" (#139).
+ */
+async function promptForLanguage(targetDir: string): Promise<LanguageModule> {
+	const detected = await detectLanguage(targetDir)
+	const { language } = await inquirer.prompt([
+		{
+			type: 'list',
+			name: 'language',
+			message: '🗣️  What is the primary language of this repo?',
+			choices: Object.values(LANGUAGES).map((module) => ({
+				name: module.supported ? module.label : `${module.label} (setup lands with its module)`,
+				value: module.id,
+			})),
+			// 'unknown' is a bare dir mid-setup — JS is the historical default.
+			default: detected === 'unknown' ? 'js' : detected,
+		},
+	])
+	return LANGUAGES[language as LanguageModule['id']]
+}
+
+function explainUnsupported(module: LanguageModule) {
+	console.log(chalk.yellow(`\n⚠️  ${module.label} scaffolding isn't available yet.\n`))
+	console.log(
+		chalk.gray(
+			`   doctor and fix already cover ${module.label} repos with the language-agnostic\n` +
+				'   checks (CI, CodeQL, Dependabot, GitHub repo settings):\n'
+		)
+	)
+	console.log(chalk.gray('     npx @rtorcato/repo-tooling doctor\n'))
+	console.log(
+		chalk.gray(
+			`   ${module.label} presets land with its language module — track the work at\n` +
+				'   https://github.com/rtorcato/repo-tooling/issues/139\n'
+		)
+	)
+}
+
+/** `null` when the chosen language has no scaffolding yet; nothing is written. */
+async function promptForConfig(targetDir: string): Promise<ProjectConfig | null> {
+	const language = await promptForLanguage(targetDir)
+
+	// An allowlist, not a `module.supported` check: `supported` flips when Swift's
+	// doctor/fix module lands (#286), which is earlier than its *scaffolding*
+	// (#288). Keying off it would fall through to the JS question list and write
+	// a package.json into a Swift repo. Bailing out is the safe default; #288
+	// adds the swift branch here deliberately.
+	if (language.id !== 'js') {
+		explainUnsupported(language)
+		return null
+	}
+
 	// Turborepo only makes sense in a pnpm-workspace monorepo, so the prompt is
 	// only offered when one is already present in the target dir.
 	const hasWorkspace = await fs.pathExists(path.join(targetDir, 'pnpm-workspace.yaml'))
@@ -393,9 +453,9 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig> {
 
 	return {
 		projectName: answers.projectName,
-		// v1 of the setup wizard scaffolds JS/TS repos only; the field exists so
-		// doctor/fix can gate by language (#139). No prompt yet — always 'js'.
-		language: 'js',
+		// The real answer from the language question above, not a hardcoded 'js'
+		// (#284) — the lockfile is what doctor/fix gate on later.
+		language: language.id,
 		projectType: answers.projectType,
 		typescript: {
 			enabled: answers.useTypeScript || false,

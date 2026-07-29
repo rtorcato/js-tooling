@@ -1,5 +1,6 @@
 import { join } from 'node:path'
 import fs from 'fs-extra'
+import inquirer from 'inquirer'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { setupProject } from '../../../src/cli/commands/setup.js'
 import {
@@ -285,5 +286,109 @@ describe('setup --config', () => {
 			exitSpy.mockRestore()
 			errSpy.mockRestore()
 		}
+	})
+})
+
+// The interactive path (#284). `prompt` is called once for the language, then
+// once for the JS question list — queue an answer per call.
+describe('setup language prompt', () => {
+	function mockPrompt(...answers: Array<Record<string, unknown>>) {
+		const spy = vi.spyOn(inquirer, 'prompt')
+		for (const answer of answers) {
+			spy.mockImplementationOnce((async () => answer) as never)
+		}
+		return spy
+	}
+
+	const JS_ANSWERS = {
+		projectName: 'demo',
+		projectType: 'library',
+		useTypeScript: true,
+		tsConfig: 'base',
+		lintingTool: 'biome',
+		testingFramework: 'vitest',
+		gitHooks: false,
+		commitLint: false,
+		releaseTool: 'none',
+		securityAutomation: false,
+		aiSetup: false,
+		badges: false,
+		bundler: 'none',
+	}
+
+	beforeEach(() => {
+		vi.restoreAllMocks()
+	})
+
+	it('defaults to the language detected in the target directory', async () => {
+		const dir = newTmpDir()
+		await fs.writeFile(join(dir, 'Package.swift'), '// swift-tools-version:6.0\n')
+		const spy = mockPrompt({ language: 'swift' })
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await setupProject({ directory: dir, skipInstall: true })
+			const question = (spy.mock.calls[0]?.[0] as Array<Record<string, unknown>>)[0]
+			expect(question.name).toBe('language')
+			expect(question.default).toBe('swift')
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('falls back to js for a directory with no language marker', async () => {
+		const dir = newTmpDir()
+		const spy = mockPrompt({ language: 'perl' })
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await setupProject({ directory: dir, skipInstall: true })
+			const question = (spy.mock.calls[0]?.[0] as Array<Record<string, unknown>>)[0]
+			expect(question.default).toBe('js')
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('offers every registered language, flagging the ones without a module', async () => {
+		const dir = newTmpDir()
+		const spy = mockPrompt({ language: 'js' }, JS_ANSWERS)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await setupProject({ directory: dir, skipInstall: true })
+			const question = (spy.mock.calls[0]?.[0] as Array<Record<string, unknown>>)[0]
+			const choices = question.choices as Array<{ name: string; value: string }>
+			expect(choices.map((c) => c.value)).toEqual(['js', 'swift', 'python', 'perl'])
+			expect(choices.find((c) => c.value === 'js')?.name).not.toMatch(/lands with/)
+			expect(choices.find((c) => c.value === 'swift')?.name).toMatch(/lands with its module/)
+		} finally {
+			logSpy.mockRestore()
+		}
+	})
+
+	it('writes nothing and points at doctor when the language has no module yet', async () => {
+		const dir = newTmpDir()
+		mockPrompt({ language: 'swift' })
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await setupProject({ directory: dir, skipInstall: true })
+			const output = logSpy.mock.calls.map((c) => String(c[0])).join('\n')
+			expect(output).toMatch(/Swift scaffolding isn't available yet/)
+			expect(output).toMatch(/doctor/)
+		} finally {
+			logSpy.mockRestore()
+		}
+		expect(await fs.readdir(dir)).toEqual([])
+	})
+
+	it('records the chosen language in the lockfile instead of a hardcoded js', async () => {
+		const dir = newTmpDir()
+		mockPrompt({ language: 'js' }, JS_ANSWERS)
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await setupProject({ directory: dir, skipInstall: true })
+		} finally {
+			logSpy.mockRestore()
+		}
+		const lock = await fs.readJson(join(dir, '.repo-tooling.json'))
+		expect(lock.config.language).toBe('js')
 	})
 })

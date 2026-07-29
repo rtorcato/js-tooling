@@ -36,6 +36,7 @@ $ npx @rtorcato/repo-tooling setup
 
 Setting up tooling in: /home/user/my-lib
 
+? 🗣️  What is the primary language of this repo? JavaScript/TypeScript
 ? 📦 What is your project name? my-lib
 ? 🏗️  What type of project are you building? 📚 Library/Package
 ? 📘 Do you want to use TypeScript? Yes
@@ -67,6 +68,7 @@ Running `setup` (or its alias `init`) launches an interactive wizard:
 
 | Prompt | Options |
 |---|---|
+| Primary language | `js` (default), `swift`, `python`, `perl` — defaults to whatever the directory looks like |
 | Project name | defaults to directory name |
 | Project type | `library`, `web-app`, `node-api`, `nextjs-app`, `react-app` |
 | TypeScript? | yes/no |
@@ -82,6 +84,10 @@ Running `setup` (or its alias `init`) launches an interactive wizard:
 | Bundler | `tsup`, `esbuild`, `vite` *(web apps)*, `none` |
 
 A universal baseline (`.editorconfig`, `.nvmrc`, `engines.node`, `knip.json`, `.vscode/extensions.json`) is scaffolded automatically — no prompt — because these are safe defaults for every project.
+
+:::note Non-JS languages
+Only JavaScript/TypeScript has scaffolding today. Picking Swift, Python or Perl writes nothing and points you at `doctor`, which already audits those repos against the language-agnostic checks (CI, CodeQL, Dependabot, GitHub repo settings). Presets for the other languages land with their language modules — see [#139](https://github.com/rtorcato/repo-tooling/issues/139).
+:::
 
 ## Non-interactive setup (CI / scripts)
 
