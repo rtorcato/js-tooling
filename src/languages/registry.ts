@@ -17,6 +17,12 @@ export interface LanguageModule {
 	/** CodeQL language identifiers for this language's code-scanning matrix (#287). */
 	codeqlLanguages: readonly string[]
 	/**
+	 * Dependabot `package-ecosystem` for this language's manifests, or null when
+	 * Dependabot has no support for it (Perl/CPAN). Null still gets the
+	 * github-actions update block — that one applies to any repo with workflows.
+	 */
+	dependabotEcosystem: string | null
+	/**
 	 * Whether repo-tooling's doctor/fix suite covers this language yet. Only JS
 	 * today; Swift/Python/Perl flip to `true` as their modules land (#286/#290/#289).
 	 * The coarse doctor gate keys off this until per-module dispatch (#285).
@@ -29,11 +35,30 @@ export const LANGUAGES: Record<LanguageModule['id'], LanguageModule> = {
 		id: 'js',
 		label: 'JavaScript/TypeScript',
 		codeqlLanguages: ['javascript-typescript'],
+		dependabotEcosystem: 'npm',
 		supported: true,
 	},
-	swift: { id: 'swift', label: 'Swift', codeqlLanguages: ['swift'], supported: true },
-	python: { id: 'python', label: 'Python', codeqlLanguages: ['python'], supported: false },
-	perl: { id: 'perl', label: 'Perl', codeqlLanguages: [], supported: false },
+	swift: {
+		id: 'swift',
+		label: 'Swift',
+		codeqlLanguages: ['swift'],
+		dependabotEcosystem: 'swift',
+		supported: true,
+	},
+	python: {
+		id: 'python',
+		label: 'Python',
+		codeqlLanguages: ['python'],
+		dependabotEcosystem: 'pip',
+		supported: false,
+	},
+	perl: {
+		id: 'perl',
+		label: 'Perl',
+		codeqlLanguages: [],
+		dependabotEcosystem: null,
+		supported: false,
+	},
 }
 
 /**

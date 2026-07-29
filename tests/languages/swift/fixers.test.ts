@@ -2,9 +2,11 @@ import fs from 'fs-extra'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { runDoctor } from '../../../src/cli/commands/doctor.js'
+import { BASE_FIXERS } from '../../../src/base/fixers.js'
 import { FIXERS } from '../../../src/languages/js/fixers.js'
 import { checkSwiftGitignore } from '../../../src/languages/swift/checks.js'
-import { SWIFT_FIXERS, ensureSwiftGitignore } from '../../../src/languages/swift/fixers.js'
+import { SWIFT_FIXERS } from '../../../src/languages/swift/fixers.js'
+import { ensureSwiftGitignore } from '../../../src/languages/swift/gitignore.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
@@ -37,10 +39,26 @@ describe('swift fixers', () => {
 		}
 	})
 
-	it('uses target names that do not collide with the JS fixer set', () => {
+	it('uses target names that do not collide with the JS or base fixer sets', () => {
 		// `fix --list` shows every language's fixers in one list.
-		const jsTargets = new Set(FIXERS.map((f) => f.target))
-		for (const f of SWIFT_FIXERS) expect(jsTargets).not.toContain(f.target)
+		const taken = new Set([...FIXERS, ...BASE_FIXERS].map((f) => f.target))
+		for (const f of SWIFT_FIXERS) expect(taken).not.toContain(f.target)
+	})
+
+	// The bug behind #303: doctor reported the base findings on a Swift repo but
+	// `fix` returned `unsupported` for every one of them, because only the Swift
+	// module's fixers were in play.
+	it('base + Swift fixers cover every check doctor emits for a Swift repo', async () => {
+		const dir = newTmpDir()
+		await fs.writeFile(join(dir, 'Package.swift'), '// swift-tools-version: 5.9\n')
+		const fixable = new Set([...BASE_FIXERS, ...SWIFT_FIXERS].flatMap((f) => f.appliesTo))
+		const uncovered = (await runDoctor(dir))
+			.map((r) => r.check)
+			.filter((check) => !fixable.has(check))
+		// `language` and `Package.swift` are informational (scaffolding a manifest
+		// is `setup`'s job); `Coverage upload` is a base check only the JS CI
+		// generator satisfies, so Swift has nothing to apply for it.
+		expect(uncovered).toEqual(['language', 'Coverage upload', 'Package.swift'])
 	})
 
 	it('swiftlint writes a config the SwiftLint check accepts', async () => {

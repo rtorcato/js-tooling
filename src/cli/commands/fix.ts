@@ -16,28 +16,23 @@ import type { CheckResult } from './doctor.js'
 import { runDoctor } from './doctor.js'
 import { declinedInLock, lockfilePatchForTarget } from './fix-targets.js'
 import { computeFileList } from './setup-presets.js'
-import type { Fixer, FixRiskLevel, Pkg } from '../../base/fixers.js'
+import { BASE_FIXERS, type Fixer, type FixRiskLevel, type Pkg } from '../../base/fixers.js'
 import { FIXERS, readPackageJson } from '../../languages/js/fixers.js'
 import { SWIFT_FIXERS } from '../../languages/swift/fixers.js'
 import { detectLanguage } from '../utils/detect-language.js'
 
 /**
- * The fixers that apply to a repo, by detected language (#286). Swift repos get
- * the Swift set; everything else (including a bare dir mid-setup) gets JS, the
+ * The fixers that apply to a repo, by detected language (#286, #303): the
+ * language-agnostic base set plus the module's own. Swift repos get the Swift
+ * module; everything else (including a bare dir mid-setup) gets JS, the
  * historical default.
- *
- * ponytail: no base/language split yet. Most of the JS set is *actually*
- * language-agnostic (dependabot, codeql, codeowners, community-health, …), so a
- * Swift repo currently sees those checks from doctor but can't fix them. That
- * move is the fixer sibling of #282 and gets its own issue rather than riding
- * along here.
  */
 function fixersForLanguage(language: string): Fixer[] {
-	return language === 'swift' ? SWIFT_FIXERS : FIXERS
+	return [...BASE_FIXERS, ...(language === 'swift' ? SWIFT_FIXERS : FIXERS)]
 }
 
 /** Every fixer across every language — for `--list` and the unknown-target hint. */
-const ALL_FIXERS: Fixer[] = [...FIXERS, ...SWIFT_FIXERS]
+const ALL_FIXERS: Fixer[] = [...BASE_FIXERS, ...FIXERS, ...SWIFT_FIXERS]
 
 export interface FixOptions {
 	directory?: string

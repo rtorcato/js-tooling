@@ -20,7 +20,7 @@ import { generateCodeQLWorkflow, generateDependabotConfig } from '../../cli/gene
 import { copyPreset } from '../../cli/utils/copy-preset.js'
 import { LANGUAGES } from '../registry.js'
 import { readSwiftPackage, renderSwiftWorkflow } from './ci.js'
-import { ensureSwiftGitignore } from './fixers.js'
+import { ensureSwiftGitignore } from './gitignore.js'
 
 /**
  * Turn a repo name into a Swift module name: `my-swift-lib` → `MySwiftLib`.
@@ -245,7 +245,7 @@ export async function generateSwiftProject(config: ProjectConfig, targetDir: str
 	)
 
 	if (config.securityAutomation) {
-		await generateDependabotConfig(targetDir)
+		await generateDependabotConfig(targetDir, LANGUAGES.swift.dependabotEcosystem)
 		await generateCodeQLWorkflow(targetDir, LANGUAGES.swift.codeqlLanguages)
 	}
 
