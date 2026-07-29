@@ -23,10 +23,12 @@ export async function generateGitHubActions(config: ProjectConfig, targetDir: st
 	const workflowsDir = path.join(targetDir, '.github', 'workflows')
 	await fs.ensureDir(workflowsDir)
 
-	// ponytail: JS is the only module with CI steps today, so its jobs are
-	// imported directly rather than resolved through the registry. The dispatch
-	// lands with the second implementation (Swift, #287) — one caller behind a
-	// module.githubJobs() seam would be scaffolding for nobody.
+	// This is the JS path specifically. Swift (#287) renders its own workflow
+	// from `src/languages/swift/ci.ts` rather than dispatching through here: it
+	// takes no ProjectConfig at all (its jobs derive from Package.swift), so a
+	// shared entry point would mean inventing a fake config to pass in. Both
+	// paths meet at renderGitHubWorkflow() in src/base/ci.ts, which is the seam
+	// that actually matters.
 	const workflow = renderGitHubWorkflow(githubJobs(config))
 	await fs.writeFile(path.join(workflowsDir, 'ci.yml'), workflow)
 

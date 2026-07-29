@@ -18,6 +18,8 @@ const SKIP_GUARD = "needs.check-skip.outputs.should-skip != 'true'"
 export interface CiJob {
 	/** YAML job id (`lint`, `build`, …). */
 	id: string
+	/** Runner label. Swift needs macOS for Xcode; everything else is happy on Linux. */
+	runsOn?: string
 	/** Jobs this one waits on. `check-skip` is appended automatically. */
 	needs?: readonly string[]
 	/** Extra condition ANDed with the skip gate. */
@@ -71,7 +73,7 @@ function renderJob(job: CiJob): string {
 	const condition = job.if ? `${SKIP_GUARD} && ${job.if}` : SKIP_GUARD
 
 	return `  ${job.id}:
-    runs-on: ubuntu-latest
+    runs-on: ${job.runsOn ?? 'ubuntu-latest'}
     needs: ${needsYaml}
     if: ${condition}
 ${job.extra ? `${job.extra}\n` : ''}    steps:

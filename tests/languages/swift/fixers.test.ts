@@ -1,6 +1,8 @@
 import fs from 'fs-extra'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { runDoctor } from '../../../src/cli/commands/doctor.js'
+import { FIXERS } from '../../../src/languages/js/fixers.js'
 import { checkSwiftGitignore } from '../../../src/languages/swift/checks.js'
 import { SWIFT_FIXERS, ensureSwiftGitignore } from '../../../src/languages/swift/fixers.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
@@ -21,11 +23,24 @@ const ctx = (targetDir: string) => ({
 })
 
 describe('swift fixers', () => {
-	it('every fixer resolves a check the Swift module actually emits', () => {
-		const emitted = ['SwiftLint', 'Periphery', 'Swift .gitignore']
+	// A fixer whose appliesTo doesn't match a real check name is dead code: `fix`
+	// looks fixers up by check, so it would simply never run. Derive the valid
+	// names from doctor itself rather than hardcoding them.
+	it('every fixer resolves a check doctor actually emits for a Swift repo', async () => {
+		const dir = newTmpDir()
+		await fs.writeFile(join(dir, 'Package.swift'), '// swift-tools-version: 5.9\n')
+		const emitted = new Set((await runDoctor(dir)).map((r) => r.check))
 		for (const f of SWIFT_FIXERS) {
-			for (const check of f.appliesTo) expect(emitted).toContain(check)
+			for (const check of f.appliesTo) {
+				expect(emitted, `${f.target} → ${check}`).toContain(check)
+			}
 		}
+	})
+
+	it('uses target names that do not collide with the JS fixer set', () => {
+		// `fix --list` shows every language's fixers in one list.
+		const jsTargets = new Set(FIXERS.map((f) => f.target))
+		for (const f of SWIFT_FIXERS) expect(jsTargets).not.toContain(f.target)
 	})
 
 	it('swiftlint writes a config the SwiftLint check accepts', async () => {

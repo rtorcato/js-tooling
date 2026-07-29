@@ -4,7 +4,10 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 import type { Fixer } from '../../base/fixers.js'
+import { generateCodeQLWorkflow } from '../../cli/generators/security.js'
 import { copyPreset } from '../../cli/utils/copy-preset.js'
+import { LANGUAGES } from '../registry.js'
+import { readSwiftPackage, renderSwiftGitLabCI, renderSwiftWorkflow } from './ci.js'
 
 /**
  * The Swift build artefacts that must stay out of git. Appended to an existing
@@ -81,6 +84,42 @@ export const SWIFT_FIXERS: Fixer[] = [
 		canFixDrift: true,
 		async run({ targetDir }) {
 			return { filesWritten: await ensureSwiftGitignore(targetDir) }
+		},
+	},
+	{
+		target: 'swift-ci',
+		description:
+			'Scaffold .github/workflows/ci.yml for Swift (macOS runners: swift build/test, SwiftLint, xcodebuild per platform)',
+		appliesTo: ['GitHub Actions'],
+		outputs: ['.github/workflows/ci.yml'],
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const workflowsDir = path.join(targetDir, '.github', 'workflows')
+			await fs.ensureDir(workflowsDir)
+			const workflow = renderSwiftWorkflow(await readSwiftPackage(targetDir))
+			await fs.writeFile(path.join(workflowsDir, 'ci.yml'), workflow)
+			return { filesWritten: ['.github/workflows/ci.yml'] }
+		},
+	},
+	{
+		target: 'swift-gitlab-ci',
+		description: 'Scaffold .gitlab-ci.yml for Swift (swift build + test on the Linux Swift image)',
+		appliesTo: ['GitLab CI'],
+		outputs: ['.gitlab-ci.yml'],
+		canFixDrift: true,
+		async run({ targetDir }) {
+			await fs.writeFile(path.join(targetDir, '.gitlab-ci.yml'), renderSwiftGitLabCI())
+			return { filesWritten: ['.gitlab-ci.yml'] }
+		},
+	},
+	{
+		target: 'swift-codeql',
+		description: 'Scaffold .github/workflows/codeql.yml with `language: swift`',
+		appliesTo: ['CodeQL'],
+		outputs: ['.github/workflows/codeql.yml'],
+		async run({ targetDir }) {
+			const filesWritten = await generateCodeQLWorkflow(targetDir, LANGUAGES.swift.codeqlLanguages)
+			return { filesWritten }
 		},
 	},
 ]
