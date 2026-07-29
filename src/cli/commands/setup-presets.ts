@@ -1,6 +1,13 @@
+import { swiftFileList } from '../../languages/swift/scaffold.js'
 import type { ProjectConfig } from './setup.js'
 
-export type PresetName = 'library' | 'web-app' | 'node-api' | 'nextjs-app' | 'react-app'
+export type PresetName =
+	| 'library'
+	| 'web-app'
+	| 'node-api'
+	| 'nextjs-app'
+	| 'react-app'
+	| 'swift-library'
 
 export const PRESET_NAMES: readonly PresetName[] = [
 	'library',
@@ -8,6 +15,7 @@ export const PRESET_NAMES: readonly PresetName[] = [
 	'node-api',
 	'nextjs-app',
 	'react-app',
+	'swift-library',
 ] as const
 
 const BASE: Omit<ProjectConfig, 'projectName' | 'projectType' | 'typescript' | 'bundler'> = {
@@ -70,6 +78,35 @@ export function buildPresetConfig(name: PresetName, projectName: string): Projec
 				typescript: { enabled: true, config: 'react' },
 				testing: { framework: 'vitest', environment: 'browser' },
 				bundler: 'vite',
+			}
+		// A SwiftPM library (#288). Deliberately not spread from BASE: every one
+		// of its tool choices names a JS tool. The JS-shaped fields below are all
+		// "no JS tool", which is not the same as "no tooling" — SwiftLint,
+		// Periphery and `swift test` are wired unconditionally by the Swift
+		// scaffolder, because unlike the JS path there's nothing to choose
+		// between. They're set explicitly because ProjectConfig requires them and
+		// the lockfile records them.
+		case 'swift-library':
+			return {
+				projectName,
+				language: 'swift',
+				projectType: 'library',
+				typescript: { enabled: false, config: 'base' },
+				linting: { tool: 'none' },
+				formatting: { tool: 'none' },
+				testing: { framework: 'none' },
+				// Husky and commitlint are npm packages; a Swift repo has no
+				// node_modules to install them into.
+				gitHooks: false,
+				commitLint: false,
+				// semantic-release publishes to npm. SwiftPM consumes git tags.
+				semanticRelease: false,
+				securityAutomation: true,
+				bundler: 'none',
+				// Every badge URL is derived from package.json (name + repository),
+				// so on a Swift repo the block would always render empty.
+				badges: false,
+				aiSetup: true,
 			}
 	}
 }
@@ -179,6 +216,11 @@ export function validateProjectConfig(input: unknown): ConfigValidationResult {
 }
 
 export function computeFileList(config: ProjectConfig): string[] {
+	// Swift shares the language-agnostic files but none of the package.json-rooted
+	// ones, so its list is built by the Swift scaffolder rather than filtered out
+	// of this one condition by condition.
+	if (config.language === 'swift') return swiftFileList(config)
+
 	const files: string[] = ['package.json', '.repo-tooling.json']
 	files.push('.editorconfig', '.nvmrc', 'knip.json', '.vscode/extensions.json')
 	if (config.typescript.enabled) {

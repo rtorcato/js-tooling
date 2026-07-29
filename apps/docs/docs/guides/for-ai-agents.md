@@ -29,7 +29,9 @@ npx @rtorcato/repo-tooling setup --config-schema > project-config.schema.json
 npx @rtorcato/repo-tooling setup --preset library --dry-run
 ```
 
-Available presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`.
+Available presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`, `swift-library`.
+
+`swift-library` scaffolds a SwiftPM package — no `package.json`, no install step, and the file list is entirely different. See the [Swift guide](./swift.md).
 
 **`--dry-run` output:**
 
@@ -148,7 +150,7 @@ Use this to discover what's available and to map between named tools and the `fi
 
 ```bash
 # 1. Decide the project type (or read from existing pkg deps)
-PRESET=library  # or web-app, node-api, nextjs-app, react-app
+PRESET=library  # or web-app, node-api, nextjs-app, react-app, swift-library
 
 # 2. Preview
 npx @rtorcato/repo-tooling setup --preset $PRESET --dry-run

@@ -7,8 +7,8 @@ Swift is the first non-JavaScript language module. `doctor` and `fix` detect a S
 
 The standard here is the one [`swift-common`](https://github.com/rtorcato/swift-common) actually runs — SwiftLint for lint *and* formatting, Periphery for dead code.
 
-:::note No setup preset yet
-`setup` can't scaffold a Swift project — it audits and fixes an existing one. Picking Swift in the setup wizard points you at `doctor` instead. The `swift-library` preset is tracked in [#288](https://github.com/rtorcato/repo-tooling/issues/288).
+:::tip Scaffolding a new package
+`setup --preset swift-library` scaffolds a SwiftPM package end to end (manifest, sources, tests, configs, CI). This page is the config + check reference; the [Swift guide](../guides/swift.md) covers the project lifecycle.
 :::
 
 ## Checks
@@ -120,6 +120,10 @@ CodeQL uses `language: swift` rather than the JS matrix.
 ### GitLab
 
 GitLab runs Swift in the official Linux image (`swift:6.0`), which has no Xcode — so `.gitlab-ci.yml` covers the Linux-portable half only, `swift build` then `swift test`. No SwiftLint, no platform matrix.
+
+## Scaffolding
+
+`setup --preset swift-library` writes all of the above plus `Package.swift`, a `Sources/`/`Tests/` pair that builds and tests green, and the CI workflows. See the [Swift guide](../guides/swift.md) for the full file list and the JS-vs-Swift comparison.
 
 ## What isn't covered yet
 

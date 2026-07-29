@@ -6,7 +6,7 @@ Orientation for coding agents working with `@rtorcato/repo-tooling`. Human-reada
 
 A one-package JavaScript / TypeScript tooling distribution. Ships every preset (TypeScript, Biome, ESLint, Prettier, Vitest, Jest, Commitlint, semantic-release, tsup, esbuild, Vite, Playwright) plus a CLI to scaffold and audit projects. Consumers get one install.
 
-`doctor` and `fix` also audit **Swift** repos (detected via `Package.swift`): the language-agnostic checks plus SwiftLint / Periphery / `.gitignore` / `Package.swift`. `setup` remains JS-only. See `src/languages/` — one directory per language module, `src/base/` for what's shared.
+**Swift** repos (detected via `Package.swift`) are covered end to end: `setup --preset swift-library` scaffolds a SwiftPM package, and `doctor`/`fix` run the language-agnostic checks plus SwiftLint / Periphery / `.gitignore` / `Package.swift`. Python and Perl are audit-only for now. See `src/languages/` — one directory per language module, `src/base/` for what's shared.
 
 ## CLI surface (agent-friendly)
 
@@ -14,7 +14,7 @@ Every command supports `--json` and a non-interactive mode. Combine with `--yes`
 
 | Command | Non-interactive | JSON output | Use case |
 |---|---|---|---|
-| `setup --preset <name>` | ✅ | `--dry-run` only | Scaffold a new project. Presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`. |
+| `setup --preset <name>` | ✅ | `--dry-run` only | Scaffold a new project. Presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`, `swift-library`. |
 | `setup --config <path>` | ✅ | `--dry-run` only | Scaffold with a full `ProjectConfig` JSON file. See `setup --config-schema`. |
 | `setup --config-schema` | ✅ | ✅ (JSON Schema) | Print the JSON Schema for `ProjectConfig`. Use to validate configs before scaffolding. |
 | `setup --dry-run` | ✅ | ✅ | Print resolved config + file list without writing. Pair with `--preset` or `--config`. |
