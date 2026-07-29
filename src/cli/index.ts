@@ -256,6 +256,18 @@ const TOOL_CATALOG: ToolCatalogEntry[] = [
 		fixTarget: 'codeql',
 	},
 	{
+		name: 'SwiftLint',
+		description: 'Swift linter configuration (lint + --fix; pairs with `swiftlint --strict` in CI)',
+		exports: [],
+		fixTarget: 'swiftlint',
+	},
+	{
+		name: 'Periphery',
+		description: 'Swift dead-code scanner configuration (retains public API for SwiftPM libraries)',
+		exports: [],
+		fixTarget: 'periphery',
+	},
+	{
 		name: 'AI Agent Setup',
 		description: 'Scaffold AGENTS.md, CLAUDE.md, Cursor/Copilot rules, Claude skill, MCP example',
 		exports: [],

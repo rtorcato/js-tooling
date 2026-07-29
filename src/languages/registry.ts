@@ -31,7 +31,7 @@ export const LANGUAGES: Record<LanguageModule['id'], LanguageModule> = {
 		codeqlLanguages: ['javascript-typescript'],
 		supported: true,
 	},
-	swift: { id: 'swift', label: 'Swift', codeqlLanguages: ['swift'], supported: false },
+	swift: { id: 'swift', label: 'Swift', codeqlLanguages: ['swift'], supported: true },
 	python: { id: 'python', label: 'Python', codeqlLanguages: ['python'], supported: false },
 	perl: { id: 'perl', label: 'Perl', codeqlLanguages: [], supported: false },
 }

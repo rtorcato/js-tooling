@@ -2,6 +2,50 @@ import path from 'node:path'
 import fs from 'fs-extra'
 import type { CheckResult } from './types.js'
 
+/**
+ * "Is one of these files present, and does it look like ours?" — the shape most
+ * config checks take, in any language. Lives in base so the JS and Swift modules
+ * share one implementation instead of two regex-and-fs loops (#286).
+ */
+export interface FileCheck {
+	check: string
+	candidates: string[]
+	/** Phrased to read after the filename: `.swiftlint.yml ${expected}`. */
+	expected: string
+	matcher: RegExp
+	optional?: boolean
+	hint?: string
+}
+
+export async function checkFile(dir: string, spec: FileCheck): Promise<CheckResult> {
+	for (const candidate of spec.candidates) {
+		const filepath = path.join(dir, candidate)
+		if (!(await fs.pathExists(filepath))) continue
+
+		const contents = await fs.readFile(filepath, 'utf-8')
+		if (spec.matcher.test(contents)) {
+			return {
+				check: spec.check,
+				status: 'ok',
+				detail: `${candidate} ${spec.expected}`,
+			}
+		}
+		return {
+			check: spec.check,
+			status: 'drift',
+			detail: `${candidate} found but does not ${spec.expected}`,
+			hint: spec.hint,
+		}
+	}
+
+	return {
+		check: spec.check,
+		status: spec.optional ? 'optional-missing' : 'missing',
+		detail: `no ${spec.candidates.join(' / ')} found`,
+		hint: spec.hint,
+	}
+}
+
 export async function checkEditorConfig(dir: string): Promise<CheckResult> {
 	const exists = await fs.pathExists(path.join(dir, '.editorconfig'))
 	return {

@@ -6,6 +6,8 @@ Orientation for coding agents working with `@rtorcato/repo-tooling`. Human-reada
 
 A one-package JavaScript / TypeScript tooling distribution. Ships every preset (TypeScript, Biome, ESLint, Prettier, Vitest, Jest, Commitlint, semantic-release, tsup, esbuild, Vite, Playwright) plus a CLI to scaffold and audit projects. Consumers get one install.
 
+`doctor` and `fix` also audit **Swift** repos (detected via `Package.swift`): the language-agnostic checks plus SwiftLint / Periphery / `.gitignore` / `Package.swift`. `setup` remains JS-only. See `src/languages/` — one directory per language module, `src/base/` for what's shared.
+
 ## CLI surface (agent-friendly)
 
 Every command supports `--json` and a non-interactive mode. Combine with `--yes` for fully autonomous use.

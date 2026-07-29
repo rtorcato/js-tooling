@@ -1,7 +1,6 @@
 import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
-import type { CheckResult } from '../../base/types.js'
 import { installAgentRules, installAiSetup } from '../../cli/generators/agent-rules.js'
 import { buildBadgeBlock, parseRepository, upsertBadges } from '../../cli/generators/badges.js'
 import {
@@ -47,35 +46,13 @@ import { generateDocsSite } from '../../cli/generators/docs-site.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../../cli/generators/typedoc.js'
 import { copyPreset } from '../../cli/utils/copy-preset.js'
 import { applyGithubSettings } from '../../base/github-settings.js'
-import { type Lockfile, LOCKFILE_NAME, writeLockfile } from '../../cli/utils/lockfile.js'
+import { LOCKFILE_NAME, writeLockfile } from '../../cli/utils/lockfile.js'
 import type { ProjectConfig } from '../../cli/commands/setup.js'
 import { LANGUAGES } from '../registry.js'
 
-export type Pkg = Record<string, unknown> | null
-
-export interface FixerContext {
-	targetDir: string
-	pkg: Pkg
-	result: CheckResult
-	lock: Lockfile | null
-}
-
-export type FixRiskLevel = 'destructive' | 'safe-merge' | 'safe-add'
-
-export interface Fixer {
-	target: string
-	description: string
-	appliesTo: string[]
-	outputs: string[]
-	/**
-	 * - destructive (default): overwrites the target file
-	 * - safe-merge: modifies an existing file without replacing user values
-	 * - safe-add: only writes when the target file doesn't yet exist
-	 */
-	riskLevel?: FixRiskLevel
-	canFixDrift?: boolean
-	run(ctx: FixerContext): Promise<{ filesWritten: string[] }>
-}
+// The fixer contract moved to src/base/fixers.ts when Swift became the second
+// module (#286) — import it from there.
+import type { Fixer, Pkg } from '../../base/fixers.js'
 
 function inferProjectConfig(pkg: Pkg): ProjectConfig {
 	const deps = {

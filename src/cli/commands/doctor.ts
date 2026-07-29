@@ -2,6 +2,7 @@ import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
 import { resolveLanguageModule } from '../../languages/registry.js'
+import { runSwiftChecks } from '../../languages/swift/checks.js'
 import { detectLanguage } from '../utils/detect-language.js'
 import { checkGitHubSettings } from '../../base/github-settings.js'
 import { type Lockfile, LOCKFILE_VERSION, readLockfile } from '../utils/lockfile.js'
@@ -14,6 +15,7 @@ import {
 	checkCoverageUpload,
 	checkDependabot,
 	checkEditorConfig,
+	checkFile,
 	checkGitHubActions,
 	checkGitLabCI,
 } from '../../base/checks.js'
@@ -23,7 +25,6 @@ import {
 	checkAreTheTypesWrong,
 	checkDocsSite,
 	checkEnginesNode,
-	checkFile,
 	checkHusky,
 	checkHuskyPrePush,
 	checkKnip,
@@ -221,10 +222,25 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 		return demoteDeclined(results, lock)
 	}
 
-	// JS suite. ponytail: JS is the only module carrying checks today, so its
-	// full (base + JS) suite stays inline here rather than behind a
-	// module.runChecks() seam with a single caller — unify when the second
-	// language module lands.
+	// Swift suite (#286): base checks plus the module's own. Swift repos have no
+	// package.json, so nothing JS-shaped runs.
+	if (languageModule.id === 'swift') {
+		const results: CheckResult[] = [
+			{
+				check: 'language',
+				status: 'ok',
+				detail: 'detected Swift (Package.swift)',
+			},
+			...(await runBaseChecks(targetDir, lock)),
+			...(await runSwiftChecks(targetDir)),
+		]
+		return demoteDeclined(results, lock)
+	}
+
+	// JS suite. Still inline rather than behind a module.runChecks() seam: Swift
+	// above is a base+module concatenation, JS interleaves its own checks with
+	// the base ones in a specific display order, so there's no shared shape to
+	// factor out yet. Revisit when Perl/Python land (#289/#290).
 	const pkg = await readPackageJson(targetDir)
 	const results: CheckResult[] = []
 

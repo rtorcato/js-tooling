@@ -10,9 +10,10 @@ describe('resolveLanguageModule', () => {
 		expect(resolveLanguageModule(id).id).toBe(id)
 	})
 
-	it('only JS is supported today; the rest gate out until their modules land', () => {
+	it('JS and Swift carry modules; Python and Perl gate out until theirs land', () => {
 		expect(LANGUAGES.js.supported).toBe(true)
-		expect(LANGUAGES.swift.supported).toBe(false)
+		// Swift flipped with its module (#286).
+		expect(LANGUAGES.swift.supported).toBe(true)
 		expect(LANGUAGES.python.supported).toBe(false)
 		expect(LANGUAGES.perl.supported).toBe(false)
 	})
