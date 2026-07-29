@@ -4,51 +4,11 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 import type { Fixer } from '../../base/fixers.js'
-import { generateCodeQLWorkflow } from '../../cli/generators/security.js'
+import { buildPresetConfig } from '../../cli/commands/setup-presets.js'
 import { copyPreset } from '../../cli/utils/copy-preset.js'
-import { LANGUAGES } from '../registry.js'
+import { LOCKFILE_NAME, writeLockfile } from '../../cli/utils/lockfile.js'
 import { readSwiftPackage, renderSwiftGitLabCI, renderSwiftWorkflow } from './ci.js'
-
-/**
- * The Swift build artefacts that must stay out of git. Appended to an existing
- * .gitignore rather than replacing it — a Swift repo's ignore file usually
- * carries project-specific entries worth keeping.
- */
-const SWIFT_GITIGNORE_BLOCK = `# Swift / SwiftPM
-.DS_Store
-/.build
-/Packages
-/*.xcodeproj
-xcuserdata/
-DerivedData/
-.swiftpm/config/registries.json
-.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
-.netrc
-`
-
-/** Entries whose presence means the block (or an equivalent) is already there. */
-const SENTINELS = ['.build', 'DerivedData', 'xcuserdata']
-
-export async function ensureSwiftGitignore(targetDir: string): Promise<string[]> {
-	const filepath = path.join(targetDir, '.gitignore')
-	if (!(await fs.pathExists(filepath))) {
-		await fs.writeFile(filepath, SWIFT_GITIGNORE_BLOCK)
-		return ['.gitignore']
-	}
-
-	const existing = await fs.readFile(filepath, 'utf-8')
-	const missing = SENTINELS.filter((entry) => !existing.includes(entry))
-	if (missing.length === 0) return []
-
-	// Append only what's absent, so a repo that already ignores .build doesn't
-	// get a duplicate entry for it.
-	const additions = SWIFT_GITIGNORE_BLOCK.split('\n').filter(
-		(line) => line.length > 0 && !existing.includes(line)
-	)
-	const separator = existing.endsWith('\n') ? '' : '\n'
-	await fs.writeFile(filepath, `${existing}${separator}\n${additions.join('\n')}\n`)
-	return ['.gitignore']
-}
+import { ensureSwiftGitignore } from './gitignore.js'
 
 export const SWIFT_FIXERS: Fixer[] = [
 	{
@@ -113,13 +73,18 @@ export const SWIFT_FIXERS: Fixer[] = [
 		},
 	},
 	{
-		target: 'swift-codeql',
-		description: 'Scaffold .github/workflows/codeql.yml with `language: swift`',
-		appliesTo: ['CodeQL'],
-		outputs: ['.github/workflows/codeql.yml'],
+		target: 'swift-lockfile',
+		description: `Scaffold ${LOCKFILE_NAME} recording the Swift tool choices`,
+		appliesTo: ['lockfile'],
+		outputs: [LOCKFILE_NAME],
+		riskLevel: 'safe-add',
+		canFixDrift: false,
 		async run({ targetDir }) {
-			const filesWritten = await generateCodeQLWorkflow(targetDir, LANGUAGES.swift.codeqlLanguages)
-			return { filesWritten }
+			// A Swift repo has no package.json to infer from, so record what `setup
+			// --preset swift-library` would have written — the same config, minus the
+			// scaffolding.
+			await writeLockfile(targetDir, buildPresetConfig('swift-library', path.basename(targetDir)))
+			return { filesWritten: [LOCKFILE_NAME] }
 		},
 	},
 ]

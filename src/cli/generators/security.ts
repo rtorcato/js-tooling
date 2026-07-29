@@ -3,10 +3,18 @@ import fs from 'fs-extra'
 import { renderCodeQLWorkflow } from '../../base/ci.js'
 import { LANGUAGES } from '../../languages/registry.js'
 
-/** The canonical dependency-update standard shared by every @rtorcato repo. */
-export const DEPENDABOT_CONFIG = `version: 2
-updates:
-  - package-ecosystem: npm
+/**
+ * The canonical dependency-update standard shared by every @rtorcato repo.
+ *
+ * `ecosystem` is the language's Dependabot `package-ecosystem` (#303) — null
+ * for a language Dependabot doesn't support, which drops the manifest block and
+ * leaves only the github-actions one.
+ */
+export function dependabotConfig(ecosystem: string | null): string {
+	const manifest =
+		ecosystem === null
+			? ''
+			: `  - package-ecosystem: ${ecosystem}
     directory: /
     schedule:
       interval: monthly
@@ -41,7 +49,11 @@ updates:
         update-types:
           - major
 
-  - package-ecosystem: github-actions
+`
+
+	return `version: 2
+updates:
+${manifest}  - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
@@ -49,6 +61,11 @@ updates:
       prefix: ci
       include: scope
 `
+}
+
+/** The JS flavour — the historical default, kept for the generators that don't
+ * resolve a language module. */
+export const DEPENDABOT_CONFIG = dependabotConfig('npm')
 
 /**
  * Auto-merges patch + minor Dependabot PRs once CI is green. Requires branch
@@ -97,9 +114,12 @@ export const DEPENDABOT_FILES = [
  * into a safe tier and a major tier, and the workflow merges the safe tier on
  * green. See \`apps/docs/docs/guides/dependabot-strategy.md\`.
  */
-export async function generateDependabotConfig(targetDir: string) {
+export async function generateDependabotConfig(
+	targetDir: string,
+	ecosystem: string | null = 'npm'
+) {
 	await fs.ensureDir(path.join(targetDir, '.github', 'workflows'))
-	await fs.writeFile(path.join(targetDir, '.github', 'dependabot.yml'), DEPENDABOT_CONFIG)
+	await fs.writeFile(path.join(targetDir, '.github', 'dependabot.yml'), dependabotConfig(ecosystem))
 	await fs.writeFile(
 		path.join(targetDir, '.github', 'workflows', 'dependabot-automerge.yml'),
 		DEPENDABOT_AUTOMERGE_WORKFLOW

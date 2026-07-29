@@ -1,7 +1,6 @@
 import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
-import { installAgentRules, installAiSetup } from '../../cli/generators/agent-rules.js'
 import { buildBadgeBlock, parseRepository, upsertBadges } from '../../cli/generators/badges.js'
 import {
 	generateReleasePleaseConfig,
@@ -9,7 +8,6 @@ import {
 	generateRollupConfig,
 	generateSemanticReleaseConfig,
 } from '../../cli/generators/build.js'
-import { generateCommunityHealth } from '../../cli/generators/community-health.js'
 import {
 	generateCommitlintConfig,
 	generateHuskyConfig,
@@ -22,8 +20,6 @@ import { generateESLintConfig, generatePrettierConfig } from '../../cli/generato
 import {
 	alignNodeVersion,
 	ensureEnginesNode,
-	generateCodeowners,
-	generateEditorConfig,
 	generateKnipConfig,
 	generateNvmrc,
 	generateSizeLimitConfig,
@@ -31,11 +27,6 @@ import {
 } from '../../cli/generators/misc.js'
 import { composeVerifyScriptFromPkg } from '../../cli/generators/package-json.js'
 import { generatePostcss } from '../../cli/generators/postcss.js'
-import {
-	generateCodeQLWorkflow,
-	generateDependabotConfig,
-	generateRenovateConfig,
-} from '../../cli/generators/security.js'
 import { generateCypressConfig, generateVitestConfig } from '../../cli/generators/testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from '../../cli/generators/treeshake.js'
 import { generateTailwind } from '../../cli/generators/tailwind.js'
@@ -45,10 +36,8 @@ import { generateBun } from '../../cli/generators/bun.js'
 import { generateDocsSite } from '../../cli/generators/docs-site.js'
 import { generateTypedocConfig, generateTypedocWorkflow } from '../../cli/generators/typedoc.js'
 import { copyPreset } from '../../cli/utils/copy-preset.js'
-import { applyGithubSettings } from '../../base/github-settings.js'
 import { LOCKFILE_NAME, writeLockfile } from '../../cli/utils/lockfile.js'
 import type { ProjectConfig } from '../../cli/commands/setup.js'
-import { LANGUAGES } from '../registry.js'
 
 // The fixer contract moved to src/base/fixers.ts when Swift became the second
 // module (#286) — import it from there.
@@ -365,89 +354,6 @@ export const FIXERS: Fixer[] = [
 		},
 	},
 	{
-		target: 'dependabot',
-		description:
-			'Scaffold the canonical .github/dependabot.yml (monthly, grouped: production-minor/dev-minor/major-updates) + the dependabot-automerge workflow',
-		appliesTo: ['Dependabot'],
-		outputs: ['.github/dependabot.yml', '.github/workflows/dependabot-automerge.yml'],
-		canFixDrift: true,
-		async run({ targetDir }) {
-			const filesWritten = await generateDependabotConfig(targetDir)
-			return { filesWritten }
-		},
-	},
-	{
-		target: 'renovate',
-		description: 'Scaffold renovate.json (weekly schedule; alternative to Dependabot)',
-		appliesTo: ['Dependabot'],
-		outputs: ['renovate.json'],
-		riskLevel: 'safe-add',
-		async run({ targetDir }) {
-			await generateRenovateConfig(targetDir)
-			return { filesWritten: ['renovate.json'] }
-		},
-	},
-	{
-		target: 'codeql',
-		description: 'Scaffold .github/workflows/codeql.yml (security scanning)',
-		appliesTo: ['CodeQL'],
-		outputs: ['.github/workflows/codeql.yml'],
-		async run({ targetDir }) {
-			const filesWritten = await generateCodeQLWorkflow(targetDir, LANGUAGES.js.codeqlLanguages)
-			return { filesWritten }
-		},
-	},
-	{
-		target: 'github-settings',
-		description:
-			'Apply branch protection + auto-merge + workflow permissions + code-scanning ruleset on GitHub via gh api (mutates the remote repo, not files)',
-		appliesTo: [
-			'Branch protection',
-			'Merge settings',
-			'Workflow permissions',
-			'Code-scanning gate',
-		],
-		outputs: ['GitHub repo settings (remote, via gh api)'],
-		// safe-add is load-bearing: it exempts this fixer from the `--diff` shadow-run
-		// (previewFixer copies to tmp and *executes* run(), which would fire real
-		// `gh api` PUTs during a mere preview).
-		riskLevel: 'safe-add',
-		canFixDrift: true,
-		async run({ targetDir }) {
-			return { filesWritten: await applyGithubSettings(targetDir) }
-		},
-	},
-	{
-		target: 'codeowners',
-		description: 'Scaffold .github/CODEOWNERS with commented examples',
-		appliesTo: ['CODEOWNERS'],
-		outputs: ['.github/CODEOWNERS'],
-		riskLevel: 'safe-add',
-		canFixDrift: false,
-		async run({ targetDir }) {
-			const written = await generateCodeowners(targetDir)
-			return { filesWritten: [written] }
-		},
-	},
-	{
-		target: 'community-health',
-		description: 'Scaffold CONTRIBUTING.md, SECURITY.md, PR + issue templates',
-		appliesTo: ['Community health'],
-		outputs: [
-			'CONTRIBUTING.md',
-			'SECURITY.md',
-			'.github/PULL_REQUEST_TEMPLATE.md',
-			'.github/ISSUE_TEMPLATE/bug_report.md',
-			'.github/ISSUE_TEMPLATE/feature_request.md',
-		],
-		riskLevel: 'safe-add',
-		canFixDrift: false,
-		async run({ targetDir }) {
-			const filesWritten = await generateCommunityHealth(targetDir)
-			return { filesWritten }
-		},
-	},
-	{
 		target: 'gitlab-ci',
 		description: 'Scaffold .gitlab-ci.yml (lint/typecheck/test/build mirrored from GitHub Actions)',
 		appliesTo: ['GitLab CI'],
@@ -506,17 +412,6 @@ export const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			const written = await generatePostcss(targetDir)
 			return { filesWritten: written }
-		},
-	},
-	{
-		target: 'editorconfig',
-		description: 'Scaffold .editorconfig (UTF-8, LF, tab indent)',
-		appliesTo: ['EditorConfig'],
-		outputs: ['.editorconfig'],
-		canFixDrift: true,
-		async run({ targetDir }) {
-			await generateEditorConfig(targetDir)
-			return { filesWritten: ['.editorconfig'] }
 		},
 	},
 	{
@@ -835,81 +730,6 @@ export const FIXERS: Fixer[] = [
 				: `# ${name ?? 'project'}\n`
 			await fs.writeFile(readmePath, upsertBadges(existing, block))
 			return { filesWritten: ['README.md'] }
-		},
-	},
-	{
-		target: 'ai',
-		description:
-			'Install all AI agent files at once (AGENTS.md, CLAUDE.md, Cursor, Copilot, Claude skill, MCP example)',
-		appliesTo: ['AI setup'],
-		outputs: [
-			'AGENTS.md',
-			'CLAUDE.md',
-			'.cursor/rules/repo-tooling.mdc',
-			'.github/copilot-instructions.md',
-			'.claude/skills/repo-tooling.md',
-			'.mcp.json.example',
-			// Only written when the repo ships its own skills/<name>/SKILL.md.
-			'README.md',
-		],
-		// Every output is a delimited-block upsert or a `.example` file — existing
-		// user content is never clobbered.
-		riskLevel: 'safe-merge',
-		canFixDrift: true,
-		async run({ targetDir }) {
-			const filesWritten = await installAiSetup(targetDir)
-			return { filesWritten }
-		},
-	},
-	{
-		target: 'claude-skill',
-		description: 'Install the repo-tooling Claude Code skill into .claude/skills/',
-		appliesTo: ['Claude skill'],
-		outputs: ['.claude/skills/repo-tooling.md'],
-		riskLevel: 'safe-add',
-		canFixDrift: true,
-		async run({ targetDir }) {
-			const result = await copyPreset('claude-skill', targetDir)
-			return { filesWritten: [result.target] }
-		},
-	},
-	{
-		target: 'cursor-rules',
-		description: 'Install the repo-tooling rules for Cursor (.cursor/rules/repo-tooling.mdc)',
-		appliesTo: ['Cursor rules'],
-		outputs: ['.cursor/rules/repo-tooling.mdc'],
-		riskLevel: 'safe-add',
-		canFixDrift: true,
-		async run({ targetDir }) {
-			const written = await installAgentRules(targetDir, 'cursor')
-			return { filesWritten: [written] }
-		},
-	},
-	{
-		target: 'copilot-instructions',
-		description:
-			'Install the repo-tooling rules for GitHub Copilot (.github/copilot-instructions.md)',
-		appliesTo: ['Copilot instructions'],
-		outputs: ['.github/copilot-instructions.md'],
-		// Upserts a delimited block — never clobbers the consumer's own instructions.
-		riskLevel: 'safe-merge',
-		canFixDrift: true,
-		async run({ targetDir }) {
-			const written = await installAgentRules(targetDir, 'copilot')
-			return { filesWritten: [written] }
-		},
-	},
-	{
-		target: 'agents-md',
-		description: 'Install the repo-tooling rules into AGENTS.md (universal agent instructions)',
-		appliesTo: ['AGENTS.md rules'],
-		outputs: ['AGENTS.md'],
-		// Upserts a delimited block — never clobbers existing AGENTS.md content.
-		riskLevel: 'safe-merge',
-		canFixDrift: true,
-		async run({ targetDir }) {
-			const written = await installAgentRules(targetDir, 'agents-md')
-			return { filesWritten: [written] }
 		},
 	},
 	{
