@@ -49,6 +49,7 @@ import { copyPreset } from '../../cli/utils/copy-preset.js'
 import { applyGithubSettings } from '../../base/github-settings.js'
 import { type Lockfile, LOCKFILE_NAME, writeLockfile } from '../../cli/utils/lockfile.js'
 import type { ProjectConfig } from '../../cli/commands/setup.js'
+import { LANGUAGES } from '../registry.js'
 
 export type Pkg = Record<string, unknown> | null
 
@@ -415,8 +416,8 @@ export const FIXERS: Fixer[] = [
 		appliesTo: ['CodeQL'],
 		outputs: ['.github/workflows/codeql.yml'],
 		async run({ targetDir }) {
-			await generateCodeQLWorkflow(targetDir)
-			return { filesWritten: ['.github/workflows/codeql.yml'] }
+			const filesWritten = await generateCodeQLWorkflow(targetDir, LANGUAGES.js.codeqlLanguages)
+			return { filesWritten }
 		},
 	},
 	{

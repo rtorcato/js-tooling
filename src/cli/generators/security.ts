@@ -1,5 +1,7 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import { renderCodeQLWorkflow } from '../../base/ci.js'
+import { LANGUAGES } from '../../languages/registry.js'
 
 /** The canonical dependency-update standard shared by every @rtorcato repo. */
 export const DEPENDABOT_CONFIG = `version: 2
@@ -134,50 +136,23 @@ export async function generateRenovateConfig(targetDir: string) {
 	await fs.writeFile(filepath, content)
 }
 
-export async function generateCodeQLWorkflow(targetDir: string) {
+/**
+ * Scaffold `.github/workflows/codeql.yml` for the given CodeQL languages,
+ * defaulting to the JS module's matrix (#283).
+ *
+ * Returns the files written — empty when the language has no CodeQL support at
+ * all (Perl), since a workflow with an empty matrix would fail every run.
+ */
+export async function generateCodeQLWorkflow(
+	targetDir: string,
+	languages: readonly string[] = LANGUAGES.js.codeqlLanguages
+): Promise<string[]> {
+	if (languages.length === 0) return []
+
 	await fs.ensureDir(path.join(targetDir, '.github', 'workflows'))
 	const filepath = path.join(targetDir, '.github', 'workflows', 'codeql.yml')
-
-	const content = `name: CodeQL
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  schedule:
-    - cron: '0 6 * * 1'
-
-jobs:
-  analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [javascript-typescript]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: \${{ matrix.language }}
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:\${{ matrix.language }}"
-`
-
-	await fs.writeFile(filepath, content)
+	await fs.writeFile(filepath, renderCodeQLWorkflow(languages))
+	return ['.github/workflows/codeql.yml']
 }
 
 export async function generateSecurityConfigs(targetDir: string) {
