@@ -47,7 +47,7 @@ npx @rtorcato/repo-tooling fix <target> --diff           # unified diff before c
 ## Scaffolding a new project
 
 ```bash
-# Quick: from a named preset (library | web-app | node-api | nextjs-app | react-app)
+# Quick: from a named preset (library | web-app | node-api | nextjs-app | react-app | swift-library)
 npx @rtorcato/repo-tooling setup --preset library -d ./my-lib --skip-install
 
 # Full control: validate a config against the schema, preview, then write

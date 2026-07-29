@@ -57,6 +57,23 @@ describe('setup-presets', () => {
 		expect(files).not.toContain('AGENTS.md')
 		expect(files).not.toContain('.mcp.json.example')
 	})
+
+	it('swift-library preset records the language and picks no JS tools (#288)', () => {
+		const config = buildPresetConfig('swift-library', 'demo')
+		expect(config.language).toBe('swift')
+		expect(config.projectType).toBe('library')
+		expect(config.typescript.enabled).toBe(false)
+		expect(config.bundler).toBe('none')
+		// Husky/commitlint/semantic-release are all npm packages, and every badge
+		// URL is derived from a package.json this repo doesn't have.
+		expect(config.gitHooks).toBe(false)
+		expect(config.commitLint).toBe(false)
+		expect(config.semanticRelease).toBe(false)
+		expect(config.badges).toBe(false)
+		// Security automation and the AI agent files are language-agnostic.
+		expect(config.securityAutomation).toBe(true)
+		expect(config.aiSetup).toBe(true)
+	})
 })
 
 describe('validateProjectConfig', () => {
@@ -108,6 +125,16 @@ describe('computeFileList', () => {
 		const files = computeFileList(buildPresetConfig('react-app', 'demo'))
 		expect(files).toContain('vite.config.ts')
 		expect(files).not.toContain('tsup.config.ts')
+	})
+
+	it('lists Swift files and no package.json for swift-library (#288)', () => {
+		const files = computeFileList(buildPresetConfig('swift-library', 'my-swift-lib'))
+		expect(files).toContain('Package.swift')
+		expect(files).toContain('Sources/MySwiftLib/MySwiftLib.swift')
+		expect(files).toContain('.swiftlint.yml')
+		expect(files).toContain('.github/workflows/ci.yml')
+		expect(files).not.toContain('package.json')
+		expect(files).not.toContain('tsconfig.json')
 	})
 
 	it('lists bunfig.toml when targeting Bun (#225)', () => {
@@ -195,6 +222,23 @@ describe('setup --preset', () => {
 		expect(await fs.pathExists(join(dir, 'tsup.config.ts'))).toBe(true)
 		expect(await fs.pathExists(join(dir, '.editorconfig'))).toBe(true)
 		expect(await fs.pathExists(join(dir, '.github', 'dependabot.yml'))).toBe(true)
+	})
+
+	it('scaffolds a Swift package and records the language in the lockfile (#288)', async () => {
+		const dir = newTmpDir()
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await setupProject({ directory: dir, preset: 'swift-library', skipInstall: true })
+		} finally {
+			logSpy.mockRestore()
+		}
+		expect(await fs.pathExists(join(dir, 'Package.swift'))).toBe(true)
+		expect(await fs.pathExists(join(dir, '.swiftlint.yml'))).toBe(true)
+		expect(await fs.pathExists(join(dir, '.github', 'workflows', 'ci.yml'))).toBe(true)
+		expect(await fs.pathExists(join(dir, 'package.json'))).toBe(false)
+
+		const lock = await fs.readJson(join(dir, '.repo-tooling.json'))
+		expect(lock.config.language).toBe('swift')
 	})
 
 	it('rejects unknown preset names', async () => {
@@ -329,7 +373,7 @@ describe('setup language prompt', () => {
 	it('defaults to the language detected in the target directory', async () => {
 		const dir = newTmpDir()
 		await fs.writeFile(join(dir, 'Package.swift'), '// swift-tools-version:6.0\n')
-		const spy = mockPrompt({ language: 'swift' })
+		const spy = mockPrompt({ language: 'swift' }, { projectName: 'demo' })
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 		try {
 			await setupProject({ directory: dir, skipInstall: true })
@@ -364,9 +408,8 @@ describe('setup language prompt', () => {
 			const choices = question.choices as Array<{ name: string; value: string }>
 			expect(choices.map((c) => c.value)).toEqual(['js', 'swift', 'python', 'perl'])
 			expect(choices.find((c) => c.value === 'js')?.name).toBe('JavaScript/TypeScript')
-			// Swift has doctor/fix checks (#286) but no setup preset yet (#288) — the
-			// label has to say so rather than reading as fully supported.
-			expect(choices.find((c) => c.value === 'swift')?.name).toMatch(/no setup preset yet/)
+			// Swift is fully scaffoldable since #288, so it gets a bare label like JS.
+			expect(choices.find((c) => c.value === 'swift')?.name).toBe('Swift')
 			expect(choices.find((c) => c.value === 'perl')?.name).toMatch(/lands with its module/)
 		} finally {
 			logSpy.mockRestore()
@@ -375,17 +418,37 @@ describe('setup language prompt', () => {
 
 	it('writes nothing and points at doctor when the language has no module yet', async () => {
 		const dir = newTmpDir()
-		mockPrompt({ language: 'swift' })
+		mockPrompt({ language: 'python' })
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 		try {
 			await setupProject({ directory: dir, skipInstall: true })
 			const output = logSpy.mock.calls.map((c) => String(c[0])).join('\n')
-			expect(output).toMatch(/Swift scaffolding isn't available yet/)
+			expect(output).toMatch(/Python scaffolding isn't available yet/)
 			expect(output).toMatch(/doctor/)
 		} finally {
 			logSpy.mockRestore()
 		}
 		expect(await fs.readdir(dir)).toEqual([])
+	})
+
+	// Swift's only real choice is the package name — SwiftLint, Periphery and
+	// `swift test` are the standard, not options (#288).
+	it('asks Swift only for a name, then scaffolds the swift-library preset', async () => {
+		const dir = newTmpDir()
+		const spy = mockPrompt({ language: 'swift' }, { projectName: 'my-swift-lib' })
+		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		try {
+			await setupProject({ directory: dir, skipInstall: true })
+		} finally {
+			logSpy.mockRestore()
+		}
+		expect(spy).toHaveBeenCalledTimes(2)
+		const [swiftQuestions] = spy.mock.calls[1] as [Array<Record<string, unknown>>]
+		expect(swiftQuestions.map((q) => q.name)).toEqual(['projectName'])
+
+		expect(await fs.pathExists(join(dir, 'Sources/MySwiftLib/MySwiftLib.swift'))).toBe(true)
+		const lock = await fs.readJson(join(dir, '.repo-tooling.json'))
+		expect(lock.config.language).toBe('swift')
 	})
 
 	it('records the chosen language in the lockfile instead of a hardcoded js', async () => {
