@@ -13,6 +13,11 @@ npx @rtorcato/repo-tooling setup -d ./my-app  # specific directory
 npx @rtorcato/repo-tooling setup --skip-install  # skip npm/pnpm install
 ```
 
+Add `--preset <name>` to skip the prompts entirely: `library`, `web-app`,
+`node-api`, `nextjs-app`, `react-app`, or `swift-library`. The Swift preset
+scaffolds a SwiftPM package rather than an npm one — see the
+[Swift guide](./swift.md).
+
 ## copy \<name\>
 
 Copies a standalone config file into the current directory without running the full wizard.

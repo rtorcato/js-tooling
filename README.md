@@ -36,8 +36,12 @@ Non-interactive — scaffold from a named preset in one shot (CI-friendly):
 
 ```bash
 npx @rtorcato/repo-tooling setup --preset library -d ./my-lib --skip-install
-# presets: library | web-app | node-api | nextjs-app | react-app
+# presets: library | web-app | node-api | nextjs-app | react-app | swift-library
 ```
+
+`swift-library` scaffolds a SwiftPM package (manifest, sources, tests, SwiftLint,
+Periphery, macOS CI) instead of an npm one — see the
+[Swift guide](https://rtorcato.github.io/repo-tooling/guides/swift).
 
 Just one config file? Use `copy`:
 

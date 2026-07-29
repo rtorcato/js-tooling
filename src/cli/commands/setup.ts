@@ -146,14 +146,19 @@ export async function setupProject(options: SetupOptions) {
 		}
 
 		if (!interactive) {
-			console.log(chalk.cyan(`\n🛠️  Scaffolding ${config.projectType} in ${targetDir}\n`))
+			const shape = config.language === 'swift' ? `Swift ${config.projectType}` : config.projectType
+			console.log(chalk.cyan(`\n🛠️  Scaffolding ${shape} in ${targetDir}\n`))
 		}
 		console.log(chalk.cyan('\n📝 Generating configuration files...\n'))
 
 		await generateConfigs(config, targetDir)
 		await writeLockfile(targetDir, config)
 
-		if (!options.skipInstall) {
+		// Both steps shell out to pnpm. A Swift package has no dependencies to
+		// install and no Biome to format with — SwiftPM resolves on first build,
+		// and `swiftlint --fix` is the formatter (it needs a Swift toolchain we
+		// can't assume is present).
+		if (!options.skipInstall && config.language !== 'swift') {
 			console.log(chalk.cyan('\n📦 Installing dependencies...\n'))
 			await installDependencies(config, targetDir)
 			// Format now that the linter/formatter is installed, so the scaffold
@@ -172,12 +177,11 @@ export async function setupProject(options: SetupOptions) {
 
 /**
  * Languages `setup` can scaffold. Deliberately separate from the registry's
- * `supported` flag, which means "has doctor/fix checks" — Swift's module landed
- * in #286 but its presets land in #288, so it can be audited without being
- * scaffoldable. Both the picker label and the gate below read from here, so the
- * two can't drift apart.
+ * `supported` flag, which means "has doctor/fix checks" — a language can be
+ * auditable before it's scaffoldable (Swift was, between #286 and #288). Both
+ * the picker label and the gate below read from here, so the two can't drift.
  */
-const SCAFFOLDABLE: ReadonlyArray<LanguageModule['id']> = ['js']
+const SCAFFOLDABLE: ReadonlyArray<LanguageModule['id']> = ['js', 'swift']
 
 /**
  * Ask which language this repo is, defaulting to whatever the target dir looks
@@ -236,6 +240,24 @@ async function promptForConfig(targetDir: string): Promise<ProjectConfig | null>
 		explainNotScaffoldable(language)
 		return null
 	}
+
+	// Swift has exactly one shape to scaffold, so there is nothing to ask beyond
+	// the name: SwiftLint, Periphery and `swift test` are the standard, not
+	// options (see the `swift-library` preset). A wizard whose every question has
+	// one answer is worse than no wizard.
+	if (language.id === 'swift') {
+		const { projectName } = await inquirer.prompt([
+			{
+				type: 'input',
+				name: 'projectName',
+				message: '📦 What is your package name?',
+				default: path.basename(targetDir),
+				validate: (input: string) => input.trim().length > 0 || 'Package name is required',
+			},
+		])
+		return buildPresetConfig('swift-library', projectName)
+	}
+
 	// Narrowing for the question list below, which is JS-shaped throughout.
 	if (language.id !== 'js') return null
 
@@ -516,22 +538,35 @@ function showNextSteps(config: ProjectConfig, _targetDir: string) {
 
 	const steps = []
 
-	if (config.typescript.enabled) {
-		steps.push('🔧 Customize your tsconfig.json as needed')
-	}
-
-	if (config.linting.tool !== 'none') {
+	// Every step in the else-branch names a pnpm script. Swift's equivalents are
+	// SwiftPM and SwiftLint commands — and neither tool ships with the scaffold,
+	// so the last line is how to get them.
+	if (config.language === 'swift') {
 		steps.push(
-			`🔍 Run linting with: ${config.linting.tool === 'biome' ? 'pnpm biome check .' : 'pnpm eslint .'}`
+			'🏗️  Build with: swift build',
+			'🧪 Run tests with: swift test',
+			'🔍 Lint and format with: swiftlint --fix (CI runs swiftlint lint --strict)',
+			'🧹 Find dead code with: periphery scan',
+			'📦 Install both tools with: brew install swiftlint periphery'
 		)
-	}
+	} else {
+		if (config.typescript.enabled) {
+			steps.push('🔧 Customize your tsconfig.json as needed')
+		}
 
-	if (config.testing.framework !== 'none') {
-		steps.push(`🧪 Run tests with: pnpm ${config.testing.framework}`)
-	}
+		if (config.linting.tool !== 'none') {
+			steps.push(
+				`🔍 Run linting with: ${config.linting.tool === 'biome' ? 'pnpm biome check .' : 'pnpm eslint .'}`
+			)
+		}
 
-	if (config.gitHooks) {
-		steps.push('🪝 Commit your changes to test the git hooks')
+		if (config.testing.framework !== 'none') {
+			steps.push(`🧪 Run tests with: pnpm ${config.testing.framework}`)
+		}
+
+		if (config.gitHooks) {
+			steps.push('🪝 Commit your changes to test the git hooks')
+		}
 	}
 
 	steps.push(
@@ -559,6 +594,12 @@ function showNextSteps(config: ProjectConfig, _targetDir: string) {
 
 function collectSkippedFixSuggestions(config: ProjectConfig): string[] {
 	const suggestions: string[] = []
+	// Every suggestion below is a JS fix target (husky, biome, vitest…). On a
+	// Swift repo they'd all be wrong — `fix` doesn't even offer them there — so
+	// the Swift scaffold gets only the doctor line at the end.
+	if (config.language === 'swift') {
+		return ['Run `npx @rtorcato/repo-tooling doctor` any time to audit drift']
+	}
 	if (!config.gitHooks) {
 		suggestions.push('Run `npx @rtorcato/repo-tooling fix husky` to add git hooks later')
 	}

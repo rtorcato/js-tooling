@@ -86,7 +86,9 @@ Running `setup` (or its alias `init`) launches an interactive wizard:
 A universal baseline (`.editorconfig`, `.nvmrc`, `engines.node`, `knip.json`, `.vscode/extensions.json`) is scaffolded automatically — no prompt — because these are safe defaults for every project.
 
 :::note Non-JS languages
-Only JavaScript/TypeScript has scaffolding today. Picking Swift, Python or Perl writes nothing and points you at `doctor`, which already audits those repos against the language-agnostic checks (CI, CodeQL, Dependabot, GitHub repo settings). [Swift](/reference/swift) additionally has its own checks and fixers (SwiftLint, Periphery, `.gitignore`, `Package.swift`) — it just has no setup preset yet. Presets for the other languages land with their language modules — see [#139](https://github.com/rtorcato/repo-tooling/issues/139).
+The table above is the JavaScript/TypeScript question list. Picking **Swift** asks only for a package name and then scaffolds a SwiftPM library — SwiftLint, Periphery and `swift test` are the standard rather than options. See the [Swift guide](./swift.md).
+
+Python and Perl write nothing and point you at `doctor`, which already audits those repos against the language-agnostic checks (CI, CodeQL, Dependabot, GitHub repo settings). Their presets land with their language modules — see [#139](https://github.com/rtorcato/repo-tooling/issues/139).
 :::
 
 ## Non-interactive setup (CI / scripts)
@@ -97,7 +99,9 @@ Skip the prompts entirely by scaffolding from a named preset:
 npx @rtorcato/repo-tooling setup --preset library -d ./my-lib --skip-install
 ```
 
-Presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`.
+Presets: `library`, `web-app`, `node-api`, `nextjs-app`, `react-app`, `swift-library`.
+
+`swift-library` scaffolds a SwiftPM package instead of an npm one — no `package.json`, no install step. See the [Swift guide](./swift.md) for the full file list.
 
 For full control, drive setup from a `ProjectConfig` JSON file — print the schema, write a config, preview, then scaffold:
 
@@ -122,6 +126,8 @@ npx @rtorcato/repo-tooling setup --config project.json -d ./my-lib --skip-instal
 - `.github/dependabot.yml`, `.github/workflows/codeql.yml` — if security automation chosen
 - `README.md` — project README scaffold
 - `reset.d.ts` — ts-reset type augmentation (if TypeScript)
+
+For a Swift package the list is entirely different (`Package.swift`, `Sources/`, `Tests/`, `.swiftlint.yml`, …) — see the [Swift guide](./swift.md).
 
 ## Existing projects: doctor + fix
 

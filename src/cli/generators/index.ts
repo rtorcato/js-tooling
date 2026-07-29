@@ -1,6 +1,7 @@
 import fs from 'fs-extra'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { generateSwiftProject } from '../../languages/swift/scaffold.js'
 import type { ProjectConfig } from '../commands/setup.js'
 import { installAiSetup } from './agent-rules.js'
 import { ensureBuildApprovals, generateBuildConfigs } from './build.js'
@@ -23,6 +24,13 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export async function generateConfigs(config: ProjectConfig, targetDir: string) {
+	// Swift takes its own path (#288) rather than opting out of each step below.
+	// Everything from here down is rooted in package.json — the file a Swift repo
+	// is defined by not having.
+	if (config.language === 'swift') {
+		return generateSwiftProject(config, targetDir)
+	}
+
 	// Generate package.json (must run before generateMiscBaseline,
 	// which sets engines.node on the resulting file)
 	await generatePackageJson(config, targetDir)
