@@ -300,6 +300,12 @@ describe('setup language prompt', () => {
 		return spy
 	}
 
+	/** The language question, as it was actually handed to inquirer. */
+	function languageQuestion(spy: ReturnType<typeof mockPrompt>): Record<string, unknown> {
+		const [questions] = spy.mock.calls[0] as [Array<Record<string, unknown>>]
+		return questions[0]
+	}
+
 	const JS_ANSWERS = {
 		projectName: 'demo',
 		projectType: 'library',
@@ -327,7 +333,7 @@ describe('setup language prompt', () => {
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 		try {
 			await setupProject({ directory: dir, skipInstall: true })
-			const question = (spy.mock.calls[0]?.[0] as Array<Record<string, unknown>>)[0]
+			const question = languageQuestion(spy)
 			expect(question.name).toBe('language')
 			expect(question.default).toBe('swift')
 		} finally {
@@ -341,7 +347,7 @@ describe('setup language prompt', () => {
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 		try {
 			await setupProject({ directory: dir, skipInstall: true })
-			const question = (spy.mock.calls[0]?.[0] as Array<Record<string, unknown>>)[0]
+			const question = languageQuestion(spy)
 			expect(question.default).toBe('js')
 		} finally {
 			logSpy.mockRestore()
@@ -354,7 +360,7 @@ describe('setup language prompt', () => {
 		const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 		try {
 			await setupProject({ directory: dir, skipInstall: true })
-			const question = (spy.mock.calls[0]?.[0] as Array<Record<string, unknown>>)[0]
+			const question = languageQuestion(spy)
 			const choices = question.choices as Array<{ name: string; value: string }>
 			expect(choices.map((c) => c.value)).toEqual(['js', 'swift', 'python', 'perl'])
 			expect(choices.find((c) => c.value === 'js')?.name).not.toMatch(/lands with/)
