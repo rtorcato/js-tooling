@@ -16,13 +16,28 @@ import type { CheckResult } from './doctor.js'
 import { runDoctor } from './doctor.js'
 import { declinedInLock, lockfilePatchForTarget } from './fix-targets.js'
 import { computeFileList } from './setup-presets.js'
-import {
-	type Fixer,
-	FIXERS,
-	type FixRiskLevel,
-	type Pkg,
-	readPackageJson,
-} from '../../languages/js/fixers.js'
+import type { Fixer, FixRiskLevel, Pkg } from '../../base/fixers.js'
+import { FIXERS, readPackageJson } from '../../languages/js/fixers.js'
+import { SWIFT_FIXERS } from '../../languages/swift/fixers.js'
+import { detectLanguage } from '../utils/detect-language.js'
+
+/**
+ * The fixers that apply to a repo, by detected language (#286). Swift repos get
+ * the Swift set; everything else (including a bare dir mid-setup) gets JS, the
+ * historical default.
+ *
+ * ponytail: no base/language split yet. Most of the JS set is *actually*
+ * language-agnostic (dependabot, codeql, codeowners, community-health, …), so a
+ * Swift repo currently sees those checks from doctor but can't fix them. That
+ * move is the fixer sibling of #282 and gets its own issue rather than riding
+ * along here.
+ */
+function fixersForLanguage(language: string): Fixer[] {
+	return language === 'swift' ? SWIFT_FIXERS : FIXERS
+}
+
+/** Every fixer across every language — for `--list` and the unknown-target hint. */
+const ALL_FIXERS: Fixer[] = [...FIXERS, ...SWIFT_FIXERS]
 
 export interface FixOptions {
 	directory?: string
@@ -52,7 +67,7 @@ export interface FixJsonResult {
 }
 
 export function getFixers(): Fixer[] {
-	return FIXERS
+	return ALL_FIXERS
 }
 
 async function ownOutputsPresent(targetDir: string, fixer: Fixer): Promise<boolean> {
@@ -66,18 +81,18 @@ async function ownOutputsPresent(targetDir: string, fixer: Fixer): Promise<boole
 	return false
 }
 
-function findFixer(target: string): Fixer | undefined {
+function findFixer(fixers: Fixer[], target: string): Fixer | undefined {
 	const normalized = target.toLowerCase()
-	return FIXERS.find((f) => f.target.toLowerCase() === normalized)
+	return fixers.find((f) => f.target.toLowerCase() === normalized)
 }
 
-function findFixerForCheck(checkName: string): Fixer | undefined {
-	return FIXERS.find((f) => f.appliesTo.includes(checkName))
+function findFixerForCheck(fixers: Fixer[], checkName: string): Fixer | undefined {
+	return fixers.find((f) => f.appliesTo.includes(checkName))
 }
 
-function logTargets() {
+function logTargets(fixers: Fixer[]) {
 	console.log(chalk.gray('Available fix targets:'))
-	for (const f of FIXERS) {
+	for (const f of fixers) {
 		console.log(`  ${chalk.green('●')} ${chalk.bold(f.target)}: ${chalk.gray(f.description)}`)
 	}
 }
@@ -92,7 +107,7 @@ export interface FixerSummary {
 }
 
 export function listFixers(): FixerSummary[] {
-	return FIXERS.map((f) => ({
+	return ALL_FIXERS.map((f) => ({
 		target: f.target,
 		description: f.description,
 		appliesTo: f.appliesTo,
@@ -402,6 +417,7 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 
 	const pkg = await readPackageJson(targetDir)
 	const lock = await readLockfile(targetDir)
+	const fixers = fixersForLanguage(await detectLanguage(targetDir))
 	const results = await runDoctor(targetDir)
 	const actions: FixActionRecord[] = []
 
@@ -424,7 +440,7 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 	}
 
 	if (target) {
-		const fixer = findFixer(target)
+		const fixer = findFixer(fixers, target)
 		if (!fixer) {
 			if (json) {
 				console.log(
@@ -442,7 +458,7 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 				process.exit(1)
 			}
 			console.error(chalk.red(`\n❌ Unknown fix target: ${target}\n`))
-			logTargets()
+			logTargets(fixers)
 			console.log()
 			process.exit(1)
 		}
@@ -527,7 +543,7 @@ export async function fixCommand(target: string | undefined, options: FixOptions
 	let unsupportedCount = 0
 
 	for (const result of fixable) {
-		const fixer = findFixerForCheck(result.check)
+		const fixer = findFixerForCheck(fixers, result.check)
 		if (!fixer) {
 			actions.push(recordFor(null, result.check, result.status, 'unsupported', []))
 			if (!silent) console.log(chalk.gray(`  — ${result.check}: no fixer registered`))

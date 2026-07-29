@@ -363,8 +363,11 @@ describe('setup language prompt', () => {
 			const question = languageQuestion(spy)
 			const choices = question.choices as Array<{ name: string; value: string }>
 			expect(choices.map((c) => c.value)).toEqual(['js', 'swift', 'python', 'perl'])
-			expect(choices.find((c) => c.value === 'js')?.name).not.toMatch(/lands with/)
-			expect(choices.find((c) => c.value === 'swift')?.name).toMatch(/lands with its module/)
+			expect(choices.find((c) => c.value === 'js')?.name).toBe('JavaScript/TypeScript')
+			// Swift has doctor/fix checks (#286) but no setup preset yet (#288) — the
+			// label has to say so rather than reading as fully supported.
+			expect(choices.find((c) => c.value === 'swift')?.name).toMatch(/no setup preset yet/)
+			expect(choices.find((c) => c.value === 'perl')?.name).toMatch(/lands with its module/)
 		} finally {
 			logSpy.mockRestore()
 		}

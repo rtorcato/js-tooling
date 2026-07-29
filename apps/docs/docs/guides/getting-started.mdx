@@ -86,7 +86,7 @@ Running `setup` (or its alias `init`) launches an interactive wizard:
 A universal baseline (`.editorconfig`, `.nvmrc`, `engines.node`, `knip.json`, `.vscode/extensions.json`) is scaffolded automatically — no prompt — because these are safe defaults for every project.
 
 :::note Non-JS languages
-Only JavaScript/TypeScript has scaffolding today. Picking Swift, Python or Perl writes nothing and points you at `doctor`, which already audits those repos against the language-agnostic checks (CI, CodeQL, Dependabot, GitHub repo settings). Presets for the other languages land with their language modules — see [#139](https://github.com/rtorcato/repo-tooling/issues/139).
+Only JavaScript/TypeScript has scaffolding today. Picking Swift, Python or Perl writes nothing and points you at `doctor`, which already audits those repos against the language-agnostic checks (CI, CodeQL, Dependabot, GitHub repo settings). [Swift](/reference/swift) additionally has its own checks and fixers (SwiftLint, Periphery, `.gitignore`, `Package.swift`) — it just has no setup preset yet. Presets for the other languages land with their language modules — see [#139](https://github.com/rtorcato/repo-tooling/issues/139).
 :::
 
 ## Non-interactive setup (CI / scripts)

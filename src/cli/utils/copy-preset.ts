@@ -9,6 +9,8 @@ export type PresetName =
 	| 'release-please'
 	| 'oxlint'
 	| 'tsconfig'
+	| 'swiftlint'
+	| 'periphery'
 	| 'claude-skill'
 	| 'mcp-example'
 	| 'docusaurus-sync-changelog'
@@ -58,6 +60,16 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		source: 'tooling/typescript/tsconfig.base.json',
 		target: 'tsconfig.json',
 		desc: 'TypeScript base configuration',
+	},
+	swiftlint: {
+		source: 'tooling/swift/swiftlint.yml',
+		target: '.swiftlint.yml',
+		desc: 'SwiftLint configuration (lint + --fix; the standard swift-common runs)',
+	},
+	periphery: {
+		source: 'tooling/swift/periphery.yml',
+		target: '.periphery.yml',
+		desc: 'Periphery dead-code scan configuration (retains public API)',
 	},
 	'claude-skill': {
 		source: 'tooling/claude/repo-tooling.md',

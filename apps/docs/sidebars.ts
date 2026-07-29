@@ -64,6 +64,7 @@ const sidebars: SidebarsConfig = {
         'reference/rolldown',
         'reference/rollup',
         'reference/semantic-release',
+        'reference/swift',
         'reference/tailwind',
         'reference/tsup',
         'reference/turborepo',

@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import type { FileCheck } from '../../base/checks.js'
 import type { CheckResult } from '../../base/types.js'
 import { BADGE_START, hasPublicOnlyBadges } from '../../cli/generators/badges.js'
 
@@ -48,15 +49,6 @@ export function evaluateNodeVersion(version: string): CheckResult {
 		status: 'ok',
 		detail: display,
 	}
-}
-
-interface FileCheck {
-	check: string
-	candidates: string[]
-	expected: string
-	matcher: RegExp
-	optional?: boolean
-	hint?: string
 }
 
 export const FILE_CHECKS: FileCheck[] = [
@@ -132,35 +124,6 @@ export const FILE_CHECKS: FileCheck[] = [
 		hint: 'Run `npx @rtorcato/repo-tooling fix release-please` to scaffold',
 	},
 ]
-
-export async function checkFile(dir: string, spec: FileCheck): Promise<CheckResult> {
-	for (const candidate of spec.candidates) {
-		const filepath = path.join(dir, candidate)
-		if (!(await fs.pathExists(filepath))) continue
-
-		const contents = await fs.readFile(filepath, 'utf-8')
-		if (spec.matcher.test(contents)) {
-			return {
-				check: spec.check,
-				status: 'ok',
-				detail: `${candidate} ${spec.expected}`,
-			}
-		}
-		return {
-			check: spec.check,
-			status: 'drift',
-			detail: `${candidate} found but does not ${spec.expected}`,
-			hint: spec.hint,
-		}
-	}
-
-	return {
-		check: spec.check,
-		status: spec.optional ? 'optional-missing' : 'missing',
-		detail: `no ${spec.candidates.join(' / ')} found`,
-		hint: spec.hint,
-	}
-}
 
 export type Pkg = Record<string, unknown>
 

@@ -171,9 +171,18 @@ export async function setupProject(options: SetupOptions) {
 }
 
 /**
+ * Languages `setup` can scaffold. Deliberately separate from the registry's
+ * `supported` flag, which means "has doctor/fix checks" — Swift's module landed
+ * in #286 but its presets land in #288, so it can be audited without being
+ * scaffoldable. Both the picker label and the gate below read from here, so the
+ * two can't drift apart.
+ */
+const SCAFFOLDABLE: ReadonlyArray<LanguageModule['id']> = ['js']
+
+/**
  * Ask which language this repo is, defaulting to whatever the target dir looks
- * like. Languages without a module yet are still offered — hiding them reads as
- * "repo-tooling is JS-only" when the honest answer is "not yet" (#139).
+ * like. Languages setup can't scaffold yet are still offered — hiding them reads
+ * as "repo-tooling is JS-only" when the honest answer is "not yet" (#139).
  */
 async function promptForLanguage(targetDir: string): Promise<LanguageModule> {
 	const detected = await detectLanguage(targetDir)
@@ -183,7 +192,9 @@ async function promptForLanguage(targetDir: string): Promise<LanguageModule> {
 			name: 'language',
 			message: '🗣️  What is the primary language of this repo?',
 			choices: Object.values(LANGUAGES).map((module) => ({
-				name: module.supported ? module.label : `${module.label} (setup lands with its module)`,
+				name: SCAFFOLDABLE.includes(module.id)
+					? module.label
+					: `${module.label} (${module.supported ? 'doctor/fix only — no setup preset yet' : 'setup lands with its module'})`,
 				value: module.id,
 			})),
 			// 'unknown' is a bare dir mid-setup — JS is the historical default.
@@ -193,18 +204,22 @@ async function promptForLanguage(targetDir: string): Promise<LanguageModule> {
 	return LANGUAGES[language as LanguageModule['id']]
 }
 
-function explainUnsupported(module: LanguageModule) {
+function explainNotScaffoldable(module: LanguageModule) {
 	console.log(chalk.yellow(`\n⚠️  ${module.label} scaffolding isn't available yet.\n`))
 	console.log(
 		chalk.gray(
-			`   doctor and fix already cover ${module.label} repos with the language-agnostic\n` +
-				'   checks (CI, CodeQL, Dependabot, GitHub repo settings):\n'
+			module.supported
+				? `   doctor and fix already audit ${module.label} repos — both the language-agnostic\n` +
+						`   checks (CI, CodeQL, Dependabot, GitHub repo settings) and the ${module.label}-specific\n` +
+						'   ones:\n'
+				: `   doctor and fix already cover ${module.label} repos with the language-agnostic\n` +
+						'   checks (CI, CodeQL, Dependabot, GitHub repo settings):\n'
 		)
 	)
 	console.log(chalk.gray('     npx @rtorcato/repo-tooling doctor\n'))
 	console.log(
 		chalk.gray(
-			`   ${module.label} presets land with its language module — track the work at\n` +
+			`   ${module.label} setup presets are tracked at\n` +
 				'   https://github.com/rtorcato/repo-tooling/issues/139\n'
 		)
 	)
@@ -214,15 +229,15 @@ function explainUnsupported(module: LanguageModule) {
 async function promptForConfig(targetDir: string): Promise<ProjectConfig | null> {
 	const language = await promptForLanguage(targetDir)
 
-	// An allowlist, not a `module.supported` check: `supported` flips when Swift's
-	// doctor/fix module lands (#286), which is earlier than its *scaffolding*
-	// (#288). Keying off it would fall through to the JS question list and write
-	// a package.json into a Swift repo. Bailing out is the safe default; #288
-	// adds the swift branch here deliberately.
-	if (language.id !== 'js') {
-		explainUnsupported(language)
+	// Gate on SCAFFOLDABLE, not `module.supported` — Swift is supported (#286)
+	// but has no preset yet (#288), and falling through here would write a
+	// package.json into a Swift repo.
+	if (!SCAFFOLDABLE.includes(language.id)) {
+		explainNotScaffoldable(language)
 		return null
 	}
+	// Narrowing for the question list below, which is JS-shaped throughout.
+	if (language.id !== 'js') return null
 
 	// Turborepo only makes sense in a pnpm-workspace monorepo, so the prompt is
 	// only offered when one is already present in the target dir.
