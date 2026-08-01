@@ -57,8 +57,9 @@ describe('swift fixers', () => {
 			.filter((check) => !fixable.has(check))
 		// `language` and `Package.swift` are informational (scaffolding a manifest
 		// is `setup`'s job); `Coverage upload` is a base check only the JS CI
-		// generator satisfies, so Swift has nothing to apply for it.
-		expect(uncovered).toEqual(['language', 'Coverage upload', 'Package.swift'])
+		// generator satisfies; `README badges` needs a package.json name/repository
+		// to build the block from, which a Swift repo hasn't got (#309).
+		expect(uncovered).toEqual(['language', 'README badges', 'Coverage upload', 'Package.swift'])
 	})
 
 	it('swiftlint writes a config the SwiftLint check accepts', async () => {
@@ -74,6 +75,29 @@ describe('swift fixers', () => {
 		const dir = newTmpDir()
 		await fixer('periphery').run(ctx(dir))
 		expect(await fs.readFile(join(dir, '.periphery.yml'), 'utf-8')).toContain('retain_public: true')
+	})
+
+	// #309: the checks moved to src/base, so a Swift repo now gets them — but
+	// husky is an npm package, so the fixer scaffolds plain .githooks instead.
+	it('swift-git-hooks writes hooks the base Git hooks / Pre-push checks accept', async () => {
+		const dir = newTmpDir()
+		await fs.writeFile(join(dir, 'Package.swift'), '// swift-tools-version: 5.9\n')
+		const { filesWritten } = await fixer('swift-git-hooks').run(ctx(dir))
+		expect(filesWritten).toEqual(['.githooks/pre-commit', '.githooks/pre-push'])
+		expect(await fs.readFile(join(dir, '.githooks/pre-push'), 'utf-8')).toContain('swift test')
+		// Executable, or git silently ignores the hook.
+		expect((await fs.stat(join(dir, '.githooks/pre-commit'))).mode & 0o111).toBeTruthy()
+
+		const results = await runDoctor(dir)
+		expect(results.find((r) => r.check === 'Git hooks')?.status).toBe('ok')
+		expect(results.find((r) => r.check === 'Pre-push hook')?.status).toBe('ok')
+	})
+
+	// No .git in the temp dir: an unguarded `git config` would walk up and
+	// rewrite whatever repo the tmp dir happens to sit inside.
+	it('swift-git-hooks does not touch git config outside a repo', async () => {
+		const dir = newTmpDir()
+		await expect(fixer('swift-git-hooks').run(ctx(dir))).resolves.toBeTruthy()
 	})
 })
 

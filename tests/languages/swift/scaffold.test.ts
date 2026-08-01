@@ -7,7 +7,8 @@ import {
 	swiftFileList,
 	swiftModuleName,
 } from '../../../src/languages/swift/scaffold.js'
-import { runSwiftChecks } from '../../../src/languages/swift/checks.js'
+import { SWIFT_GIT_HOOKS, runSwiftChecks } from '../../../src/languages/swift/checks.js'
+import { checkGitHooks, checkPrePushHook } from '../../../src/base/checks.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
@@ -84,6 +85,18 @@ describe('generateSwiftProject', () => {
 			'Periphery: ok',
 			'Swift .gitignore: ok',
 		])
+	})
+
+	// #309: a fresh scaffold must satisfy the base hook checks it now gets, or
+	// `doctor` nags about hooks on a repo `setup` just wrote.
+	it('commits node-free git hooks the base checks accept', async () => {
+		const dir = await scaffold()
+		const profile = SWIFT_GIT_HOOKS
+		expect((await checkGitHooks(dir, profile)).status).toBe('ok')
+		expect((await checkPrePushHook(dir, profile)).status).toBe('ok')
+		const preCommit = await fs.readFile(join(dir, '.githooks/pre-commit'), 'utf-8')
+		expect(preCommit).toContain('swiftlint')
+		expect(preCommit).not.toContain('npx')
 	})
 
 	it('renders Swift CI on macOS with no Node in sight', async () => {

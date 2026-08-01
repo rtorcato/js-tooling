@@ -95,9 +95,11 @@ export function buildPresetConfig(name: PresetName, projectName: string): Projec
 				linting: { tool: 'none' },
 				formatting: { tool: 'none' },
 				testing: { framework: 'none' },
-				// Husky and commitlint are npm packages; a Swift repo has no
-				// node_modules to install them into.
-				gitHooks: false,
+				// Husky is an npm package, but git hooks aren't (#309): the Swift path
+				// commits `.githooks/` and points git at it with `core.hooksPath`.
+				gitHooks: true,
+				// commitlint *is* an npm package and needs node on PATH to run, so
+				// the Swift hooks deliberately wire no commit-msg hook.
 				commitLint: false,
 				// semantic-release publishes to npm. SwiftPM consumes git tags.
 				semanticRelease: false,

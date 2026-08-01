@@ -20,6 +20,7 @@ import { generateCodeQLWorkflow, generateDependabotConfig } from '../../cli/gene
 import { copyPreset } from '../../cli/utils/copy-preset.js'
 import { LANGUAGES } from '../registry.js'
 import { readSwiftPackage, renderSwiftWorkflow } from './ci.js'
+import { SWIFT_HOOKS_DIR, installSwiftGitHooks } from './git-hooks.js'
 import { ensureSwiftGitignore } from './gitignore.js'
 
 /**
@@ -141,6 +142,17 @@ periphery scan         # Report unused declarations
 SwiftLint is the formatter *and* the linter here — SwiftFormat is deliberately
 not part of the standard, because a second formatter fights the first.
 
+### Git hooks
+
+\`.githooks/\` is committed, but git only runs it once each clone points at it:
+
+\`\`\`bash
+git config core.hooksPath .githooks
+\`\`\`
+
+\`pre-commit\` runs \`swiftlint --fix\`; \`pre-push\` runs \`swift build\`,
+\`swift test\` and \`swiftlint lint --strict\` — the same gate as CI.
+
 ## Project Structure
 
 \`\`\`
@@ -148,6 +160,7 @@ ${config.projectName}/
 ├── Sources/${module}/          # Library source
 ├── Tests/${module}Tests/       # XCTest suite
 ├── Package.swift               # SwiftPM manifest
+├── .githooks/                  # pre-commit + pre-push (see Git hooks above)
 ├── .swiftlint.yml              # SwiftLint configuration
 ├── .periphery.yml              # Dead-code scan configuration
 └── README.md
@@ -193,6 +206,9 @@ export function swiftFileList(config: ProjectConfig): string[] {
 		'.editorconfig',
 		'.github/workflows/ci.yml',
 	]
+	if (config.gitHooks) {
+		files.push(`${SWIFT_HOOKS_DIR}/pre-commit`, `${SWIFT_HOOKS_DIR}/pre-push`)
+	}
 	if (config.securityAutomation) {
 		files.push(
 			'.github/dependabot.yml',
@@ -243,6 +259,13 @@ export async function generateSwiftProject(config: ProjectConfig, targetDir: str
 		path.join(workflowsDir, 'ci.yml'),
 		renderSwiftWorkflow(await readSwiftPackage(targetDir))
 	)
+
+	// `core.hooksPath` won't stick here — `setup` scaffolds into a directory that
+	// isn't a git repo yet — so the hooks land as files and the README tells you
+	// the one-line config to run after `git init`.
+	if (config.gitHooks) {
+		await installSwiftGitHooks(targetDir)
+	}
 
 	if (config.securityAutomation) {
 		await generateDependabotConfig(targetDir, LANGUAGES.swift.dependabotEcosystem)

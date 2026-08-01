@@ -37,6 +37,7 @@ SwiftPM resolves dependencies on the first `swift build`, and there's no
 | `.swiftlint.yml` | Lint *and* format config |
 | `.periphery.yml` | Dead-code scan config (`retain_public: true`) |
 | `.gitignore` | `.build`, `DerivedData`, `xcuserdata` and friends |
+| `.githooks/pre-commit` + `pre-push` | Node-free git hooks (SwiftLint, `swift build`/`test`) |
 | `.editorconfig` | Shared baseline plus a `[*.swift]` 4-space override |
 | `.github/workflows/ci.yml` | Swift CI on macOS runners |
 | `.github/workflows/codeql.yml` | CodeQL with `language: swift` |
@@ -91,7 +92,7 @@ not having. Concretely:
 | Lint + format | Biome or ESLint + Prettier | SwiftLint (both jobs) |
 | Dead code | knip | Periphery |
 | Install step | `pnpm install` | none — SwiftPM resolves on build |
-| Git hooks | Husky + lint-staged | none (npm packages) |
+| Git hooks | Husky + lint-staged (`.husky/`) | committed `.githooks/` + `core.hooksPath` |
 | Release | semantic-release → npm | git tags → SwiftPM |
 | CI runner | `ubuntu-latest` | `macos-latest` (Xcode) |
 | CodeQL | `javascript-typescript` | `swift` |
@@ -132,21 +133,21 @@ scaffolder and would overwrite your manifest. Use `doctor` and `fix` instead:
 npx @rtorcato/repo-tooling doctor              # audit
 npx @rtorcato/repo-tooling fix swiftlint       # .swiftlint.yml
 npx @rtorcato/repo-tooling fix periphery       # .periphery.yml
-npx @rtorcato/repo-tooling fix swift-gitignore # append build artefacts
-npx @rtorcato/repo-tooling fix swift-ci        # .github/workflows/ci.yml
-npx @rtorcato/repo-tooling fix swift-codeql    # .github/workflows/codeql.yml
-npx @rtorcato/repo-tooling fix swift-gitlab-ci # .gitlab-ci.yml
+npx @rtorcato/repo-tooling fix swift-gitignore  # append build artefacts
+npx @rtorcato/repo-tooling fix swift-git-hooks  # .githooks/ + core.hooksPath
+npx @rtorcato/repo-tooling fix swift-ci         # .github/workflows/ci.yml
+npx @rtorcato/repo-tooling fix swift-codeql     # .github/workflows/codeql.yml
+npx @rtorcato/repo-tooling fix swift-gitlab-ci  # .gitlab-ci.yml
 ```
 
 `doctor` detects Swift from `Package.swift` and runs the language-agnostic
-checks (CI, CodeQL, Dependabot, GitHub repo settings) plus the Swift ones. There
-is deliberately no fixer for `Package.swift` — rewriting someone's manifest isn't
-safe, so `doctor` reports and you edit.
+checks (git hooks, commit linting, README badges, CI, CodeQL, Dependabot, GitHub
+repo settings) plus the Swift ones. There is deliberately no fixer for
+`Package.swift` — rewriting someone's manifest isn't safe, so `doctor` reports
+and you edit.
 
 :::note Not covered yet
-`doctor` reports the language-agnostic findings (Dependabot, CODEOWNERS,
-community health) on a Swift repo, but `fix` reports them as `unsupported` —
-those fixers still live in the JS module. The generated `dependabot.yml` also
-uses `package-ecosystem: npm` where a Swift repo wants `swift`. Both are tracked
-in [#303](https://github.com/rtorcato/repo-tooling/issues/303).
+The `README badges` check runs on a Swift repo but has no fixer — `fix badges`
+derives every badge URL from a package.json `name` + `repository`, which a
+SwiftPM repo hasn't got. `doctor` reports; you add the badges by hand.
 :::

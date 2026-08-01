@@ -2,12 +2,14 @@
  * Swift language module — fixers (#286). One per check in ./checks.ts.
  */
 import path from 'node:path'
+import chalk from 'chalk'
 import fs from 'fs-extra'
 import type { Fixer } from '../../base/fixers.js'
 import { buildPresetConfig } from '../../cli/commands/setup-presets.js'
 import { copyPreset } from '../../cli/utils/copy-preset.js'
 import { LOCKFILE_NAME, writeLockfile } from '../../cli/utils/lockfile.js'
 import { readSwiftPackage, renderSwiftGitLabCI, renderSwiftWorkflow } from './ci.js'
+import { SWIFT_HOOKS_DIR, installSwiftGitHooks } from './git-hooks.js'
 import { ensureSwiftGitignore } from './gitignore.js'
 
 export const SWIFT_FIXERS: Fixer[] = [
@@ -44,6 +46,24 @@ export const SWIFT_FIXERS: Fixer[] = [
 		canFixDrift: true,
 		async run({ targetDir }) {
 			return { filesWritten: await ensureSwiftGitignore(targetDir) }
+		},
+	},
+	{
+		target: 'swift-git-hooks',
+		description: `Scaffold ${SWIFT_HOOKS_DIR}/pre-commit + pre-push (SwiftLint, swift build/test) and point git at them via core.hooksPath`,
+		appliesTo: ['Git hooks', 'Pre-push hook'],
+		outputs: [`${SWIFT_HOOKS_DIR}/pre-commit`, `${SWIFT_HOOKS_DIR}/pre-push`],
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const { filesWritten, hooksPathSet } = await installSwiftGitHooks(targetDir)
+			console.log(
+				hooksPathSet
+					? chalk.dim(`   git config core.hooksPath ${SWIFT_HOOKS_DIR}`)
+					: chalk.yellow(
+							`   run \`git config core.hooksPath ${SWIFT_HOOKS_DIR}\` once per clone — it's local git config, not a committed file`
+						)
+			)
+			return { filesWritten }
 		},
 	},
 	{

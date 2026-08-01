@@ -13,8 +13,9 @@
  */
 import path from 'node:path'
 import fs from 'fs-extra'
-import { type FileCheck, checkFile } from '../../base/checks.js'
+import { type FileCheck, type GitHooksProfile, checkFile } from '../../base/checks.js'
 import type { CheckResult } from '../../base/types.js'
+import { SWIFT_HOOKS_DIR } from './git-hooks.js'
 
 const SWIFT_FILE_CHECKS: FileCheck[] = [
 	{
@@ -113,6 +114,19 @@ export async function checkPackageSwift(dir: string): Promise<CheckResult> {
 		status: 'ok',
 		detail: `Package.swift declares tools ${toolsVersion} and explicit platforms`,
 	}
+}
+
+/**
+ * The Swift shape of the base `Git hooks` / `Pre-push hook` checks (#309).
+ * `install` is null because the wiring — `git config core.hooksPath` — is
+ * per-clone local state that nothing commits; flagging its absence would fail
+ * every fresh CI checkout for something that isn't repo drift.
+ */
+export const SWIFT_GIT_HOOKS: GitHooksProfile = {
+	dir: SWIFT_HOOKS_DIR,
+	install: null,
+	verifyCommand: 'swift test',
+	fixTarget: 'swift-git-hooks',
 }
 
 /** The Swift module's suite, layered on top of the base checks by doctor. */

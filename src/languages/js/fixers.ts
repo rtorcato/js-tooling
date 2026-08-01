@@ -8,11 +8,7 @@ import {
 	generateRollupConfig,
 	generateSemanticReleaseConfig,
 } from '../../cli/generators/build.js'
-import {
-	generateCommitlintConfig,
-	generateHuskyConfig,
-	generatePrePushHook,
-} from '../../cli/generators/git.js'
+import { generateHuskyConfig, generatePrePushHook } from '../../cli/generators/git.js'
 import { generateGitHubActions } from '../../cli/generators/github-actions.js'
 import { generateGitLabCI } from '../../cli/generators/gitlab-ci.js'
 import { GH_WORKFLOWS, generateGhWorkflow } from '../../cli/generators/github-workflows.js'
@@ -213,20 +209,9 @@ export const FIXERS: Fixer[] = [
 		},
 	},
 	{
-		target: 'commitlint',
-		description: 'Scaffold commitlint.config.mjs exporting the preset',
-		appliesTo: ['Commitlint'],
-		outputs: ['commitlint.config.mjs'],
-		canFixDrift: true,
-		async run({ targetDir }) {
-			await generateCommitlintConfig(targetDir)
-			return { filesWritten: ['commitlint.config.mjs'] }
-		},
-	},
-	{
 		target: 'husky',
 		description: 'Set up Husky + lint-staged (and a `pnpm verify` pre-push hook)',
-		appliesTo: ['Husky', 'lint-staged', 'Husky pre-push'],
+		appliesTo: ['Git hooks', 'lint-staged', 'Pre-push hook'],
 		outputs: ['.husky/pre-commit', '.husky/pre-push', 'package.json (lint-staged field)'],
 		riskLevel: 'safe-merge',
 		canFixDrift: true,
