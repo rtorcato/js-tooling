@@ -13,6 +13,7 @@
  */
 import { installAgentRules, installAiSetup } from '../cli/generators/agent-rules.js'
 import { generateCommunityHealth } from '../cli/generators/community-health.js'
+import { generateCommitlintConfig } from '../cli/generators/git.js'
 import { generateCodeowners, generateEditorConfig } from '../cli/generators/misc.js'
 import {
 	generateCodeQLWorkflow,
@@ -71,6 +72,20 @@ export const BASE_FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			await generateEditorConfig(targetDir)
 			return { filesWritten: ['.editorconfig'] }
+		},
+	},
+	{
+		target: 'commitlint',
+		description: 'Scaffold commitlint.config.mjs exporting the preset',
+		// Conventional Commits is a repo convention, not a JS one (#309) — the
+		// config is identical in any repo. Running commitlint still needs node on
+		// PATH, which is why the Swift hooks don't wire a commit-msg hook.
+		appliesTo: ['Commitlint'],
+		outputs: ['commitlint.config.mjs'],
+		canFixDrift: true,
+		async run({ targetDir }) {
+			await generateCommitlintConfig(targetDir)
+			return { filesWritten: ['commitlint.config.mjs'] }
 		},
 	},
 	{

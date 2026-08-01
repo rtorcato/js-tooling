@@ -2,12 +2,13 @@ import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
 import { resolveLanguageModule } from '../../languages/registry.js'
-import { runSwiftChecks } from '../../languages/swift/checks.js'
+import { SWIFT_GIT_HOOKS, runSwiftChecks } from '../../languages/swift/checks.js'
 import { detectLanguage } from '../utils/detect-language.js'
 import { checkGitHubSettings } from '../../base/github-settings.js'
 import { type Lockfile, LOCKFILE_VERSION, readLockfile } from '../utils/lockfile.js'
 import { declinedInLock, getFixTargetForCheck } from './fix-targets.js'
 import {
+	type BadgeAudience,
 	checkAiSetup,
 	checkCodeowners,
 	checkCodeQL,
@@ -16,8 +17,13 @@ import {
 	checkDependabot,
 	checkEditorConfig,
 	checkFile,
+	checkGitHooks,
 	checkGitHubActions,
 	checkGitLabCI,
+	checkPrePushHook,
+	checkReadmeBadges,
+	COMMITLINT_FILE_CHECK,
+	type GitHooksProfile,
 } from '../../base/checks.js'
 import type { CheckResult, CheckStatus } from '../../base/types.js'
 import {
@@ -25,15 +31,12 @@ import {
 	checkAreTheTypesWrong,
 	checkDocsSite,
 	checkEnginesNode,
-	checkHusky,
-	checkHuskyPrePush,
 	checkKnip,
 	checkLintStaged,
 	checkNodeVersionConsistency,
 	checkNodeVersionPin,
 	checkPackageJson,
 	checkPublint,
-	checkReadmeBadges,
 	checkSemanticRelease,
 	checkSizeLimit,
 	checkTailwind,
@@ -45,6 +48,8 @@ import {
 	evaluateNodeVersion,
 	FILE_CHECKS,
 	findDocsAppDir,
+	jsBadgeAudience,
+	jsGitHooksProfile,
 	type Pkg,
 	readPackageJson,
 } from '../../languages/js/checks.js'
@@ -176,13 +181,34 @@ function demoteDeclined(results: CheckResult[], lock: Lockfile | null): CheckRes
 	})
 }
 
-// The language-agnostic checks (src/base): repo hygiene, CI, security, and
-// GitHub repo-settings that apply to any repo regardless of language. Run for
-// every project; a supported language module layers its own checks on top.
-async function runBaseChecks(dir: string, lock: Lockfile | null): Promise<CheckResult[]> {
+/**
+ * The per-language inputs the base suite needs. Git hooks, commit linting and
+ * README badges are repo concerns whose *evidence* is language-shaped (#309), so
+ * the module hands the shape in rather than forking the check.
+ */
+interface BaseCheckOptions {
+	/** Null for a language whose hook convention isn't encoded yet (Python/Perl). */
+	hooks: GitHooksProfile | null
+	badges: { audience: BadgeAudience; fixTarget: string | null }
+}
+
+// The language-agnostic checks (src/base): repo hygiene, git hooks, CI,
+// security, and GitHub repo-settings that apply to any repo regardless of
+// language. Declared once and run for every project — a language module layers
+// its own checks on top rather than re-listing these.
+async function runBaseChecks(
+	dir: string,
+	lock: Lockfile | null,
+	opts: BaseCheckOptions
+): Promise<CheckResult[]> {
 	const results: CheckResult[] = []
 	results.push(checkLockfile(lock))
 	results.push(await checkEditorConfig(dir))
+	results.push(await checkFile(dir, COMMITLINT_FILE_CHECK))
+	if (opts.hooks) {
+		results.push(await checkGitHooks(dir, opts.hooks))
+		results.push(await checkPrePushHook(dir, opts.hooks))
+	}
 	results.push(await checkGitHubActions(dir))
 	results.push(await checkDependabot(dir))
 	results.push(await checkCodeQL(dir))
@@ -193,6 +219,7 @@ async function runBaseChecks(dir: string, lock: Lockfile | null): Promise<CheckR
 	results.push(await checkCodeowners(dir))
 	results.push(await checkCommunityHealth(dir))
 	results.push(await checkAiSetup(dir))
+	results.push(await checkReadmeBadges(dir, opts.badges.audience, opts.badges.fixTarget))
 	results.push(await checkCoverageUpload(dir))
 	return results
 }
@@ -217,7 +244,13 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 				status: 'ok',
 				detail: `detected ${languageModule.label} — running language-agnostic checks; ${languageModule.label}-specific checks land with its module (#139)`,
 			},
-			...(await runBaseChecks(targetDir, lock)),
+			// hooks: null — nothing here encodes a Python/Perl hook convention yet,
+			// and guessing one would nag every repo with a fix target that doesn't
+			// exist. #289/#290 fill it in.
+			...(await runBaseChecks(targetDir, lock, {
+				hooks: null,
+				badges: { audience: 'public', fixTarget: null },
+			})),
 		]
 		return demoteDeclined(results, lock)
 	}
@@ -231,54 +264,43 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 				status: 'ok',
 				detail: 'detected Swift (Package.swift)',
 			},
-			...(await runBaseChecks(targetDir, lock)),
+			...(await runBaseChecks(targetDir, lock, {
+				hooks: SWIFT_GIT_HOOKS,
+				// A SwiftPM package is distributed as public source over git tags, so
+				// badges always apply. No fixer: `fix badges` derives the block from
+				// package.json name/repository, which a Swift repo hasn't got.
+				badges: { audience: 'public', fixTarget: null },
+			})),
 			...(await runSwiftChecks(targetDir)),
 		]
 		return demoteDeclined(results, lock)
 	}
 
-	// JS suite. Still inline rather than behind a module.runChecks() seam: Swift
-	// above is a base+module concatenation, JS interleaves its own checks with
-	// the base ones in a specific display order, so there's no shared shape to
-	// factor out yet. Revisit when Perl/Python land (#289/#290).
+	// JS suite: the module's own checks, then the shared base ones. Only the
+	// JS-shaped checks are listed here — re-listing the base suite is what made
+	// any new base check silently skip JS repos (#309).
 	const pkg = await readPackageJson(targetDir)
 	const results: CheckResult[] = []
 
 	results.push(evaluateNodeVersion(process.version))
 	results.push(checkPackageJson(pkg))
-	results.push(checkLockfile(lock))
 	results.push(checkEnginesNode(pkg))
-	results.push(await checkEditorConfig(targetDir))
 	results.push(await checkVscodeExtensions(targetDir))
 	results.push(await checkNodeVersionPin(targetDir))
 	results.push(await checkNodeVersionConsistency(targetDir, pkg))
 	for (const spec of FILE_CHECKS) {
 		results.push(await checkFile(targetDir, spec))
 	}
-	results.push(await checkHusky(targetDir, pkg))
 	results.push(await checkLintStaged(targetDir, pkg))
 	results.push(await checkVerifyScript(targetDir, pkg))
-	results.push(await checkHuskyPrePush(targetDir, pkg))
 	results.push(await checkSemanticRelease(targetDir, pkg))
 	results.push(await checkKnip(targetDir, pkg))
 	results.push(await checkSizeLimit(targetDir, pkg))
-	results.push(await checkGitHubActions(targetDir))
 	results.push(await checkReleaseToken(targetDir))
 	results.push(await checkNpmOidcPublish(targetDir, pkg))
-	results.push(await checkDependabot(targetDir))
-	results.push(await checkCodeQL(targetDir))
-	// GitHub repo-settings drift (branch protection, merge settings, workflow
-	// permissions). Read-only; self-skips as `ok` outside a live GitHub repo.
-	results.push(...(await checkGitHubSettings(targetDir)))
-	results.push(await checkGitLabCI(targetDir))
-	results.push(await checkCodeowners(targetDir))
-	results.push(await checkCommunityHealth(targetDir))
-	results.push(await checkAiSetup(targetDir))
 	results.push(await checkTypedoc(targetDir, pkg))
 	results.push(await checkAreTheTypesWrong(targetDir, pkg))
 	results.push(await checkPublint(targetDir, pkg))
-	results.push(await checkReadmeBadges(targetDir, pkg))
-	results.push(await checkCoverageUpload(targetDir))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))
 	// Turborepo is monorepo-only — only surface the check when a workspace exists.
 	if (await fs.pathExists(path.join(targetDir, 'pnpm-workspace.yaml'))) {
@@ -293,6 +315,13 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	if ('tailwindcss' in allDeps(pkg)) {
 		results.push(await checkTailwind(targetDir, pkg))
 	}
+
+	results.push(
+		...(await runBaseChecks(targetDir, lock, {
+			hooks: jsGitHooksProfile(pkg),
+			badges: { audience: jsBadgeAudience(pkg), fixTarget: 'badges' },
+		}))
+	)
 
 	return demoteDeclined(results, lock)
 }
@@ -319,14 +348,14 @@ function statusLabel(status: CheckStatus): string {
 
 const MAX_NEXT_STEP_SUGGESTIONS = 8
 
-export function nextStepSuggestions(results: CheckResult[]): string[] {
+export function nextStepSuggestions(results: CheckResult[], language?: string): string[] {
 	const fixable = results.filter(
 		(r) => r.status === 'drift' || r.status === 'missing' || r.status === 'optional-missing'
 	)
 	const lines: string[] = []
 	let overflow = 0
 	for (const r of fixable) {
-		const target = getFixTargetForCheck(r.check)
+		const target = getFixTargetForCheck(r.check, language)
 		if (!target) continue
 		if (lines.length >= MAX_NEXT_STEP_SUGGESTIONS) {
 			overflow++
@@ -379,7 +408,7 @@ export async function doctorCommand(options: DoctorOptions = {}) {
 		console.log(
 			`  Summary: ${chalk.green(`${summary.ok} ok`)}, ${chalk.yellow(`${summary.drift} drift`)}, ${chalk.red(`${summary.missing} missing`)}, ${chalk.gray(`${summary.optionalMissing} not configured`)}\n`
 		)
-		const suggestions = nextStepSuggestions(results)
+		const suggestions = nextStepSuggestions(results, await detectLanguage(dir))
 		if (suggestions.length > 0) {
 			console.log(chalk.bold('  Next steps:'))
 			for (const s of suggestions) {

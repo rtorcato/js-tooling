@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import { BADGE_START, hasPublicOnlyBadges } from '../cli/generators/badges.js'
 import type { CheckResult } from './types.js'
 
 /**
@@ -296,6 +297,169 @@ export async function checkAiSetup(dir: string): Promise<CheckResult> {
 		detail: 'no AI agent files (AGENTS.md, CLAUDE.md, Cursor/Copilot rules, Claude skill)',
 		hint: 'Run `npx @rtorcato/repo-tooling fix ai` to scaffold agent rules for every AI tool',
 	}
+}
+
+/**
+ * Conventional Commits is a repo convention, not a JavaScript one — the config
+ * file is the same in any repo that has node available to run commitlint, so
+ * the spec lives here rather than in the JS module's FILE_CHECKS (#309).
+ */
+export const COMMITLINT_FILE_CHECK: FileCheck = {
+	check: 'Commitlint',
+	candidates: ['commitlint.config.js', 'commitlint.config.mjs', 'commitlint.config.cjs'],
+	expected: 'exports "@rtorcato/repo-tooling/commitlint/config"',
+	matcher: /@rtorcato\/(?:js|repo)-tooling\/commitlint\/config/,
+	optional: true,
+}
+
+/**
+ * How one language wires git hooks (#309). Hooks and a pre-push gate are repo
+ * concerns — the *evidence* differs per language, the requirement doesn't — so
+ * the check bodies live here and each module supplies the shape.
+ */
+export interface GitHooksProfile {
+	/** Committed hooks directory this language's tooling installs into. */
+	dir: string
+	/**
+	 * Committed wiring that makes git run the hooks on a fresh clone, or null
+	 * when the language has none. Swift points git at `.githooks` with
+	 * `core.hooksPath` — per-clone local config, not repo drift — so it passes
+	 * null rather than making doctor fail CI on an unconfigured checkout.
+	 */
+	install: { present: boolean; label: string } | null
+	/** The gate a pre-push hook must run — and what the check greps for. */
+	verifyCommand: string
+	/** `fix` target that scaffolds/aligns the hooks. */
+	fixTarget: string
+}
+
+/**
+ * True when a shell hook has an uncommented line matching `pattern`. A
+ * commented-out line (e.g. `# pnpm verify`) doesn't count — the command never
+ * runs, so it isn't real wiring.
+ */
+export function hookHasUncommented(contents: string, pattern: RegExp): boolean {
+	return contents.split('\n').some((line) => {
+		const trimmed = line.trim()
+		return trimmed.length > 0 && !trimmed.startsWith('#') && pattern.test(trimmed)
+	})
+}
+
+/** `swift test` → /\bswift\s+test\b/, so extra whitespace in a hook still matches. */
+function commandMatcher(command: string): RegExp {
+	const escaped = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')
+	return new RegExp(`\\b${escaped}\\b`)
+}
+
+export async function checkGitHooks(dir: string, p: GitHooksProfile): Promise<CheckResult> {
+	const check = 'Git hooks'
+	const hint = `Run \`npx @rtorcato/repo-tooling fix ${p.fixTarget}\` to enable git hooks`
+	const hooksDir = await fs.pathExists(path.join(dir, p.dir))
+	// With no committed install signal, the hooks directory itself is the whole
+	// answer — there's no second half that can drift out of sync with it.
+	const installed = p.install === null ? hooksDir : p.install.present
+
+	if (hooksDir && installed) {
+		return {
+			check,
+			status: 'ok',
+			detail: p.install ? `${p.dir}/ and ${p.install.label} configured` : `${p.dir}/ found`,
+		}
+	}
+	if (hooksDir || installed) {
+		return {
+			check,
+			status: 'drift',
+			detail: hooksDir
+				? `${p.dir}/ exists but no ${p.install?.label}`
+				: `${p.install?.label} set but no ${p.dir}/ directory`,
+			hint: `${hint} (scaffolds both halves)`,
+		}
+	}
+	return { check, status: 'optional-missing', detail: 'git hooks not configured', hint }
+}
+
+/**
+ * The pre-push gate. Only asserts that the hook runs the language's verify
+ * command — whether that command itself is well-formed is the language module's
+ * business (JS keeps a `verify script` check for exactly that).
+ */
+export async function checkPrePushHook(dir: string, p: GitHooksProfile): Promise<CheckResult> {
+	const check = 'Pre-push hook'
+	if (!(await fs.pathExists(path.join(dir, p.dir)))) {
+		return {
+			check,
+			status: 'optional-missing',
+			detail: 'git hooks not configured',
+			hint: `Run \`npx @rtorcato/repo-tooling fix ${p.fixTarget}\` to enable git hooks (includes pre-push)`,
+		}
+	}
+	const hookPath = path.join(dir, p.dir, 'pre-push')
+	if (!(await fs.pathExists(hookPath))) {
+		return {
+			check,
+			status: 'optional-missing',
+			detail: `no ${p.dir}/pre-push`,
+			hint: `Run \`npx @rtorcato/repo-tooling fix ${p.fixTarget}\` to scaffold a pre-push hook that runs \`${p.verifyCommand}\``,
+		}
+	}
+	const contents = await fs.readFile(hookPath, 'utf-8')
+	if (hookHasUncommented(contents, commandMatcher(p.verifyCommand))) {
+		return { check, status: 'ok', detail: `${p.dir}/pre-push runs \`${p.verifyCommand}\`` }
+	}
+	return {
+		check,
+		status: 'drift',
+		detail: `${p.dir}/pre-push exists but does not run \`${p.verifyCommand}\``,
+		hint: `Run \`npx @rtorcato/repo-tooling fix ${p.fixTarget}\` to align the hook with \`${p.verifyCommand}\``,
+	}
+}
+
+/**
+ * Who the README's badges are for. The language module decides: a private npm
+ * package and a SwiftPM library disagree on whether npm/coverage badges would
+ * 404, but "does the README carry status badges" is the same question either way.
+ */
+export type BadgeAudience = 'public' | 'private' | 'not-applicable'
+
+export async function checkReadmeBadges(
+	dir: string,
+	audience: BadgeAudience,
+	/** `fix` target that rebuilds the badge block, or null when the language has none. */
+	fixTarget: string | null
+): Promise<CheckResult> {
+	const check = 'README badges'
+	const hint = fixTarget
+		? `Run \`npx @rtorcato/repo-tooling fix ${fixTarget}\` to add CI/npm/coverage/license badges`
+		: 'Add CI and license badges to README.md'
+	const readmePath = path.join(dir, 'README.md')
+	const readme = (await fs.pathExists(readmePath)) ? await fs.readFile(readmePath, 'utf8') : ''
+
+	if (audience === 'private') {
+		// Only a problem if a private/app repo carries badges that would 404.
+		if (readme && hasPublicOnlyBadges(readme)) {
+			return {
+				check,
+				status: 'drift',
+				detail: 'README has npm/coverage badges but the package is private (they 404)',
+				hint: fixTarget
+					? `Run \`npx @rtorcato/repo-tooling fix ${fixTarget}\` to rebuild badges for a private repo`
+					: 'Remove the npm/coverage badges — they 404 for a private package',
+			}
+		}
+		return { check, status: 'ok', detail: 'not applicable (private package)' }
+	}
+	if (audience === 'not-applicable') {
+		return { check, status: 'ok', detail: 'not applicable (no published exports)' }
+	}
+
+	const hasBadges =
+		readme.includes(BADGE_START) ||
+		/img\.shields\.io|badge\.svg|badge\.fury\.io|codecov\.io/.test(readme)
+	if (hasBadges) {
+		return { check, status: 'ok', detail: 'README carries status badges' }
+	}
+	return { check, status: 'optional-missing', detail: 'no status badges in README', hint }
 }
 
 export async function checkGitLabCI(dir: string): Promise<CheckResult> {

@@ -64,9 +64,10 @@ describe('setup-presets', () => {
 		expect(config.projectType).toBe('library')
 		expect(config.typescript.enabled).toBe(false)
 		expect(config.bundler).toBe('none')
-		// Husky/commitlint/semantic-release are all npm packages, and every badge
-		// URL is derived from a package.json this repo doesn't have.
-		expect(config.gitHooks).toBe(false)
+		// commitlint/semantic-release are npm packages, and every badge URL is
+		// derived from a package.json this repo doesn't have. Git hooks are not —
+		// the Swift path commits `.githooks/` and uses `core.hooksPath` (#309).
+		expect(config.gitHooks).toBe(true)
 		expect(config.commitLint).toBe(false)
 		expect(config.semanticRelease).toBe(false)
 		expect(config.badges).toBe(false)

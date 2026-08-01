@@ -20,6 +20,58 @@ async function seedPackageJson(dir: string, withDep = true) {
 	})
 }
 
+// The language-agnostic suite, declared once in doctor's runBaseChecks. Before
+// #309 the JS path re-listed it inline, so anything added to base silently
+// skipped JS repos — and the hook/commit/badge checks lived in the JS module, so
+// a Swift repo never saw them at all.
+const BASE_CHECKS = [
+	'lockfile',
+	'EditorConfig',
+	'Commitlint',
+	'Git hooks',
+	'Pre-push hook',
+	'GitHub Actions',
+	'Dependabot',
+	'CodeQL',
+	'GitLab CI',
+	'CODEOWNERS',
+	'Community health',
+	'AI setup',
+	'README badges',
+	'Coverage upload',
+]
+
+describe('doctor base suite', () => {
+	it('runs every base check for a JS repo and a Swift repo alike', async () => {
+		const jsDir = newTmpDir()
+		await seedPackageJson(jsDir)
+		const swiftDir = newTmpDir()
+		await fs.writeFile(join(swiftDir, 'Package.swift'), '// swift-tools-version: 5.9\n')
+
+		const jsChecks = new Set((await runDoctor(jsDir)).map((r) => r.check))
+		const swiftChecks = new Set((await runDoctor(swiftDir)).map((r) => r.check))
+
+		for (const check of BASE_CHECKS) {
+			expect(jsChecks, `JS: ${check}`).toContain(check)
+			expect(swiftChecks, `Swift: ${check}`).toContain(check)
+		}
+	})
+
+	it('emits each base check exactly once', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		const names = (await runDoctor(dir)).map((r) => r.check)
+		const duplicated = names.filter((n, i) => names.indexOf(n) !== i)
+		expect(duplicated).toEqual([])
+	})
+
+	it('suggests the Swift fixer, not the husky one, for a Swift repo', () => {
+		const results = [{ check: 'Git hooks', status: 'optional-missing' as const, detail: '' }]
+		expect(nextStepSuggestions(results, 'swift')[0]).toMatch(/fix swift-git-hooks/)
+		expect(nextStepSuggestions(results, 'js')[0]).toMatch(/fix husky/)
+	})
+})
+
 describe('doctor', () => {
 	it('reports drift when nothing is configured', async () => {
 		const dir = newTmpDir()
@@ -214,16 +266,16 @@ describe('doctor extended checks', () => {
 		expect(results.find((r) => r.check === 'Node version consistency')?.status).toBe('ok')
 	})
 
-	it('reports husky drift when .husky/ exists without prepare script', async () => {
+	it('reports git hooks drift when .husky/ exists without prepare script', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.ensureDir(join(dir, '.husky'))
 		const results = await runDoctor(dir)
-		const husky = results.find((r) => r.check === 'Husky')
-		expect(husky?.status).toBe('drift')
+		const gitHooks = results.find((r) => r.check === 'Git hooks')
+		expect(gitHooks?.status).toBe('drift')
 	})
 
-	it('reports husky ok when both .husky/ and prepare script exist', async () => {
+	it('reports git hooks ok when both .husky/ and prepare script exist', async () => {
 		const dir = newTmpDir()
 		await fs.writeJson(join(dir, 'package.json'), {
 			name: 'demo',
@@ -232,7 +284,7 @@ describe('doctor extended checks', () => {
 		})
 		await fs.ensureDir(join(dir, '.husky'))
 		const results = await runDoctor(dir)
-		expect(results.find((r) => r.check === 'Husky')?.status).toBe('ok')
+		expect(results.find((r) => r.check === 'Git hooks')?.status).toBe('ok')
 	})
 
 	it('AI setup: optional-missing on a bare project, ok once AGENTS.md has the block', async () => {
@@ -435,16 +487,16 @@ describe('doctor extended checks', () => {
 		expect(verify?.detail).toMatch(/typecheck/)
 	})
 
-	it('reports Husky pre-push ok when the hook calls pnpm verify', async () => {
+	it('reports pre-push hook ok when the hook calls pnpm verify', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.ensureDir(join(dir, '.husky'))
 		await fs.writeFile(join(dir, '.husky', 'pre-push'), 'pnpm verify\n')
 		const results = await runDoctor(dir)
-		expect(results.find((r) => r.check === 'Husky pre-push')?.status).toBe('ok')
+		expect(results.find((r) => r.check === 'Pre-push hook')?.status).toBe('ok')
 	})
 
-	it('reports Husky pre-push drift when the hook does not call pnpm verify', async () => {
+	it('reports pre-push hook drift when the hook does not call pnpm verify', async () => {
 		const dir = newTmpDir()
 		await fs.writeJson(join(dir, 'package.json'), {
 			name: 'demo',
@@ -455,12 +507,12 @@ describe('doctor extended checks', () => {
 		await fs.ensureDir(join(dir, '.husky'))
 		await fs.writeFile(join(dir, '.husky', 'pre-push'), 'pnpm test\n')
 		const results = await runDoctor(dir)
-		const prePush = results.find((r) => r.check === 'Husky pre-push')
+		const prePush = results.find((r) => r.check === 'Pre-push hook')
 		expect(prePush?.status).toBe('drift')
 		expect(prePush?.hint).toMatch(/fix husky/)
 	})
 
-	it('reports Husky pre-push drift when the verify call is commented out', async () => {
+	it('reports pre-push hook drift when the verify call is commented out', async () => {
 		const dir = newTmpDir()
 		await fs.writeJson(join(dir, 'package.json'), {
 			name: 'demo',
@@ -471,15 +523,15 @@ describe('doctor extended checks', () => {
 		await fs.ensureDir(join(dir, '.husky'))
 		await fs.writeFile(join(dir, '.husky', 'pre-push'), '#!/usr/bin/env sh\n# pnpm verify\n')
 		const results = await runDoctor(dir)
-		expect(results.find((r) => r.check === 'Husky pre-push')?.status).toBe('drift')
+		expect(results.find((r) => r.check === 'Pre-push hook')?.status).toBe('drift')
 	})
 
-	it('reports Husky pre-push optional-missing when husky is present but the hook is absent', async () => {
+	it('reports pre-push hook optional-missing when husky is present but the hook is absent', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await fs.ensureDir(join(dir, '.husky'))
 		const results = await runDoctor(dir)
-		expect(results.find((r) => r.check === 'Husky pre-push')?.status).toBe('optional-missing')
+		expect(results.find((r) => r.check === 'Pre-push hook')?.status).toBe('optional-missing')
 	})
 
 	it('reports tree-shake check optional-missing on multi-subpath sideEffects-free libraries', async () => {
@@ -762,14 +814,14 @@ describe('doctor + lockfile', () => {
 		expect(results.find((r) => r.check === 'Biome')?.status).toBe('ok')
 	})
 
-	it('demotes Husky, lint-staged, and Husky pre-push when gitHooks=false in lock', async () => {
+	it('demotes git hooks, lint-staged, and pre-push hook when gitHooks=false in lock', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)
 		await writeLock(dir, { gitHooks: false, commitLint: false })
 		const results = await runDoctor(dir)
-		expect(results.find((r) => r.check === 'Husky')?.status).toBe('ok')
+		expect(results.find((r) => r.check === 'Git hooks')?.status).toBe('ok')
 		expect(results.find((r) => r.check === 'lint-staged')?.status).toBe('ok')
-		expect(results.find((r) => r.check === 'Husky pre-push')?.status).toBe('ok')
+		expect(results.find((r) => r.check === 'Pre-push hook')?.status).toBe('ok')
 		expect(results.find((r) => r.check === 'Commitlint')?.status).toBe('ok')
 	})
 
@@ -841,7 +893,7 @@ describe('nextStepSuggestions', () => {
 			'Prettier',
 			'Vitest',
 			'Commitlint',
-			'Husky',
+			'Git hooks',
 			'knip',
 			'EditorConfig',
 			'Node version pin',

@@ -1,8 +1,8 @@
 import path from 'node:path'
 import fs from 'fs-extra'
-import type { FileCheck } from '../../base/checks.js'
+import type { BadgeAudience, FileCheck, GitHooksProfile } from '../../base/checks.js'
+import { hookHasUncommented } from '../../base/checks.js'
 import type { CheckResult } from '../../base/types.js'
-import { BADGE_START, hasPublicOnlyBadges } from '../../cli/generators/badges.js'
 
 const PACKAGE = '@rtorcato/repo-tooling'
 
@@ -88,13 +88,6 @@ export const FILE_CHECKS: FileCheck[] = [
 		candidates: ['vitest.config.ts', 'vitest.config.js', 'vitest.config.mjs'],
 		expected: `imports "${PACKAGE}/vitest/config"`,
 		matcher: /@rtorcato\/(?:js|repo)-tooling\/vitest\/config/,
-		optional: true,
-	},
-	{
-		check: 'Commitlint',
-		candidates: ['commitlint.config.js', 'commitlint.config.mjs', 'commitlint.config.cjs'],
-		expected: `exports "${PACKAGE}/commitlint/config"`,
-		matcher: /@rtorcato\/(?:js|repo)-tooling\/commitlint\/config/,
 		optional: true,
 	},
 	{
@@ -389,92 +382,21 @@ export async function checkNodeVersionConsistency(
 	}
 }
 
-export async function checkHusky(dir: string, pkg: Pkg | null): Promise<CheckResult> {
-	const huskyDir = await fs.pathExists(path.join(dir, '.husky'))
-	const scripts = (pkg?.scripts as Record<string, string> | undefined) ?? {}
-	const prepareScript = scripts.prepare ?? ''
-	const hasHookScript = /\bhusky\b/.test(prepareScript)
-
-	if (huskyDir && hasHookScript) {
-		return {
-			check: 'Husky',
-			status: 'ok',
-			detail: '.husky/ directory and prepare script configured',
-		}
-	}
-	if (huskyDir || hasHookScript) {
-		return {
-			check: 'Husky',
-			status: 'drift',
-			detail: huskyDir
-				? '.husky/ exists but no `prepare: husky` script'
-				: '`prepare: husky` set but no .husky/ directory',
-			hint: 'Run `pnpm exec husky init` to scaffold both halves',
-		}
-	}
-	return {
-		check: 'Husky',
-		status: 'optional-missing',
-		detail: 'husky not configured',
-		hint: 'Run `pnpm add -D husky && pnpm exec husky init` to enable git hooks',
-	}
-}
-
 /**
- * True when a shell hook has an uncommented line matching `pattern`. A
- * commented-out line (e.g. `# pnpm verify`) doesn't count — the command never
- * runs, so it isn't real wiring.
+ * The JS shape of the base `Git hooks` / `Pre-push hook` checks (#309): husky,
+ * installed by the `prepare` script so a fresh clone wires the hooks on
+ * `pnpm install`.
  */
-function hookHasUncommented(contents: string, pattern: RegExp): boolean {
-	return contents.split('\n').some((line) => {
-		const trimmed = line.trim()
-		return trimmed.length > 0 && !trimmed.startsWith('#') && pattern.test(trimmed)
-	})
-}
-
-export async function checkHuskyPrePush(dir: string, pkg: Pkg | null): Promise<CheckResult> {
-	const huskyDir = await fs.pathExists(path.join(dir, '.husky'))
-	if (!huskyDir) {
-		// If husky isn't in use, pre-push is not relevant
-		return {
-			check: 'Husky pre-push',
-			status: 'optional-missing',
-			detail: 'husky not configured',
-			hint: 'Run `npx @rtorcato/repo-tooling fix husky` to enable git hooks (includes pre-push)',
-		}
-	}
-	const hookPath = path.join(dir, '.husky', 'pre-push')
-	if (!(await fs.pathExists(hookPath))) {
-		return {
-			check: 'Husky pre-push',
-			status: 'optional-missing',
-			detail: 'no .husky/pre-push',
-			hint: 'Run `npx @rtorcato/repo-tooling fix husky` to scaffold a pre-push hook that runs `pnpm verify`',
-		}
-	}
-	const contents = await fs.readFile(hookPath, 'utf-8')
-	if (hookHasUncommented(contents, /\bpnpm\s+verify\b/)) {
-		return {
-			check: 'Husky pre-push',
-			status: 'ok',
-			detail: '.husky/pre-push runs `pnpm verify`',
-		}
-	}
-	// Pre-push exists but doesn't call pnpm verify
+export function jsGitHooksProfile(pkg: Pkg | null): GitHooksProfile {
 	const scripts = (pkg?.scripts as Record<string, string> | undefined) ?? {}
-	if (!scripts.verify) {
-		return {
-			check: 'Husky pre-push',
-			status: 'drift',
-			detail: '.husky/pre-push exists but no `verify` script in package.json',
-			hint: 'Run `npx @rtorcato/repo-tooling fix verify` to add a verify script, then `fix husky` to align the hook',
-		}
-	}
 	return {
-		check: 'Husky pre-push',
-		status: 'drift',
-		detail: '.husky/pre-push exists but does not call `pnpm verify`',
-		hint: 'Run `npx @rtorcato/repo-tooling fix husky` to align the hook with `pnpm verify`',
+		dir: '.husky',
+		install: {
+			present: /\bhusky\b/.test(scripts.prepare ?? ''),
+			label: '`prepare: husky` script',
+		},
+		verifyCommand: 'pnpm verify',
+		fixTarget: 'husky',
 	}
 }
 
@@ -924,40 +846,10 @@ export async function checkPublint(_dir: string, pkg: Pkg | null): Promise<Check
 	}
 }
 
-export async function checkReadmeBadges(dir: string, pkg: Pkg | null): Promise<CheckResult> {
-	const readmePath = path.join(dir, 'README.md')
-	const readme = (await fs.pathExists(readmePath)) ? await fs.readFile(readmePath, 'utf8') : ''
-	const isPrivate = !pkg || pkg.private === true
-
-	if (isPrivate) {
-		// Only a problem if a private/app repo carries badges that would 404.
-		if (readme && hasPublicOnlyBadges(readme)) {
-			return {
-				check: 'README badges',
-				status: 'drift',
-				detail: 'README has npm/coverage badges but the package is private (they 404)',
-				hint: 'Run `npx @rtorcato/repo-tooling fix badges` to rebuild badges for a private repo',
-			}
-		}
-		return { check: 'README badges', status: 'ok', detail: 'not applicable (private package)' }
-	}
-
-	if (!isPublishableLibrary(pkg)) {
-		return { check: 'README badges', status: 'ok', detail: 'not applicable (no published exports)' }
-	}
-
-	const hasBadges =
-		readme.includes(BADGE_START) ||
-		/img\.shields\.io|badge\.svg|badge\.fury\.io|codecov\.io/.test(readme)
-	if (hasBadges) {
-		return { check: 'README badges', status: 'ok', detail: 'README carries status badges' }
-	}
-	return {
-		check: 'README badges',
-		status: 'optional-missing',
-		detail: 'no status badges in README',
-		hint: 'Run `npx @rtorcato/repo-tooling fix badges` to add CI/npm/coverage/license badges',
-	}
+/** Who this package's README badges are for — feeds the base badge check (#309). */
+export function jsBadgeAudience(pkg: Pkg | null): BadgeAudience {
+	if (!pkg || pkg.private === true) return 'private'
+	return isPublishableLibrary(pkg) ? 'public' : 'not-applicable'
 }
 
 export async function checkTreeshakeSetup(dir: string, pkg: Pkg | null): Promise<CheckResult> {

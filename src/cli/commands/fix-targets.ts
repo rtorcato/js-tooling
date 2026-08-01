@@ -14,9 +14,9 @@ export const FIX_TARGETS: Record<string, string> = {
 	Prettier: 'prettier',
 	Vitest: 'vitest',
 	Commitlint: 'commitlint',
-	Husky: 'husky',
+	'Git hooks': 'husky',
 	'lint-staged': 'husky',
-	'Husky pre-push': 'husky',
+	'Pre-push hook': 'husky',
 	'verify script': 'verify',
 	'semantic-release': 'semantic-release',
 	knip: 'knip',
@@ -46,7 +46,26 @@ export const FIX_TARGETS: Record<string, string> = {
 	'AI setup': 'ai',
 }
 
-export function getFixTargetForCheck(checkName: string): string | null {
+/**
+ * Where the Swift module's fixers shadow (or extend) the JS-named defaults
+ * above. Without this, `doctor` on a Swift repo suggests `fix husky` and
+ * `fix github-actions` — targets its fixer set doesn't contain.
+ */
+const SWIFT_FIX_TARGETS: Record<string, string> = {
+	'Git hooks': 'swift-git-hooks',
+	'Pre-push hook': 'swift-git-hooks',
+	'GitHub Actions': 'swift-ci',
+	'GitLab CI': 'swift-gitlab-ci',
+	lockfile: 'swift-lockfile',
+	SwiftLint: 'swiftlint',
+	Periphery: 'periphery',
+	'Swift .gitignore': 'swift-gitignore',
+}
+
+export function getFixTargetForCheck(checkName: string, language?: string): string | null {
+	if (language === 'swift' && SWIFT_FIX_TARGETS[checkName]) {
+		return SWIFT_FIX_TARGETS[checkName]
+	}
 	return FIX_TARGETS[checkName] ?? null
 }
 
@@ -72,9 +91,9 @@ export function declinedInLock(lock: Lockfile | null, checkName: string): boolea
 			return c.testing?.framework !== 'vitest'
 		case 'Commitlint':
 			return c.commitLint === false
-		case 'Husky':
+		case 'Git hooks':
 		case 'lint-staged':
-		case 'Husky pre-push':
+		case 'Pre-push hook':
 			return c.gitHooks === false
 		case 'verify script':
 			// Verify is derived from other tools; only "declined" if none of typecheck/lint/test are enabled.
@@ -144,6 +163,7 @@ export function lockfilePatchForTarget(
 		case 'commitlint':
 			return c.commitLint ? null : { commitLint: true }
 		case 'husky':
+		case 'swift-git-hooks':
 			return c.gitHooks ? null : { gitHooks: true }
 		case 'semantic-release':
 			return c.semanticRelease ? null : { semanticRelease: true }

@@ -19,8 +19,37 @@ The standard here is the one [`swift-common`](https://github.com/rtorcato/swift-
 | SwiftLint | `missing` | `swiftlint` |
 | Periphery | `optional-missing` | `periphery` |
 | Swift `.gitignore` | `missing` | `swift-gitignore` |
+| Git hooks | `optional-missing` | `swift-git-hooks` |
+| Pre-push hook | `optional-missing` | `swift-git-hooks` |
 
 `Package.swift` is checked for two things SwiftPM will not infer: a `// swift-tools-version:` comment (without it the manifest doesn't parse) and an explicit `platforms:` clause (without it SwiftPM assumes its oldest supported deployment target, which rejects modern APIs at build time). There's no fixer — rewriting someone's manifest isn't safe, so `doctor` reports and you edit.
+
+`Git hooks` and `Pre-push hook` are language-agnostic checks (they run on a JS repo too, against `.husky/`); the Swift module only supplies the shape — `.githooks/` and `swift test`.
+
+## Git hooks
+
+Husky is an npm package, so a SwiftPM repo can't use it without dragging node into a toolchain that otherwise has none. The node-free equivalent is a committed hooks directory:
+
+```bash
+npx @rtorcato/repo-tooling fix swift-git-hooks
+```
+
+That writes two executable hooks and points git at them:
+
+| Hook | Runs |
+|---|---|
+| `.githooks/pre-commit` | `swiftlint --fix` then `swiftlint lint` |
+| `.githooks/pre-push` | `swift build`, `swift test`, `swiftlint lint --strict` — the same gate as CI |
+
+The hooks run the tools directly rather than through a `verify` indirection. SwiftPM has no scripts field, and a `Makefile` target would be a third place to keep the CI commands in sync (they already live in `.github/workflows/ci.yml` and `.swiftlint.yml`).
+
+`core.hooksPath` is per-clone local git config, not a committed file, so `doctor` never reports its absence as drift — a fresh CI checkout isn't broken. Each clone needs it once:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+There's no `commit-msg` hook: commitlint is an npm package and needs node on `PATH`. The `Commitlint` check still runs (Conventional Commits is language-agnostic) and stays `optional-missing` on a Swift repo unless you opt in.
 
 ## Configs
 
@@ -127,5 +156,6 @@ GitLab runs Swift in the official Linux image (`swift:6.0`), which has no Xcode 
 
 ## What isn't covered yet
 
-- **Language-agnostic fixers.** `doctor` reports base findings (Dependabot, CODEOWNERS, community health) on a Swift repo, but `fix` reports them as `unsupported` — those fixers still live in the JS module and haven't been split out. Tracked in [#303](https://github.com/rtorcato/repo-tooling/issues/303).
-- **Dependabot.** The generated config uses `package-ecosystem: npm`; a Swift repo wants `swift`. Part of #303.
+- **README badges.** The `README badges` check runs on a Swift repo, but there's no fixer: `fix badges` derives every badge URL from a package.json `name` + `repository`, which a SwiftPM repo hasn't got. `doctor` reports; you add the badges by hand.
+- **Release automation.** SwiftPM consumes git tags, so there's no `semantic-release` equivalent wired up. Tracked in [#310](https://github.com/rtorcato/repo-tooling/issues/310).
+- **DocC, swift-format and test configuration.** Tracked in [#311](https://github.com/rtorcato/repo-tooling/issues/311).
