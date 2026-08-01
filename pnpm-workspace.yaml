@@ -21,4 +21,9 @@ onlyBuiltDependencies:
 # already pinned gets a fresh patch publish. Add entries here when a
 # specific package has been vetted and the wait isn't worth the friction.
 minimumReleaseAgeExclude:
+  - '@rtorcato/*'
   - tinyglobby
+
+# Don't re-verify node_modules on every script run — the check costs a
+# second per invocation and CI installs with --frozen-lockfile anyway.
+verifyDepsBeforeRun: false

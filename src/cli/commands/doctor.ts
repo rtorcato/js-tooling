@@ -40,6 +40,7 @@ import {
 	checkSemanticRelease,
 	checkSizeLimit,
 	checkTailwind,
+	checkPnpmWorkspace,
 	checkTreeshakeSetup,
 	checkTurborepo,
 	checkTypedoc,
@@ -302,6 +303,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(await checkAreTheTypesWrong(targetDir, pkg))
 	results.push(await checkPublint(targetDir, pkg))
 	results.push(await checkTreeshakeSetup(targetDir, pkg))
+	results.push(await checkPnpmWorkspace(targetDir, pkg))
 	// Turborepo is monorepo-only — only surface the check when a workspace exists.
 	if (await fs.pathExists(path.join(targetDir, 'pnpm-workspace.yaml'))) {
 		results.push(await checkTurborepo(targetDir))

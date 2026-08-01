@@ -2,6 +2,11 @@ import path from 'node:path'
 import fs from 'fs-extra'
 import type { BadgeAudience, FileCheck, GitHooksProfile } from '../../base/checks.js'
 import { hookHasUncommented } from '../../base/checks.js'
+import {
+	WORKSPACE_FILE,
+	dependsOnEsbuild,
+	missingPnpmSettings,
+} from '../../cli/generators/pnpm-workspace.js'
 import type { CheckResult } from '../../base/types.js'
 
 const PACKAGE = '@rtorcato/repo-tooling'
@@ -900,6 +905,38 @@ export async function checkTurborepo(dir: string): Promise<CheckResult> {
 		status: 'optional-missing',
 		detail: 'pnpm workspace without a task orchestrator',
 		hint: 'Run `npx @rtorcato/repo-tooling fix turborepo` (or `fix nx`) to scaffold a task pipeline',
+	}
+}
+
+/**
+ * pnpm settings that would otherwise be hand-copied across the family (#314).
+ * Only reported for pnpm repos — an npm or yarn repo has no use for the file,
+ * and inventing one there would be noise.
+ */
+export async function checkPnpmWorkspace(dir: string, pkg: Pkg | null): Promise<CheckResult> {
+	const check = 'pnpm settings'
+	const hint = `Run \`npx ${PACKAGE} fix pnpm-workspace\` to merge them in`
+	const file = path.join(dir, WORKSPACE_FILE)
+	const exists = await fs.pathExists(file)
+	const usesPnpm =
+		exists ||
+		(await fs.pathExists(path.join(dir, 'pnpm-lock.yaml'))) ||
+		((pkg?.packageManager as string | undefined) ?? '').startsWith('pnpm')
+	if (!usesPnpm) {
+		return { check, status: 'ok', detail: 'not a pnpm repo' }
+	}
+
+	const yaml = exists ? await fs.readFile(file, 'utf-8') : ''
+	const missing = missingPnpmSettings(yaml, dependsOnEsbuild(allDeps(pkg)))
+	if (missing.length === 0) {
+		return { check, status: 'ok', detail: `${WORKSPACE_FILE} carries the managed settings` }
+	}
+	return {
+		check,
+		// A repo with no workspace file at all hasn't drifted — it never opted in.
+		status: exists ? 'drift' : 'optional-missing',
+		detail: `missing ${missing.join(', ')}`,
+		hint,
 	}
 }
 
