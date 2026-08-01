@@ -206,6 +206,7 @@ Implementation note: the preview is computed by shadow-running the fixer in a te
 | `rolldown` | `rolldown.config.mjs` re-exporting the shared library preset |
 | `size-limit` | a size-limit budget (`.size-limit.cjs`/`.json`) |
 | `treeshake-check` | `apps/treeshake-check` — esbuild + metafile bundle assertion |
+| `pnpm-workspace` | merges the family-wide pnpm settings into `pnpm-workspace.yaml` (`verifyDepsBeforeRun`, `minimumReleaseAgeExclude`, esbuild's build approval) — never rewrites the file |
 | `turborepo` | `turbo.json` task pipeline (pnpm-workspace monorepos) |
 | `nx` | `nx.json` task orchestrator (alternative to Turborepo) |
 | `tailwind` | Tailwind CSS v4 (`postcss.config.mjs` + `src/styles/globals.css`) |

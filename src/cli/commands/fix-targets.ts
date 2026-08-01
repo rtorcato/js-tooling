@@ -33,6 +33,7 @@ export const FIX_TARGETS: Record<string, string> = {
 	CODEOWNERS: 'codeowners',
 	'GitLab CI': 'gitlab-ci',
 	Turborepo: 'turborepo',
+	'pnpm settings': 'pnpm-workspace',
 	Tailwind: 'tailwind',
 	lockfile: 'lockfile',
 	'.repo-tooling.json': 'lockfile',

@@ -22,6 +22,11 @@ import {
 	generateVscodeExtensions,
 } from '../../cli/generators/misc.js'
 import { composeVerifyScriptFromPkg } from '../../cli/generators/package-json.js'
+import {
+	WORKSPACE_FILE,
+	dependsOnEsbuild,
+	ensurePnpmSettings,
+} from '../../cli/generators/pnpm-workspace.js'
 import { generatePostcss } from '../../cli/generators/postcss.js'
 import { generateCypressConfig, generateVitestConfig } from '../../cli/generators/testing.js'
 import { generateTreeshakeCheck, inferSubpathsFromExports } from '../../cli/generators/treeshake.js'
@@ -360,6 +365,24 @@ export const FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			const written = await generateTurborepo(targetDir)
 			return { filesWritten: [written] }
+		},
+	},
+	{
+		target: 'pnpm-workspace',
+		description: 'Merge the managed pnpm settings into pnpm-workspace.yaml',
+		appliesTo: ['pnpm settings'],
+		outputs: [WORKSPACE_FILE],
+		// safe-merge: the file also carries the repo's own packages: globs and
+		// hand-vetted allowBuilds entries, so only missing keys are added.
+		riskLevel: 'safe-merge',
+		canFixDrift: true,
+		async run({ targetDir, pkg }) {
+			const deps = {
+				...((pkg?.dependencies as Record<string, string> | undefined) ?? {}),
+				...((pkg?.devDependencies as Record<string, string> | undefined) ?? {}),
+			}
+			const written = await ensurePnpmSettings(targetDir, dependsOnEsbuild(deps))
+			return { filesWritten: written ? [written] : [] }
 		},
 	},
 	{

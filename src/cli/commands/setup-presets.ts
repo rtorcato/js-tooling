@@ -289,13 +289,10 @@ export function computeFileList(config: ProjectConfig): string[] {
 			'apps/treeshake-check/src/entry.ts'
 		)
 	}
-	// pnpm-workspace.yaml carries pnpm 11 build-script approvals (esbuild) and,
-	// for the treeshake path, the apps/* glob. Written whenever either applies.
-	const bundlerNeedsEsbuild =
-		config.bundler === 'tsup' || config.bundler === 'esbuild' || config.bundler === 'vite'
-	if (bundlerNeedsEsbuild || (config.treeshakeCheck && config.projectType === 'library')) {
-		files.push('pnpm-workspace.yaml')
-	}
+	// pnpm-workspace.yaml carries the family-wide pnpm settings (#314) plus, where
+	// they apply, build-script approvals and the treeshake path's apps/* glob —
+	// so it's written for every JS scaffold.
+	files.push('pnpm-workspace.yaml')
 	if (config.aiSetup) {
 		files.push(
 			'AGENTS.md',

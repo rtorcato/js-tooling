@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url'
 import { generateSwiftProject } from '../../languages/swift/scaffold.js'
 import type { ProjectConfig } from '../commands/setup.js'
 import { installAiSetup } from './agent-rules.js'
-import { ensureBuildApprovals, generateBuildConfigs } from './build.js'
+import { bundlerNeedsEsbuild, ensureBuildApprovals, generateBuildConfigs } from './build.js'
+import { ensurePnpmSettings } from './pnpm-workspace.js'
 import { generateGitConfigs } from './git.js'
 import { generateGitHubActions } from './github-actions.js'
 import { generateLintingConfigs } from './linting.js'
@@ -96,6 +97,10 @@ export async function generateConfigs(config: ProjectConfig, targetDir: string) 
 	// after the treeshake-check path so its richer workspace file (if written)
 	// is never clobbered.
 	await ensureBuildApprovals(config, targetDir)
+
+	// Family-wide pnpm settings (#314). Runs last of the workspace writers so it
+	// merges into whatever they wrote rather than racing them for the file.
+	await ensurePnpmSettings(targetDir, bundlerNeedsEsbuild(config))
 
 	// Turborepo task pipeline (pnpm-workspace monorepos, when opted-in)
 	if (config.turborepo) {
