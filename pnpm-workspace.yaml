@@ -4,6 +4,10 @@ packages:
 allowBuilds:
   core-js: false
   core-js-pure: false
+  # napi-postinstall only *checks* that the platform binary is present — the
+  # binary itself arrives as an optional dep — so there's no real build to run.
+  # Same call as core-js; esbuild/sharp below genuinely compile.
+  unrs-resolver: false
   esbuild: true
   sharp: true
 
