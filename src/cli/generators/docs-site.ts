@@ -213,8 +213,12 @@ ${typedocPlugins}    [
       ],
       copyright: \`Copyright © \${new Date().getFullYear()} ${meta.title}. Built with Docusaurus.\`,
     },
+    // \`theme\` is the LIGHT-mode Prism theme and \`darkTheme\` the dark one. Both
+    // were vsDark here, which is why the shared stylesheet had to pin fenced
+    // blocks dark in light mode too (#324). Keep this pairing and the CSS in
+    // step — vsDark tokens on a light surface are unreadable.
     prism: {
-      theme: prismThemes.vsDark,
+      theme: prismThemes.vsLight,
       darkTheme: prismThemes.vsDark,
       additionalLanguages: ['bash', 'json', 'typescript'],
     },

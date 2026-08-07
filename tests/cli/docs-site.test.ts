@@ -54,6 +54,12 @@ describe('generateDocsSite', () => {
 		expect(config).toContain("url: 'https://rtorcato.github.io'")
 		expect(config).toContain("baseUrl: '/js-tooling/'")
 
+		// #324: `theme` is the LIGHT-mode Prism theme. Both slots were vsDark, which
+		// forced the shared stylesheet to pin fenced blocks dark in light mode too —
+		// and the wrong pairing was copied into ten sites before anyone noticed.
+		expect(config).toContain('theme: prismThemes.vsLight')
+		expect(config).toContain('darkTheme: prismThemes.vsDark')
+
 		// Workflow drives the shared reusable deploy with the docs package filter.
 		const wf = await fs.readFile(join(dir, '.github/workflows/docs.yml'), 'utf-8')
 		expect(wf).toContain('rtorcato/repo-tooling/.github/workflows/docs-deploy.yml@main')

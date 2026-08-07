@@ -153,8 +153,9 @@ const config: Config = {
       ],
       copyright: `Copyright © ${new Date().getFullYear()} Richard Torcato. Built with Docusaurus.`,
     },
+    // `theme` is the LIGHT-mode Prism theme, `darkTheme` the dark one (#324).
     prism: {
-      theme: prismThemes.vsDark,
+      theme: prismThemes.vsLight,
       darkTheme: prismThemes.vsDark,
       additionalLanguages: ['bash', 'json', 'typescript'],
     },

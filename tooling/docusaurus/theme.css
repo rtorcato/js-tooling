@@ -185,10 +185,15 @@ body,
 }
 
 /* ---------- Code ----------
-   Prism is vsDark in both light & dark mode (to match the navy aesthetic),
-   so fenced code blocks must stay dark in BOTH themes — otherwise the pale
-   vsDark tokens wash out on a light background. Inline code (the `code` pills)
-   keeps the themed --ifm-code-background and stays readable. */
+   Every surface and text colour here comes from the theme tokens, which already
+   flip between light and dark — the values that used to be hardcoded (#0c111b,
+   #dfe5ee, #94a1b4) were simply the dark side of tokens that existed all along.
+
+   This pairs with `prism.theme: vsLight` / `prism.darkTheme: vsDark` in
+   docusaurus.config.ts. The two must move together (#324): vsDark tokens on a
+   light surface are pale and unreadable, which is why the background was pinned
+   dark in both modes in the first place. If a fenced block still renders dark in
+   light mode, that config is the thing to check. */
 code {
 	background: var(--jt-code-bg);
 	border: 1px solid var(--jt-border);
@@ -202,23 +207,30 @@ div[class*="codeBlockContainer"],
 pre[class*="language-"] {
 	border: 1px solid var(--jt-border);
 	border-radius: 12px;
-	background: #0c111b !important;
+	/* !important beats the inline background the Prism theme sets on the <pre>. */
+	background: var(--jt-code-bg) !important;
 }
 .theme-code-block code,
 pre[class*="language-"] code {
 	background: transparent !important;
 	border: none !important;
-	color: #dfe5ee;
+	/* Base colour for anything Prism does not tokenise. */
+	color: var(--jt-text);
 }
 div[class*="codeBlockTitle"] {
-	background: #0a0e16 !important;
-	color: #94a1b4 !important;
+	background: var(--jt-surface2) !important;
+	color: var(--jt-muted) !important;
 	border-bottom: 1px solid var(--jt-border);
+}
+/* In dark the title sits a shade *below* the block; in light there is no token
+   darker than --jt-code-bg, so the bottom border does the separating instead. */
+[data-theme="dark"] div[class*="codeBlockTitle"] {
+	background: var(--jt-bg) !important;
 }
 [data-theme="light"] .theme-code-block,
 [data-theme="light"] div[class*="codeBlockContainer"],
 [data-theme="light"] pre[class*="language-"] {
-	border-color: rgba(12, 18, 28, 0.16);
+	border-color: var(--jt-border2);
 	box-shadow: 0 8px 24px -18px rgba(12, 18, 28, 0.5);
 }
 
