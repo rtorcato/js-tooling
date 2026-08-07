@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 import fs from 'fs-extra'
 import { describe, expect, it } from 'vitest'
+import selfPackageJson from '../../package.json' with { type: 'json' }
 import { runDoctor } from '../../src/cli/commands/doctor.js'
 import { generateDocsSite } from '../../src/cli/generators/docs-site.js'
 import { useTmpDir } from '../helpers/tmp-dir.js'
@@ -43,6 +44,14 @@ describe('generateDocsSite', () => {
 		expect(docsPkg.scripts.build).toMatch(/sync-changelog/)
 		expect(docsPkg.scripts['test:e2e']).toBe('playwright test')
 		expect(docsPkg.devDependencies['@playwright/test']).toBeTruthy()
+
+		// The guard that stops this rotting again: the self-pin handed to a
+		// scaffolded site must track the running version. It had been a literal
+		// `^2.47.0` — two majors stale — so new sites were given a pre-rename
+		// version predating the peer-dependency split.
+		expect(docsPkg.devDependencies['@rtorcato/repo-tooling']).toBe(
+			`^${selfPackageJson.version}`
+		)
 
 		// Smoke test reuses the shipped preset and targets the site's base path.
 		const pw = await fs.readFile(join(dir, 'apps/docs/playwright.config.ts'), 'utf-8')
