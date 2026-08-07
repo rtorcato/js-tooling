@@ -1,10 +1,25 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import selfPackageJson from '../../../package.json' with { type: 'json' }
 import { copyPreset, PRESETS } from '../utils/copy-preset.js'
 import { buildBadgeRow, parseRepository } from './badges.js'
 import { inferSubpathsFromExports } from './treeshake.js'
 
 type Pkg = Record<string, unknown> | null
+
+/**
+ * What a scaffolded docs site should depend on for *this* CLI — read from the
+ * running version rather than written down, because a literal here goes stale
+ * silently. It had drifted to `^2.47.0`, two majors behind, so every site
+ * scaffolded since was handed a pre-rename version predating the peer-dependency
+ * split.
+ *
+ * The floor is the exact running version, not `^<major>.0.0`: the config being
+ * generated is the one this version emits, and claiming compatibility back to
+ * the start of the major would be the same over-wide-range problem doctor's
+ * `Config schema versions` check exists to catch (#330).
+ */
+const SELF_RANGE = `^${selfPackageJson.version}`
 
 /**
  * Docs-site (Docusaurus) generator — the Phase 2 counterpart to the shared
@@ -259,7 +274,7 @@ const TSCONFIG = `// Improves IDE type-checking; not used by \`docusaurus start/
 
 function customCss(accent: { light: string; dark: string }): string {
 	// Import the shared tokens, then override only the accent (per #54's model).
-	return `/* Site theme: shared @rtorcato tokens + this project's accent. */
+	return `/* Site theme: the shared design tokens + this project's accent. */
 @import "./_jt-tokens.css";
 
 :root {
@@ -277,7 +292,7 @@ function customCss(accent: { light: string; dark: string }): string {
 function docsPackageJson(meta: SiteMeta, typedoc: boolean): string {
 	const typedocDevDeps = typedoc
 		? {
-				'@rtorcato/repo-tooling': '^2.47.0',
+				'@rtorcato/repo-tooling': SELF_RANGE,
 				'docusaurus-plugin-typedoc': '^1.4.0',
 				typedoc: '^0.28.0',
 				'typedoc-plugin-markdown': '^4.9.0',
@@ -316,7 +331,7 @@ function docsPackageJson(meta: SiteMeta, typedoc: boolean): string {
 			'@docusaurus/tsconfig': '^3.8.1',
 			'@docusaurus/types': '^3.10.2',
 			'@playwright/test': '^1.49.0',
-			'@rtorcato/repo-tooling': '^2.47.0',
+			'@rtorcato/repo-tooling': SELF_RANGE,
 			'@types/react': '^19.0.0',
 			typescript: '~5.6.3',
 			...typedocDevDeps,
