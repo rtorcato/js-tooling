@@ -59,7 +59,15 @@ describe('swift fixers', () => {
 		// is `setup`'s job); `Coverage upload` is a base check only the JS CI
 		// generator satisfies; `README badges` needs a package.json name/repository
 		// to build the block from, which a Swift repo hasn't got (#309).
-		expect(uncovered).toEqual(['language', 'README badges', 'Coverage upload', 'Package.swift'])
+		// `Git identity` is unfixable by design (#328) — only the operator knows
+		// their own address, so there is nothing for a fixer to write.
+		expect(uncovered).toEqual([
+			'language',
+			'Git identity',
+			'README badges',
+			'Coverage upload',
+			'Package.swift',
+		])
 	})
 
 	it('swiftlint writes a config the SwiftLint check accepts', async () => {
