@@ -1,3 +1,15 @@
+# [3.2.0](https://github.com/rtorcato/repo-tooling/compare/v3.1.0...v3.2.0) (2026-08-07)
+
+
+### Bug Fixes
+
+* **docs:** refresh the shared-docs pin so siblings drop js-tooling ([#331](https://github.com/rtorcato/repo-tooling/issues/331)) ([e992b3b](https://github.com/rtorcato/repo-tooling/commit/e992b3b1c3249d1df3ed3f95e3a76d5bf42d1c3e))
+
+
+### Features
+
+* **doctor:** config schema versions + refless git dependency checks ([#333](https://github.com/rtorcato/repo-tooling/issues/333)) ([986fa6f](https://github.com/rtorcato/repo-tooling/commit/986fa6f07411ba5ba3c4fbc8b8b0cfda3a3d9b2c)), closes [#330](https://github.com/rtorcato/repo-tooling/issues/330) [#332](https://github.com/rtorcato/repo-tooling/issues/332) [#330](https://github.com/rtorcato/repo-tooling/issues/330)
+
 # [3.1.0](https://github.com/rtorcato/repo-tooling/compare/v3.0.0...v3.1.0) (2026-08-07)
 
 
