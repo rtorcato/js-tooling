@@ -277,7 +277,7 @@
 		"vitest": "^4.1.10"
 	},
 	"peerDependencies": {
-		"@biomejs/biome": "^2.0.0",
+		"@biomejs/biome": "^2.5.0",
 		"@commitlint/cli": "^20.0.0 || ^21.0.0",
 		"@commitlint/config-conventional": "^21.2.0",
 		"@commitlint/types": "^21.2.0",
