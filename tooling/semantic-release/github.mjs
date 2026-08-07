@@ -43,6 +43,13 @@ export default {
 			{
 				assets: ['CHANGELOG.md', 'package.json', 'README.md'],
 				message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
+				// Don't label the "release is failing" issue. The default is
+				// ['semantic-release'], and GitHub rejects issue creation outright when
+				// the label doesn't exist on the repo — so a failed release fails *again*
+				// with a 422 that buries the real error under an octokit stack trace.
+				// false keeps the issue (and its post-mortem) without requiring every
+				// consuming repo to pre-create a label.
+				labels: false,
 			},
 		],
 		[

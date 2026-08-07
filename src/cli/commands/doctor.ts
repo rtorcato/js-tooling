@@ -5,6 +5,7 @@ import { resolveLanguageModule } from '../../languages/registry.js'
 import { SWIFT_GIT_HOOKS, runSwiftChecks } from '../../languages/swift/checks.js'
 import { detectLanguage } from '../utils/detect-language.js'
 import { checkGitHubSettings } from '../../base/github-settings.js'
+import { checkGitIdentity } from '../../base/git-identity.js'
 import { type Lockfile, LOCKFILE_VERSION, readLockfile } from '../utils/lockfile.js'
 import { declinedInLock, getFixTargetForCheck } from './fix-targets.js'
 import {
@@ -204,6 +205,7 @@ async function runBaseChecks(
 ): Promise<CheckResult[]> {
 	const results: CheckResult[] = []
 	results.push(checkLockfile(lock))
+	results.push(await checkGitIdentity(dir))
 	results.push(await checkEditorConfig(dir))
 	results.push(await checkFile(dir, COMMITLINT_FILE_CHECK))
 	if (opts.hooks) {
