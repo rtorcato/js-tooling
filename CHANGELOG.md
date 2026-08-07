@@ -1,3 +1,12 @@
+## [3.2.2](https://github.com/rtorcato/repo-tooling/compare/v3.2.1...v3.2.2) (2026-08-07)
+
+
+### Bug Fixes
+
+* **deps:** narrow the biome peer range to ^2.5.0 ([#338](https://github.com/rtorcato/repo-tooling/issues/338)) ([81d5582](https://github.com/rtorcato/repo-tooling/commit/81d5582e824683d97c4776f0c74143bd5001f34a)), closes [#333](https://github.com/rtorcato/repo-tooling/issues/333)
+* **docs-site:** derive the self-pin from the running version ([#336](https://github.com/rtorcato/repo-tooling/issues/336)) ([51debe0](https://github.com/rtorcato/repo-tooling/commit/51debe026f8f06d543c0269e126ee2fac35777bc)), closes [#335](https://github.com/rtorcato/repo-tooling/issues/335) [#330](https://github.com/rtorcato/repo-tooling/issues/330)
+* **docs-theme:** let code blocks follow the theme in light mode ([#337](https://github.com/rtorcato/repo-tooling/issues/337)) ([fb151bd](https://github.com/rtorcato/repo-tooling/commit/fb151bd8bce2f4e28bef79e128a2f3d2bc7bcaea))
+
 ## [3.2.1](https://github.com/rtorcato/repo-tooling/compare/v3.2.0...v3.2.1) (2026-08-07)
 
 
