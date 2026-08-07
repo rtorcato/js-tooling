@@ -14,12 +14,24 @@ export const WORKSPACE_FILE = 'pnpm-workspace.yaml'
 
 /**
  * pnpm's `minimumReleaseAge` cutoff holds back freshly published versions —
- * good against a typosquat-hijack, but it also stalls every consumer of a
- * same-day `@rtorcato/*` fix for 24h. One glob covers the whole family: pnpm
- * matches these entries with `@pnpm/config.matcher`, so there's no package list
- * to keep in sync with `@rtorcato/shared-docs`'s `FAMILY`.
+ * good against a typosquat or a hijacked account, but it also stalls every
+ * consumer of a same-day fix in a sibling package for 24h. Exempting the
+ * repo's *own* scope trades that off only for packages it already publishes.
+ *
+ * Derived from the consuming package's name rather than hardcoded: this is a
+ * public CLI, and writing one organisation's scope into a stranger's config
+ * would loosen a supply-chain guard for packages they neither use nor chose.
+ * An unscoped package gets no such setting at all — there is no "family" to
+ * infer, and guessing one would be worse than leaving it alone.
+ *
+ * One glob covers a whole scope: pnpm matches these entries with
+ * `@pnpm/config.matcher`, so there's no package list to keep in sync.
  */
-const FAMILY_GLOB = '@rtorcato/*'
+export function familyGlob(packageName: unknown): string | null {
+	const name = typeof packageName === 'string' ? packageName : ''
+	const scope = /^(@[^/]+)\//.exec(name)?.[1]
+	return scope ? `${scope}/*` : null
+}
 
 /** Bundlers that pull in esbuild, whose install script pnpm 11 refuses to run unapproved. */
 const ESBUILD_BUNDLERS = ['esbuild', 'tsup', 'vite']
@@ -59,7 +71,32 @@ interface Setting {
 	item: string
 }
 
-const SETTINGS: Setting[] = [
+/**
+ * The managed settings for one repo. A function rather than a constant because
+ * the release-age exemption is scope-derived, and a repo with no scope to
+ * derive doesn't get that setting at all.
+ */
+function settingsFor(glob: string | null): Setting[] {
+	return glob ? [...BASE_SETTINGS, releaseAgeSetting(glob)] : BASE_SETTINGS
+}
+
+function releaseAgeSetting(glob: string): Setting {
+	return {
+		label: `minimumReleaseAgeExclude: ${glob}`,
+		applies: () => true,
+		satisfied: (yaml) =>
+			(section(yaml, 'minimumReleaseAgeExclude') ?? []).some((l) => l.includes(glob)),
+		key: 'minimumReleaseAgeExclude',
+		block: `# Exempt this package's own scope from pnpm's minimumReleaseAge cutoff, so a
+# same-day fix in a sibling package is installable today rather than tomorrow.
+minimumReleaseAgeExclude:
+  - '${glob}'
+`,
+		item: `  - '${glob}'`,
+	}
+}
+
+const BASE_SETTINGS: Setting[] = [
 	{
 		label: 'verifyDepsBeforeRun: false',
 		applies: () => true,
@@ -72,18 +109,6 @@ const SETTINGS: Setting[] = [
 verifyDepsBeforeRun: false
 `,
 		item: '',
-	},
-	{
-		label: `minimumReleaseAgeExclude: ${FAMILY_GLOB}`,
-		applies: () => true,
-		satisfied: (yaml) => (section(yaml, 'minimumReleaseAgeExclude') ?? []).some(hasFamilyGlob),
-		key: 'minimumReleaseAgeExclude',
-		block: `# Exempt the @rtorcato family from pnpm's minimumReleaseAge cutoff, so a
-# same-day fix in a sibling package is installable today rather than tomorrow.
-minimumReleaseAgeExclude:
-  - '${FAMILY_GLOB}'
-`,
-		item: `  - '${FAMILY_GLOB}'`,
 	},
 	{
 		label: 'allowBuilds: esbuild',
@@ -99,13 +124,15 @@ allowBuilds:
 	},
 ]
 
-function hasFamilyGlob(line: string): boolean {
-	return line.includes(FAMILY_GLOB)
-}
-
 /** Managed settings absent from `yaml`, named as doctor reports them. */
-export function missingPnpmSettings(yaml: string, needsEsbuild: boolean): string[] {
-	return SETTINGS.filter((s) => s.applies(needsEsbuild) && !s.satisfied(yaml)).map((s) => s.label)
+export function missingPnpmSettings(
+	yaml: string,
+	needsEsbuild: boolean,
+	glob: string | null
+): string[] {
+	return settingsFor(glob)
+		.filter((s) => s.applies(needsEsbuild) && !s.satisfied(yaml))
+		.map((s) => s.label)
 }
 
 /** Insert `item` directly under an existing `key:` line, keeping the rest untouched. */
@@ -117,9 +144,13 @@ function insertUnder(yaml: string, key: string, item: string): string {
 }
 
 /** Merge every missing managed setting into `yaml` and return the new contents. */
-export function upsertPnpmSettings(yaml: string, needsEsbuild: boolean): string {
+export function upsertPnpmSettings(
+	yaml: string,
+	needsEsbuild: boolean,
+	glob: string | null
+): string {
 	let next = yaml
-	for (const setting of SETTINGS) {
+	for (const setting of settingsFor(glob)) {
 		if (!setting.applies(needsEsbuild) || setting.satisfied(next)) continue
 		if (setting.item && section(next, setting.key)) {
 			next = insertUnder(next, setting.key, setting.item)
@@ -136,11 +167,12 @@ export function upsertPnpmSettings(yaml: string, needsEsbuild: boolean): string 
  */
 export async function ensurePnpmSettings(
 	targetDir: string,
-	needsEsbuild: boolean
+	needsEsbuild: boolean,
+	glob: string | null
 ): Promise<string | null> {
 	const file = path.join(targetDir, WORKSPACE_FILE)
 	const current = (await fs.pathExists(file)) ? await fs.readFile(file, 'utf-8') : ''
-	const next = upsertPnpmSettings(current, needsEsbuild)
+	const next = upsertPnpmSettings(current, needsEsbuild, glob)
 	if (next === current) return null
 	await fs.writeFile(file, next.replace(/^\n+/, ''))
 	return WORKSPACE_FILE
