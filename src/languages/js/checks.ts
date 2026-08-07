@@ -5,6 +5,7 @@ import { hookHasUncommented } from '../../base/checks.js'
 import {
 	WORKSPACE_FILE,
 	dependsOnEsbuild,
+	familyGlob,
 	missingPnpmSettings,
 } from '../../cli/generators/pnpm-workspace.js'
 import type { CheckResult } from '../../base/types.js'
@@ -927,7 +928,7 @@ export async function checkPnpmWorkspace(dir: string, pkg: Pkg | null): Promise<
 	}
 
 	const yaml = exists ? await fs.readFile(file, 'utf-8') : ''
-	const missing = missingPnpmSettings(yaml, dependsOnEsbuild(allDeps(pkg)))
+	const missing = missingPnpmSettings(yaml, dependsOnEsbuild(allDeps(pkg)), familyGlob(pkg?.name))
 	if (missing.length === 0) {
 		return { check, status: 'ok', detail: `${WORKSPACE_FILE} carries the managed settings` }
 	}

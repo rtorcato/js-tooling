@@ -26,6 +26,7 @@ import {
 	WORKSPACE_FILE,
 	dependsOnEsbuild,
 	ensurePnpmSettings,
+	familyGlob,
 } from '../../cli/generators/pnpm-workspace.js'
 import { generatePostcss } from '../../cli/generators/postcss.js'
 import { generateCypressConfig, generateVitestConfig } from '../../cli/generators/testing.js'
@@ -381,7 +382,11 @@ export const FIXERS: Fixer[] = [
 				...((pkg?.dependencies as Record<string, string> | undefined) ?? {}),
 				...((pkg?.devDependencies as Record<string, string> | undefined) ?? {}),
 			}
-			const written = await ensurePnpmSettings(targetDir, dependsOnEsbuild(deps))
+			const written = await ensurePnpmSettings(
+				targetDir,
+				dependsOnEsbuild(deps),
+				familyGlob(pkg?.name)
+			)
 			return { filesWritten: written ? [written] : [] }
 		},
 	},
