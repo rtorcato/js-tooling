@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/rtorcato/repo-tooling/compare/v3.0.0...v3.1.0) (2026-08-07)
+
+
+### Features
+
+* **doctor:** warn on a git identity that mis-attributes commits ([#329](https://github.com/rtorcato/repo-tooling/issues/329)) ([8dde1ef](https://github.com/rtorcato/repo-tooling/commit/8dde1ef89b0049e8175493530825c2eac3952da1)), closes [#327](https://github.com/rtorcato/repo-tooling/issues/327)
+
 # [3.0.0](https://github.com/rtorcato/repo-tooling/compare/v2.60.0...v3.0.0) (2026-08-07)
 
 
