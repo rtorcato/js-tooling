@@ -209,8 +209,8 @@ importers:
         specifier: ^3.10.2
         version: 3.10.2(esbuild@0.28.1)(postcss@8.5.19)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@rtorcato/shared-docs':
-        specifier: github:rtorcato/shared-docs
-        version: https://codeload.github.com/rtorcato/shared-docs/tar.gz/eca402829e3a1a7bab82050d75a067c7b0618ed6(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        specifier: ^1.2.2
+        version: 1.2.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.17
@@ -3413,9 +3413,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@rtorcato/shared-docs@https://codeload.github.com/rtorcato/shared-docs/tar.gz/eca402829e3a1a7bab82050d75a067c7b0618ed6':
-    resolution: {gitHosted: true, integrity: sha512-senKjLRH640H02ws2r1ENdRtBZWK0sC6kCY+Q8HLN1ajpbwnzC1kPHdzmrbi1ZCT2kEpkoE/DWxYkH36glHpkg==, tarball: https://codeload.github.com/rtorcato/shared-docs/tar.gz/eca402829e3a1a7bab82050d75a067c7b0618ed6}
-    version: 1.2.0
+  '@rtorcato/shared-docs@1.2.2':
+    resolution: {integrity: sha512-gaaFboV1QIgqZgJcw8B7BuX6Ppz46Sn67ua4bM8Vbfbx4O380rYl8I5NTyb0qNczVLGaPVs+bmUJY4lEgW/RnQ==}
     engines: {node: '>=22'}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
@@ -15004,7 +15003,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.4':
     optional: true
 
-  '@rtorcato/shared-docs@https://codeload.github.com/rtorcato/shared-docs/tar.gz/eca402829e3a1a7bab82050d75a067c7b0618ed6(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@rtorcato/shared-docs@1.2.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
