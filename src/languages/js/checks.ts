@@ -1031,3 +1031,172 @@ export async function checkTailwind(dir: string, pkg: Pkg | null): Promise<Check
 		hint: 'Run `npx @rtorcato/repo-tooling fix tailwind` to scaffold the v4 PostCSS wiring',
 	}
 }
+
+/**
+ * Both checks below read `package.json` alone — no network, no lockfile. They
+ * report `optional-missing` rather than `drift`: each is a policy call a repo
+ * can legitimately decide against, so they surface in doctor's output and can
+ * be declined in `.repo-tooling.json`, but neither fails a build.
+ */
+
+/** `[major, minor, patch]` floor of a range, or null when it hasn't got one. */
+export function rangeFloor(range: string): [number, number, number] | null {
+	const m = /^[\s^~>=<v]*(\d+)\.(\d+)\.(\d+)/.exec(range)
+	return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null
+}
+
+/**
+ * Major.minor only — patch is deliberately ignored. New config keys and new
+ * behaviour arrive in minors; a dev floor five patches above the peer floor
+ * (`^2.5.0` vs `^2.5.5`) is just a routine bump and flagging it would make
+ * this check fire on almost every package.
+ */
+function compareFloor(a: [number, number, number], b: [number, number, number]): number {
+	return a[0] - b[0] || a[1] - b[1]
+}
+
+/**
+ * Config files whose `$schema` URL carries the tool version the config is
+ * written for, and the package that reads them. One entry per tool; adding
+ * another is a line here.
+ */
+const SCHEMA_CONFIGS: { files: string[]; host: string; pkg: string }[] = [
+	{ files: ['biome.json', 'biome.jsonc'], host: 'biomejs.dev', pkg: '@biomejs/biome' },
+]
+
+/** The version out of `https://biomejs.dev/schemas/2.5.0/schema.json`. */
+export function schemaUrlVersion(url: string): [number, number, number] | null {
+	const m = /\/(\d+\.\d+\.\d+)\//.exec(url)
+	return m?.[1] ? rangeFloor(m[1]) : null
+}
+
+/**
+ * `"$schema": "..."` without parsing the file. Biome configs may be JSONC, and
+ * a comment is enough to break `JSON.parse` — the one field this needs is
+ * cheaper and safer to read directly.
+ */
+function readSchemaUrl(contents: string): string | null {
+	return /"\$schema"\s*:\s*"([^"]+)"/.exec(contents)?.[1] ?? null
+}
+
+/**
+ * A shipped config written for a newer tool version than the package claims to
+ * support (#330). The `$schema` URL is an explicit, machine-readable statement
+ * of which version the config targets, so comparing it against the declared
+ * dependency floor is exact — no heuristics, no false positives.
+ *
+ * This is the #330 defect precisely: `tooling/biome/biome.json` carries
+ * `$schema` 2.5.0 and uses `linter.rules.preset`, a 2.5 key, while
+ * `peerDependencies` advertised `@biomejs/biome: ^2.0.0`. Consumers on 2.0–2.4
+ * got `Found an unknown key \`preset\`` with nothing pointing at the range.
+ *
+ * It reads the same way in a consuming repo: a `biome.json` targeting 2.5.0
+ * with `@biomejs/biome: ^2.3.0` in devDependencies is the identical failure,
+ * one level down.
+ *
+ * The floor is what matters, not the ceiling — `^2.0.0` resolves to the newest
+ * 2.x today, so the repo's own install works and only consumers pinned lower
+ * break. That is exactly why this goes unnoticed.
+ */
+export async function checkConfigSchemaVersions(
+	dir: string,
+	pkg: Pkg | null
+): Promise<CheckResult> {
+	const check = 'Config schema versions'
+	// peerDependencies is the contract a publisher offers; devDependencies is
+	// what a leaf repo actually installs. Prefer the former when present.
+	const declared = {
+		...((pkg?.dependencies as Record<string, string> | undefined) ?? {}),
+		...((pkg?.devDependencies as Record<string, string> | undefined) ?? {}),
+		...((pkg?.peerDependencies as Record<string, string> | undefined) ?? {}),
+	}
+
+	const mismatches: string[] = []
+	let checked = 0
+	for (const spec of SCHEMA_CONFIGS) {
+		for (const file of spec.files) {
+			const filepath = path.join(dir, file)
+			if (!(await fs.pathExists(filepath))) continue
+			const url = readSchemaUrl(await fs.readFile(filepath, 'utf8'))
+			if (!url?.includes(spec.host)) continue
+			const schemaVersion = schemaUrlVersion(url)
+			const range = declared[spec.pkg]
+			if (!schemaVersion || !range) continue
+			const floor = rangeFloor(range)
+			if (!floor) continue
+			checked++
+			if (compareFloor(schemaVersion, floor) > 0) {
+				const v = schemaVersion.join('.')
+				mismatches.push(`${file} targets ${spec.pkg} ${v} but the range is ${range}`)
+			}
+		}
+	}
+
+	if (checked === 0) {
+		return { check, status: 'ok', detail: 'no versioned config schemas to compare' }
+	}
+	if (mismatches.length === 0) {
+		return {
+			check,
+			status: 'ok',
+			detail: `${checked} config schema${checked === 1 ? '' : 's'} within the declared version range`,
+		}
+	}
+	return {
+		check,
+		status: 'optional-missing',
+		detail: `${mismatches.length} config${mismatches.length === 1 ? '' : 's'} written for a newer tool than declared: ${mismatches.join('; ')}`,
+		hint: 'Raise the dependency floor to the version the config targets, or rewrite the config for the oldest version supported. Anyone resolving below the schema version gets a config-parse error that never mentions the version range.',
+	}
+}
+
+/** npm git specifiers, including the bare `owner/repo` GitHub shorthand. */
+const GIT_PROTOCOL = /^(?:github|gitlab|bitbucket|gist):|^git\+|^git:\/\//
+const GITHUB_SHORTHAND = /^[A-Za-z0-9][\w.-]*\/[A-Za-z0-9][\w.-]*(?:#.*)?$/
+
+export function isGitSpecifier(spec: string): boolean {
+	return GIT_PROTOCOL.test(spec) || GITHUB_SHORTHAND.test(spec)
+}
+
+/**
+ * A git dependency with no `#ref` (#332). The package manager resolves it once
+ * and pins the commit in the lockfile, so it never moves again until somebody
+ * re-resolves by hand — with no version mismatch, no Dependabot PR, and no
+ * signal of any kind that it has gone stale.
+ *
+ * This is how the docs homepage kept advertising `@rtorcato/js-tooling` for
+ * days after the rename: `github:rtorcato/shared-docs` had been pinned to a
+ * pre-rename commit and nothing could tell.
+ */
+export function checkGitDependencies(pkg: Pkg | null): CheckResult {
+	const check = 'Git dependencies'
+	const fields = ['dependencies', 'devDependencies', 'optionalDependencies'] as const
+	const refless: string[] = []
+	let total = 0
+
+	for (const field of fields) {
+		const deps = (pkg?.[field] as Record<string, string> | undefined) ?? {}
+		for (const [name, spec] of Object.entries(deps)) {
+			if (typeof spec !== 'string' || !isGitSpecifier(spec)) continue
+			total++
+			if (!spec.includes('#')) refless.push(`${name} (${spec})`)
+		}
+	}
+
+	if (total === 0) {
+		return { check, status: 'ok', detail: 'no git dependencies' }
+	}
+	if (refless.length === 0) {
+		return {
+			check,
+			status: 'ok',
+			detail: `${total} git dependenc${total === 1 ? 'y' : 'ies'}, all with an explicit ref`,
+		}
+	}
+	return {
+		check,
+		status: 'optional-missing',
+		detail: `${refless.length} git dependenc${refless.length === 1 ? 'y' : 'ies'} with no ref — pinned to whatever commit was current at install time: ${refless.join('; ')}`,
+		hint: 'Prefer publishing to a registry and depending on a semver range. Failing that, add an explicit ref — `#semver:^1.2.0` is strongest, `#main` at least makes the intent legible and `pnpm update` meaningful.',
+	}
+}

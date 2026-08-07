@@ -30,8 +30,10 @@ import type { CheckResult, CheckStatus } from '../../base/types.js'
 import {
 	allDeps,
 	checkAreTheTypesWrong,
+	checkConfigSchemaVersions,
 	checkDocsSite,
 	checkEnginesNode,
+	checkGitDependencies,
 	checkKnip,
 	checkLintStaged,
 	checkNodeVersionConsistency,
@@ -288,6 +290,8 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 	results.push(evaluateNodeVersion(process.version))
 	results.push(checkPackageJson(pkg))
 	results.push(checkEnginesNode(pkg))
+	results.push(await checkConfigSchemaVersions(targetDir, pkg))
+	results.push(checkGitDependencies(pkg))
 	results.push(await checkVscodeExtensions(targetDir))
 	results.push(await checkNodeVersionPin(targetDir))
 	results.push(await checkNodeVersionConsistency(targetDir, pkg))
