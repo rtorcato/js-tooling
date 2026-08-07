@@ -1,3 +1,11 @@
+## [3.2.1](https://github.com/rtorcato/repo-tooling/compare/v3.2.0...v3.2.1) (2026-08-07)
+
+
+### Bug Fixes
+
+* **docs:** depend on shared-docs from the registry, not github: ([#334](https://github.com/rtorcato/repo-tooling/issues/334)) ([e9f65b5](https://github.com/rtorcato/repo-tooling/commit/e9f65b53e56a1ea83ee028cb7e820696a792d6de)), closes [#332](https://github.com/rtorcato/repo-tooling/issues/332) [#333](https://github.com/rtorcato/repo-tooling/issues/333)
+* **pnpm-workspace:** derive the release-age scope, don't hardcode it ([#335](https://github.com/rtorcato/repo-tooling/issues/335)) ([7aced1e](https://github.com/rtorcato/repo-tooling/commit/7aced1e6cfcdb8c51faaa58fd2edbb25bdbd4644))
+
 # [3.2.0](https://github.com/rtorcato/repo-tooling/compare/v3.1.0...v3.2.0) (2026-08-07)
 
 
