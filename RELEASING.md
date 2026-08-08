@@ -15,6 +15,21 @@ Releases are driven by **conventional commit** messages on `main`:
 
 If no release-worthy commits exist since the last tag, semantic-release exits without publishing — that's expected, not a failure.
 
+## The GitHub Action tag (#315)
+
+`action.yml` at the repo root is consumed by **git ref**, not by npm, so it needs
+no extra release step: consumers pin an exact release tag (`rtorcato/repo-tooling@v3.2.5`),
+which semantic-release already creates on the commit that bumps `package.json`.
+The action reads its own `package.json` at runtime and runs that exact npm
+version, so the git tag and the CLI version can't diverge.
+
+**No floating `v3` tag is maintained**, deliberately. A moving major is a second
+release channel to operate — every `action.yml` change becomes a breaking-change
+judgement on a tag consumers can't pin below — for a benefit Dependabot's
+`github-actions` ecosystem already delivers by bumping exact tags. Revisit only
+if consumers ask for it; adding a floating tag later is backwards-compatible,
+removing one is not.
+
 ## Before an API-changing release
 
 semantic-release owns the version, tag, CHANGELOG, and npm publish — **never bump
