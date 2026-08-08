@@ -47,7 +47,8 @@ The whole set takes about 1m40s, so there's no coverage gate to reason about.
 entirely — there is no `package.json` to repoint and nothing to install, so it runs
 `swift build` → `swift test` → `swiftlint lint --strict` against the scaffold's own
 source and test target. It needs a Swift toolchain, so CI runs it in a separate
-`integration-swift` job on `macos-latest`. If `swiftlint` isn't on `PATH` the script
+`integration-swift` job on `macos-latest`, which `brew install swiftlint` first
+because the runner image doesn't ship it. If `swiftlint` isn't on `PATH` the script
 warns that the lint gate did not run rather than reporting a pass.
 
 ## Writing generator tests

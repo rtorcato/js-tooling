@@ -269,8 +269,6 @@ jobs:
   # toolchain, and the scaffold's own CI targets Apple platforms anyway (#312).
   # macos-latest over a swift:* container because macOS runners are free on
   # public repos, and it's the platform the generated package actually claims.
-  # SwiftLint comes preinstalled on the runner image; the script warns loudly
-  # rather than passing quietly if that ever stops being true.
   integration-swift:
     runs-on: macos-latest
     needs: [check-skip]
@@ -292,6 +290,12 @@ jobs:
 
       - name: 🏗️ Build CLI
         run: pnpm build-cli
+
+      # Not on the macos-latest image — the first run of this job logged
+      # "swiftlint not on PATH". Without it the scaffold's lint gate, which is
+      # half of what the Swift preset ships, would never be exercised.
+      - name: 📦 Install SwiftLint
+        run: brew install swiftlint
 
       - name: 🧩 Scaffold + build + test + lint swift-library
         run: node scripts/integration/preset-lifecycle.mjs swift-library
