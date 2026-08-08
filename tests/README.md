@@ -43,6 +43,14 @@ in the script's `appDeps`, so a gap there fails the test instead of being hidden
 All five run in CI on every pull request and push, on each supported Node major.
 The whole set takes about 1m40s, so there's no coverage gate to reason about.
 
+`swift-library` is wired too, but declares `swift: true` and skips the JS lifecycle
+entirely — there is no `package.json` to repoint and nothing to install, so it runs
+`swift build` → `swift test` → `swiftlint lint --strict` against the scaffold's own
+source and test target. It needs a Swift toolchain, so CI runs it in a separate
+`integration-swift` job on `macos-latest`, which `brew install swiftlint` first
+because the runner image doesn't ship it. If `swiftlint` isn't on `PATH` the script
+warns that the lint gate did not run rather than reporting a pass.
+
 ## Writing generator tests
 
 Each generator is a pure function that writes files into a target directory. Use the `useTmpDir` helper to isolate writes per test:
