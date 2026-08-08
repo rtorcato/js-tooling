@@ -256,23 +256,14 @@ jobs:
       - name: 🏗️ Build CLI
         run: pnpm build-cli
 
-      - name: 🧩 Scaffold + install + verify the library preset
-        run: node scripts/integration/preset-lifecycle.mjs library
-
-      # The app presets each cost a full install + build, so on PRs only the
-      # library preset runs (it's the published one, and the #91/#92 packaging
-      # bugs all landed there). The rest gate on push-to-main. The else branch
-      # prints what was skipped so a green PR never implies full preset coverage.
-      - name: 🧩 Scaffold + install + verify the app presets (push to main only)
+      # #313 planned to gate the four app presets on push-to-main over wall-clock
+      # cost. Measured on #343: all five take 1m38s versus 44s for library alone,
+      # so the gate bought ~1 minute and cost full coverage on PRs. Run them all.
+      - name: 🧩 Scaffold + install + verify every preset
         run: |
-          if true; then  # TEMP: prove the app presets on this PR before trusting the gate
-            for preset in node-api web-app react-app nextjs-app; do
-              node scripts/integration/preset-lifecycle.mjs "$preset"
-            done
-          else
-            echo "::notice::Skipped node-api, web-app, react-app and nextjs-app —" \
-              "app presets run on push to main only. Only 'library' was verified here."
-          fi
+          for preset in library node-api web-app react-app nextjs-app; do
+            node scripts/integration/preset-lifecycle.mjs "$preset"
+          done
 
   # Build
   build:
