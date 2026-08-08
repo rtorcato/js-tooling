@@ -265,7 +265,7 @@ jobs:
       # prints what was skipped so a green PR never implies full preset coverage.
       - name: 🧩 Scaffold + install + verify the app presets (push to main only)
         run: |
-          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          if true; then  # TEMP: prove the app presets on this PR before trusting the gate
             for preset in node-api web-app react-app nextjs-app; do
               node scripts/integration/preset-lifecycle.mjs "$preset"
             done
