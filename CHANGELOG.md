@@ -1,3 +1,16 @@
+# [3.3.0](https://github.com/rtorcato/repo-tooling/compare/v3.2.5...v3.3.0) (2026-08-08)
+
+
+### Bug Fixes
+
+* **ci:** stop silently overwriting a consumer's ci.yml, and let doctor see the drift ([#352](https://github.com/rtorcato/repo-tooling/issues/352)) ([e89e879](https://github.com/rtorcato/repo-tooling/commit/e89e87968ec23a56b5a48951d9d7cc353818f0da)), closes [#340](https://github.com/rtorcato/repo-tooling/issues/340) [#340](https://github.com/rtorcato/repo-tooling/issues/340) [#342](https://github.com/rtorcato/repo-tooling/issues/342) [#348](https://github.com/rtorcato/repo-tooling/issues/348) [#309](https://github.com/rtorcato/repo-tooling/issues/309) [#340](https://github.com/rtorcato/repo-tooling/issues/340) [#349](https://github.com/rtorcato/repo-tooling/issues/349) [#340](https://github.com/rtorcato/repo-tooling/issues/340)
+
+
+### Features
+
+* **ci:** ship doctor as a composite GitHub Action ([#350](https://github.com/rtorcato/repo-tooling/issues/350)) ([7164db4](https://github.com/rtorcato/repo-tooling/commit/7164db439df0395b13b208286f4ab157e57a37e0)), closes [#315](https://github.com/rtorcato/repo-tooling/issues/315) [#342](https://github.com/rtorcato/repo-tooling/issues/342) [#316](https://github.com/rtorcato/repo-tooling/issues/316)
+* **swift:** check and scaffold tag-based SwiftPM releases ([#351](https://github.com/rtorcato/repo-tooling/issues/351)) ([5f2f70e](https://github.com/rtorcato/repo-tooling/commit/5f2f70ea028455d09eaad2dfe7faebfc1dc312a4)), closes [#310](https://github.com/rtorcato/repo-tooling/issues/310)
+
 ## [3.2.5](https://github.com/rtorcato/repo-tooling/compare/v3.2.4...v3.2.5) (2026-08-08)
 
 
