@@ -335,6 +335,22 @@ jobs:
           # gracefully if the token lacks admin:read, so this never hard-fails.
           GH_TOKEN: ${{ github.token }}
 
+      # Smoke-test the composite action we ship (#315) the way a consumer uses
+      # it. `fail-on: none` because doctor has genuine self-repo findings (see
+      # scripts/dogfood.mjs) — this proves the wiring, dogfood proves the checks.
+      - name: 🎬 Smoke-test the composite action
+        id: action-smoke
+        uses: ./
+        with:
+          fail-on: none
+        env:
+          REPO_TOOLING_ALLOW_SELF: '1'
+
+      - name: 🎬 Assert the action emitted a report
+        run: jq -e '.results | length > 0' <<<"$REPORT" >/dev/null
+        env:
+          REPORT: ${{ steps.action-smoke.outputs.json }}
+
       - name: 📦 Upload build artifacts
         uses: actions/upload-artifact@v7
         with:

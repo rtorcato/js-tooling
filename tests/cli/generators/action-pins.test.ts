@@ -42,6 +42,9 @@ const ownPins = pinsIn(glob('.github/workflows/*.yml'))
 const emittedPins = pinsIn([
 	...glob('src/**/*.ts'),
 	...glob('tooling/github-actions/workflows/*.yml'),
+	// action.yml (#315) runs on consumers' runners, so its pins drift the same
+	// way an emitted workflow's do.
+	'action.yml',
 ])
 
 describe("emitted action pins track this repo's own workflows", () => {

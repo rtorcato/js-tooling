@@ -72,6 +72,14 @@ See the [Getting Started guide](https://rtorcato.github.io/repo-tooling/guides/g
 | `doctor` | Diagnose an existing project for missing or drifted tooling. | `npx @rtorcato/repo-tooling doctor` |
 | `fix [target]` | Apply scaffolders for what `doctor` flagged (`--yes`, `--dry-run`, `--diff`). | `npx @rtorcato/repo-tooling fix` |
 
+Prefer to run the audit in CI? `doctor` also ships as a GitHub Action:
+
+```yaml
+- uses: rtorcato/repo-tooling@v3.2.5
+```
+
+See the [GitHub Actions reference](https://rtorcato.github.io/repo-tooling/reference/github-actions/#run-doctor-as-a-github-action) for its inputs and outputs.
+
 Every command takes `-d, --directory <path>`; run any with `--help` for its full flags. Run `list` (or `list --json`) for the full set of `fix` targets — it's the source of truth. Notable ones include `fix docs-site` (scaffold a [Docusaurus docs site](https://rtorcato.github.io/repo-tooling/guides/docs-site/)) and `fix bun` (Bun runtime config).
 
 ## The `.repo-tooling.json` lockfile

@@ -1,7 +1,70 @@
 ---
 title: GitHub Actions
-description: The CI workflow scaffolded by setup, plus optional deploy workflows you can add with fix.
+description: Run doctor as a GitHub Action, plus the CI workflow scaffolded by setup and the optional deploy workflows you can add with fix.
 ---
+
+## Run `doctor` as a GitHub Action
+
+This repo is itself a **composite action**, so a consumer repo can gate on the
+audit without hand-writing the step:
+
+```yaml
+- uses: actions/checkout@v7
+- uses: rtorcato/repo-tooling@v3.2.5
+```
+
+That fails the job when `doctor` finds drift or missing config — the same exit
+code you get from the CLI.
+
+### Inputs
+
+| Input | Default | What it does |
+|---|---|---|
+| `directory` | `.` | Directory to diagnose, relative to the workspace. |
+| `fail-on` | `drift` | `drift` fails on drift **or** missing; `missing` fails only on missing config; `none` annotates and never fails. |
+
+Every finding becomes a job annotation regardless of `fail-on`, so `none` is the
+report-only mode for a repo adopting the audit before it's clean:
+
+```yaml
+- uses: rtorcato/repo-tooling@v3.2.5
+  with:
+    directory: packages/app
+    fail-on: none
+```
+
+### Outputs
+
+| Output | What it is |
+|---|---|
+| `json` | The full `doctor --json` payload — feed it to a PR comment or a report. |
+
+```yaml
+- uses: rtorcato/repo-tooling@v3.2.5
+  id: doctor
+  with:
+    fail-on: none
+- run: jq '.results' <<< '${{ steps.doctor.outputs.json }}'
+```
+
+### Versioning
+
+Pin an **exact release tag** (`@v3.2.5`), not a floating major. The action runs
+the npm package at the version recorded in the tag it was checked out from, so
+the git ref is the only pin — there's no second channel that can drift out from
+under you, and Dependabot's `github-actions` ecosystem bumps the tag for you.
+
+### Notes
+
+- The action runs `actions/setup-node` internally to guarantee Node 22, since
+  the CLI requires it. That also sets Node for later steps in the same job — put
+  the audit in its own job if that matters.
+- It's a composite action, not a Docker one: `doctor` is a read-only file audit
+  already published as an npm CLI, so a container would only add an image to
+  build, publish and pull.
+- `doctor` never executes the audited project's code — it reads config files.
+
+## Scaffolded workflows
 
 Every scaffold gets a `ci.yml` (lint / typecheck / test / build, and release for
 libraries) out of the box. Beyond that, repo-tooling ships **optional deploy
