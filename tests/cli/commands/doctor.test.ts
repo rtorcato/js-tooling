@@ -226,7 +226,7 @@ describe('doctor extended checks', () => {
 		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
 		await fs.outputFile(
 			join(dir, '.github', 'workflows', 'ci.yml'),
-			'jobs:\n  build:\n    steps:\n      - uses: actions/setup-node@v6\n        with:\n          node-version: "22"\n'
+			'jobs:\n  build:\n    steps:\n      - uses: actions/setup-node@v7\n        with:\n          node-version: "22"\n'
 		)
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'Node version consistency')?.status).toBe('ok')
@@ -242,7 +242,7 @@ describe('doctor extended checks', () => {
 		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
 		await fs.outputFile(
 			join(dir, '.github', 'workflows', 'ci.yml'),
-			'jobs:\n  build:\n    steps:\n      - uses: actions/setup-node@v6\n        with:\n          node-version: 20\n'
+			'jobs:\n  build:\n    steps:\n      - uses: actions/setup-node@v7\n        with:\n          node-version: 20\n'
 		)
 		const results = await runDoctor(dir)
 		const c = results.find((r) => r.check === 'Node version consistency')
@@ -260,7 +260,7 @@ describe('doctor extended checks', () => {
 		await fs.writeFile(join(dir, '.nvmrc'), '22\n')
 		await fs.outputFile(
 			join(dir, '.github', 'workflows', 'ci.yml'),
-			'jobs:\n  test:\n    strategy:\n      matrix:\n        node-version: ["22", "24"]\n    steps:\n      - uses: actions/setup-node@v6\n        with:\n          node-version: ${{ matrix.node-version }}\n'
+			'jobs:\n  test:\n    strategy:\n      matrix:\n        node-version: ["22", "24"]\n    steps:\n      - uses: actions/setup-node@v7\n        with:\n          node-version: ${{ matrix.node-version }}\n'
 		)
 		const results = await runDoctor(dir)
 		expect(results.find((r) => r.check === 'Node version consistency')?.status).toBe('ok')
