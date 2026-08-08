@@ -1,3 +1,10 @@
+## [3.2.4](https://github.com/rtorcato/repo-tooling/compare/v3.2.3...v3.2.4) (2026-08-08)
+
+
+### Bug Fixes
+
+* **presets:** make every JS preset survive a real install and verify ([#343](https://github.com/rtorcato/repo-tooling/issues/343)) ([f2af0af](https://github.com/rtorcato/repo-tooling/commit/f2af0af70b85b4e52a525d97f353edd562b16bb0)), closes [#313](https://github.com/rtorcato/repo-tooling/issues/313)
+
 ## [3.2.3](https://github.com/rtorcato/repo-tooling/compare/v3.2.2...v3.2.3) (2026-08-08)
 
 
