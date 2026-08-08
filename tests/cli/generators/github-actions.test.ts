@@ -2,7 +2,7 @@ import fs from 'fs-extra'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { ProjectConfig } from '../../../src/cli/commands/setup.js'
-import { generateGitHubActions } from '../../../src/cli/generators/github-actions.js'
+import { CI_WORKFLOW, generateGitHubActions } from '../../../src/cli/generators/github-actions.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
 
 const newTmpDir = useTmpDir()
@@ -186,6 +186,41 @@ describe('generateGitHubActions', () => {
 
 		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
 		expect(content).toContain('pnpm check')
+	})
+
+	// #349/#340: this generator used to writeFile unconditionally, so a consuming
+	// repo's Dependabot-bumped pin was reverted on every sync — no diff, no prompt,
+	// no backup — and Dependabot re-opened the identical PR forever.
+	it('leaves a customized ci.yml alone rather than silently overwriting it', async () => {
+		const dir = newTmpDir()
+		await generateGitHubActions(baseConfig(), dir)
+		const customized = `${await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')}\n# hand-edited\n`
+		await fs.writeFile(join(dir, WORKFLOW_PATH), customized)
+
+		const written = await generateGitHubActions(baseConfig(), dir)
+
+		expect(written).not.toContain(CI_WORKFLOW)
+		expect(await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')).toBe(customized)
+	})
+
+	it('replaces a customized ci.yml only when the caller opts in', async () => {
+		const dir = newTmpDir()
+		await generateGitHubActions(baseConfig(), dir)
+		await fs.writeFile(join(dir, WORKFLOW_PATH), '# hand-edited\n')
+
+		const written = await generateGitHubActions(baseConfig(), dir, { overwrite: true })
+
+		expect(written).toContain(CI_WORKFLOW)
+		expect(await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')).toContain('CI/CD Pipeline')
+	})
+
+	it('rewrites an untouched ci.yml, so a preset change still lands', async () => {
+		const dir = newTmpDir()
+		await generateGitHubActions(baseConfig(), dir)
+
+		const written = await generateGitHubActions(baseConfig(), dir)
+
+		expect(written).toContain(CI_WORKFLOW)
 	})
 
 	it('uses pnpm lint in lint job when linting tool is eslint', async () => {

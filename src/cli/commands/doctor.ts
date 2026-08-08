@@ -1,8 +1,12 @@
 import path from 'node:path'
 import chalk from 'chalk'
 import fs from 'fs-extra'
+import { renderGitHubWorkflow } from '../../base/ci.js'
+import { githubJobs } from '../../languages/js/ci.js'
+import { inferProjectConfig } from '../../languages/js/fixers.js'
 import { resolveLanguageModule } from '../../languages/registry.js'
 import { SWIFT_GIT_HOOKS, runSwiftChecks } from '../../languages/swift/checks.js'
+import { readSwiftPackage, renderSwiftWorkflow } from '../../languages/swift/ci.js'
 import { detectLanguage } from '../utils/detect-language.js'
 import { checkGitHubSettings } from '../../base/github-settings.js'
 import { checkGitIdentity } from '../../base/git-identity.js'
@@ -194,6 +198,12 @@ interface BaseCheckOptions {
 	/** Null for a language whose hook convention isn't encoded yet (Python/Perl). */
 	hooks: GitHooksProfile | null
 	badges: { audience: BadgeAudience; fixTarget: string | null }
+	/**
+	 * The ci.yml this module's generator would render right now, so the CI check
+	 * can spot a workflow that has drifted from it (#349). Null for a language
+	 * with no CI generator — nothing to compare against.
+	 */
+	presetWorkflow: string | null
 }
 
 // The language-agnostic checks (src/base): repo hygiene, git hooks, CI,
@@ -214,7 +224,7 @@ async function runBaseChecks(
 		results.push(await checkGitHooks(dir, opts.hooks))
 		results.push(await checkPrePushHook(dir, opts.hooks))
 	}
-	results.push(await checkGitHubActions(dir))
+	results.push(await checkGitHubActions(dir, opts.presetWorkflow))
 	results.push(await checkDependabot(dir))
 	results.push(await checkCodeQL(dir))
 	// GitHub repo-settings drift (branch protection, merge settings, workflow
@@ -255,6 +265,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 			...(await runBaseChecks(targetDir, lock, {
 				hooks: null,
 				badges: { audience: 'public', fixTarget: null },
+				presetWorkflow: null,
 			})),
 		]
 		return demoteDeclined(results, lock)
@@ -275,6 +286,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 				// badges always apply. No fixer: `fix badges` derives the block from
 				// package.json name/repository, which a Swift repo hasn't got.
 				badges: { audience: 'public', fixTarget: null },
+				presetWorkflow: renderSwiftWorkflow(await readSwiftPackage(targetDir)),
 			})),
 			...(await runSwiftChecks(targetDir)),
 		]
@@ -328,6 +340,7 @@ export async function runDoctor(dir: string): Promise<CheckResult[]> {
 		...(await runBaseChecks(targetDir, lock, {
 			hooks: jsGitHooksProfile(pkg),
 			badges: { audience: jsBadgeAudience(pkg), fixTarget: 'badges' },
+			presetWorkflow: renderGitHubWorkflow(githubJobs(inferProjectConfig(pkg))),
 		}))
 	)
 
