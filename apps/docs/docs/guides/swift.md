@@ -90,7 +90,8 @@ not having. Concretely:
 | Manifest | `package.json` | `Package.swift` |
 | Build | tsup/esbuild/Vite/Rollup | `swift build` |
 | Test | Vitest/Jest/Playwright/Cypress | `swift test` (XCTest) |
-| Lint + format | Biome or ESLint + Prettier | SwiftLint (both jobs) |
+| Lint + format | Biome or ESLint + Prettier | SwiftLint (both jobs), or swift-format for the formatter half |
+| API docs | TypeDoc | DocC |
 | Dead code | knip | Periphery |
 | Install step | `pnpm install` | none — SwiftPM resolves on build |
 | Git hooks | Husky + lint-staged (`.husky/`) | committed `.githooks/` + `core.hooksPath` |
@@ -134,6 +135,8 @@ scaffolder and would overwrite your manifest. Use `doctor` and `fix` instead:
 npx @rtorcato/repo-tooling doctor              # audit
 npx @rtorcato/repo-tooling fix swiftlint       # .swiftlint.yml
 npx @rtorcato/repo-tooling fix periphery       # .periphery.yml
+npx @rtorcato/repo-tooling fix swift-format    # .swift-format (optional formatter)
+npx @rtorcato/repo-tooling fix docc            # Sources/<Target>/<Target>.docc
 npx @rtorcato/repo-tooling fix swift-gitignore  # append build artefacts
 npx @rtorcato/repo-tooling fix swift-git-hooks  # .githooks/ + core.hooksPath
 npx @rtorcato/repo-tooling fix swift-ci         # .github/workflows/ci.yml

@@ -76,14 +76,21 @@ describe('generateSwiftProject', () => {
 		expect(manifest).not.toMatch(/,\s*\n\s*\]/)
 	})
 
-	it('leaves the whole Swift doctor suite green', async () => {
+	// Everything the scaffold claims to wire is green. `swift-format` and `DocC`
+	// are opt-in slots it deliberately doesn't write (SwiftLint `--fix` is the
+	// formatter, and DocC needs a plugin dependency in the manifest), exactly as
+	// a fresh JS scaffold leaves TypeDoc unconfigured.
+	it('leaves the whole Swift doctor suite green bar the opt-in slots', async () => {
 		const dir = await scaffold()
 		const results = await runSwiftChecks(dir)
 		expect(results.map((r) => `${r.check}: ${r.status}`)).toEqual([
 			'Package.swift: ok',
 			'SwiftLint: ok',
 			'Periphery: ok',
+			'swift-format: optional-missing',
 			'Swift .gitignore: ok',
+			'Swift tests: ok',
+			'DocC: optional-missing',
 			'Release automation: ok',
 		])
 	})

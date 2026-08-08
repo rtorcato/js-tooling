@@ -8,6 +8,7 @@ import type { Fixer } from '../../base/fixers.js'
 import { buildPresetConfig } from '../../cli/commands/setup-presets.js'
 import { copyPreset } from '../../cli/utils/copy-preset.js'
 import { LOCKFILE_NAME, writeLockfile } from '../../cli/utils/lockfile.js'
+import { swiftSourceTargets } from './checks.js'
 import {
 	readSwiftPackage,
 	renderSwiftGitLabCI,
@@ -16,6 +17,30 @@ import {
 } from './ci.js'
 import { SWIFT_HOOKS_DIR, installSwiftGitHooks } from './git-hooks.js'
 import { ensureSwiftGitignore } from './gitignore.js'
+
+/**
+ * A DocC module page. The heading is a symbol link (double backticks) because
+ * that's what binds the article to the module — a plain `# Name` heading makes
+ * DocC treat the file as a standalone article instead.
+ */
+function doccLandingPage(target: string): string {
+	return `# \`\`${target}\`\`
+
+Summary line for ${target} — replace this with what the module is for.
+
+## Overview
+
+Write the prose documentation for ${target} here. Anything else in this
+catalogue (articles, tutorials, resources) is picked up automatically.
+
+Build it with \`swift package generate-documentation\`, or preview it with
+\`swift package --disable-sandbox preview-documentation --target ${target}\`.
+
+## Topics
+
+### Essentials
+`
+}
 
 export const SWIFT_FIXERS: Fixer[] = [
 	{
@@ -38,6 +63,51 @@ export const SWIFT_FIXERS: Fixer[] = [
 		async run({ targetDir }) {
 			const result = await copyPreset('periphery', targetDir)
 			return { filesWritten: [result.target] }
+		},
+	},
+	{
+		target: 'swift-format',
+		description: 'Scaffold .swift-format (Apple swift-format, the optional formatter slot)',
+		appliesTo: ['swift-format'],
+		outputs: ['.swift-format'],
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const result = await copyPreset('swift-format', targetDir)
+			return { filesWritten: [result.target] }
+		},
+	},
+	{
+		target: 'docc',
+		description: 'Scaffold a DocC catalogue (Sources/<Target>/<Target>.docc) for the first target',
+		appliesTo: ['DocC'],
+		// Path depends on the target name, so `fix --dry-run` shows no diff for
+		// this one — the file it writes isn't knowable without reading Sources/.
+		outputs: ['Sources/<Target>/<Target>.docc/<Target>.md'],
+		riskLevel: 'safe-add',
+		canFixDrift: true,
+		async run({ targetDir }) {
+			// The library product's target first — that's the API consumers read
+			// docs for — falling back to whatever single target the package has.
+			const targets = await swiftSourceTargets(targetDir)
+			const { products } = await readSwiftPackage(targetDir)
+			const target = products.find((p) => targets.includes(p)) ?? targets[0]
+			if (!target) {
+				throw new Error('no Sources/<Target>/ directory to put a DocC catalogue in')
+			}
+
+			const file = `Sources/${target}/${target}.docc/${target}.md`
+			// safe-add: the catalogue is prose someone wrote, so a re-run (DocC
+			// also drifts when the manifest lacks the plugin, which this fixer
+			// can't repair) must not overwrite it.
+			if (await fs.pathExists(path.join(targetDir, file))) return { filesWritten: [] }
+
+			await fs.outputFile(path.join(targetDir, file), doccLandingPage(target))
+			console.log(
+				chalk.yellow(
+					'   add swift-docc-plugin to Package.swift to build it: .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.4.0")'
+				)
+			)
+			return { filesWritten: [file] }
 		},
 	},
 	{

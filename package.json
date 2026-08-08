@@ -102,6 +102,7 @@
 		"tooling/claude/*.md",
 		"tooling/mcp/mcp.json.example",
 		"tooling/swift/*.yml",
+		"tooling/swift/*.json",
 		"tooling/github-actions/workflows/*.yml",
 		"README.md",
 		"AGENTS.md"

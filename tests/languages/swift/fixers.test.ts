@@ -4,7 +4,12 @@ import { describe, expect, it } from 'vitest'
 import { runDoctor } from '../../../src/cli/commands/doctor.js'
 import { BASE_FIXERS } from '../../../src/base/fixers.js'
 import { FIXERS } from '../../../src/languages/js/fixers.js'
-import { checkSwiftGitignore, checkSwiftRelease } from '../../../src/languages/swift/checks.js'
+import {
+	checkDocC,
+	checkSwiftGitignore,
+	checkSwiftRelease,
+	runSwiftChecks,
+} from '../../../src/languages/swift/checks.js'
 import { SWIFT_FIXERS } from '../../../src/languages/swift/fixers.js'
 import { ensureSwiftGitignore } from '../../../src/languages/swift/gitignore.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
@@ -60,13 +65,16 @@ describe('swift fixers', () => {
 		// generator satisfies; `README badges` needs a package.json name/repository
 		// to build the block from, which a Swift repo hasn't got (#309).
 		// `Git identity` is unfixable by design (#328) — only the operator knows
-		// their own address, so there is nothing for a fixer to write.
+		// their own address, so there is nothing for a fixer to write. `Swift
+		// tests` is the same shape as `Package.swift`: half of it is a manifest
+		// edit (#311).
 		expect(uncovered).toEqual([
 			'language',
 			'Git identity',
 			'README badges',
 			'Coverage upload',
 			'Package.swift',
+			'Swift tests',
 		])
 	})
 
@@ -83,6 +91,44 @@ describe('swift fixers', () => {
 		const dir = newTmpDir()
 		await fixer('periphery').run(ctx(dir))
 		expect(await fs.readFile(join(dir, '.periphery.yml'), 'utf-8')).toContain('retain_public: true')
+	})
+
+	it('swift-format writes a config the swift-format check accepts', async () => {
+		const dir = newTmpDir()
+		const { filesWritten } = await fixer('swift-format').run(ctx(dir))
+		expect(filesWritten).toEqual(['.swift-format'])
+		const results = await runSwiftChecks(dir)
+		expect(results.find((r) => r.check === 'swift-format')?.status).toBe('ok')
+	})
+
+	it('docc writes the catalogue into the library product’s target', async () => {
+		const dir = newTmpDir()
+		await fs.writeFile(
+			join(dir, 'Package.swift'),
+			'// swift-tools-version: 5.9\nproducts: [.library(name: "Demo", targets: ["Demo"])]\n'
+		)
+		await fs.outputFile(join(dir, 'Sources/Helpers/Helpers.swift'), '')
+		await fs.outputFile(join(dir, 'Sources/Demo/Demo.swift'), '')
+
+		const { filesWritten } = await fixer('docc').run(ctx(dir))
+		expect(filesWritten).toEqual(['Sources/Demo/Demo.docc/Demo.md'])
+		// Symbol-link heading, or DocC treats the page as a standalone article.
+		expect(await fs.readFile(join(dir, filesWritten[0] as string), 'utf-8')).toContain('# ``Demo``')
+		// Still drift, not ok: the plugin is a manifest edit the fixer won't make.
+		expect((await checkDocC(dir)).status).toBe('drift')
+	})
+
+	// DocC drifts again when the manifest lacks the plugin, so a re-run is the
+	// normal case — it must not overwrite prose someone wrote.
+	it('docc leaves an existing catalogue page alone', async () => {
+		const dir = newTmpDir()
+		await fs.outputFile(join(dir, 'Sources/Demo/Demo.docc/Demo.md'), '# ``Demo``\n\nMine.\n')
+		expect((await fixer('docc').run(ctx(dir))).filesWritten).toEqual([])
+		expect(await fs.readFile(join(dir, 'Sources/Demo/Demo.docc/Demo.md'), 'utf-8')).toContain('Mine.')
+	})
+
+	it('docc refuses a package with no Sources/ directory', async () => {
+		await expect(fixer('docc').run(ctx(newTmpDir()))).rejects.toThrow(/Sources/)
 	})
 
 	it('swift-release writes a workflow the Release automation check accepts', async () => {
