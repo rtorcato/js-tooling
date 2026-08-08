@@ -18,7 +18,7 @@ branding:
 
 inputs:
   directory:
-    description: Directory to diagnose, relative to the workspace.
+    description: Directory to diagnose, relative to the workspace (or absolute).
     required: false
     default: .
   fail-on:
@@ -56,11 +56,22 @@ runs:
         version="$(node -p "require('$GITHUB_ACTION_PATH/package.json').version")"
         report="$RUNNER_TEMP/repo-tooling-doctor.json"
 
+        # Resolve the target to an absolute path, then run npx from outside the
+        # workspace. npx treats a spec already satisfied by the *current
+        # project* as installed and runs its bin from node_modules/.bin — which
+        # a repo that merely declares the dependency hasn't linked, so it fails
+        # with "repo-tooling: command not found". Running elsewhere and pointing
+        # doctor at the target with --directory makes the version we resolved
+        # above the version that actually runs, whatever the workspace contains.
+        cd "$GITHUB_WORKSPACE"
+        target="$(cd "$INPUT_DIRECTORY" && pwd)"
+        cd "$RUNNER_TEMP"
+
         # doctor exits 1 on findings; that is this action's gate, not an error,
         # so decide from the report rather than letting `set -e` end the step.
         status=0
         npx --yes "@rtorcato/repo-tooling@$version" doctor \
-          --directory "$INPUT_DIRECTORY" --json >"$report" || status=$?
+          --directory "$target" --json >"$report" || status=$?
         if [ ! -s "$report" ]; then
           echo "::error::repo-tooling doctor produced no JSON (exit $status)"
           exit 1
