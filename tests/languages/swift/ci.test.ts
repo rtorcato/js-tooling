@@ -1,10 +1,17 @@
+import { join } from 'node:path'
+import fs from 'fs-extra'
 import { describe, expect, it } from 'vitest'
+import { checkSwiftRelease } from '../../../src/languages/swift/checks.js'
 import {
 	parsePackageSwift,
 	renderSwiftGitLabCI,
+	renderSwiftReleaseWorkflow,
 	renderSwiftWorkflow,
 	swiftGithubJobs,
 } from '../../../src/languages/swift/ci.js'
+import { useTmpDir } from '../../helpers/tmp-dir.js'
+
+const newTmpDir = useTmpDir()
 
 const MANIFEST = `// swift-tools-version: 5.9
 
@@ -91,6 +98,29 @@ describe('swiftGithubJobs', () => {
 	it('skips the platform matrix when there is no library product to use as a scheme', () => {
 		const noProducts = parsePackageSwift('platforms: [.macOS(.v13)]')
 		expect(swiftGithubJobs(noProducts).map((j) => j.id)).not.toContain('platforms')
+	})
+})
+
+describe('renderSwiftReleaseWorkflow', () => {
+	it('fires on a version tag, bare or v-prefixed', () => {
+		const yaml = renderSwiftReleaseWorkflow()
+		expect(yaml).toContain("      - '[0-9]+.[0-9]+.[0-9]+'")
+		expect(yaml).toContain("      - 'v[0-9]+.[0-9]+.[0-9]+'")
+	})
+
+	// A tag is effectively permanent once SwiftPM has resolved it, so the gate
+	// has to run before the release is cut, not after.
+	it('builds and tests before publishing the release', () => {
+		const yaml = renderSwiftReleaseWorkflow()
+		expect(yaml.indexOf('swift test')).toBeLessThan(yaml.indexOf('gh release create'))
+		expect(yaml).toContain('--verify-tag')
+		expect(yaml).toContain('contents: write')
+	})
+
+	it('is the shape the Release automation check accepts', async () => {
+		const dir = newTmpDir()
+		await fs.outputFile(join(dir, '.github/workflows/release.yml'), renderSwiftReleaseWorkflow())
+		expect((await checkSwiftRelease(dir)).status).toBe('ok')
 	})
 })
 

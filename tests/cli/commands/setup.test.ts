@@ -64,12 +64,14 @@ describe('setup-presets', () => {
 		expect(config.projectType).toBe('library')
 		expect(config.typescript.enabled).toBe(false)
 		expect(config.bundler).toBe('none')
-		// commitlint/semantic-release are npm packages, and every badge URL is
-		// derived from a package.json this repo doesn't have. Git hooks are not —
-		// the Swift path commits `.githooks/` and uses `core.hooksPath` (#309).
+		// commitlint is an npm package, and every badge URL is derived from a
+		// package.json this repo doesn't have. Git hooks are not — the Swift path
+		// commits `.githooks/` and uses `core.hooksPath` (#309) — and
+		// `semanticRelease` is the release-automation flag, which on Swift means a
+		// tag-triggered workflow rather than an npm publish (#310).
 		expect(config.gitHooks).toBe(true)
 		expect(config.commitLint).toBe(false)
-		expect(config.semanticRelease).toBe(false)
+		expect(config.semanticRelease).toBe(true)
 		expect(config.badges).toBe(false)
 		// Security automation and the AI agent files are language-agnostic.
 		expect(config.securityAutomation).toBe(true)

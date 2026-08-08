@@ -19,7 +19,7 @@ import { generateEditorConfig } from '../../cli/generators/misc.js'
 import { generateCodeQLWorkflow, generateDependabotConfig } from '../../cli/generators/security.js'
 import { copyPreset } from '../../cli/utils/copy-preset.js'
 import { LANGUAGES } from '../registry.js'
-import { readSwiftPackage, renderSwiftWorkflow } from './ci.js'
+import { readSwiftPackage, renderSwiftReleaseWorkflow, renderSwiftWorkflow } from './ci.js'
 import { SWIFT_HOOKS_DIR, installSwiftGitHooks } from './git-hooks.js'
 import { ensureSwiftGitignore } from './gitignore.js'
 
@@ -174,7 +174,20 @@ ${config.projectName}/
 - **GitHub Actions** — \`swift build\`/\`swift test\` on macOS, plus \`xcodebuild\` per declared platform
 
 Run \`npx @rtorcato/repo-tooling doctor\` any time to audit this repo against the standard.
+${
+	config.semanticRelease
+		? `
+## Releasing
 
+SwiftPM has no registry: a release is a semver git tag. Pushing one runs the
+build/test gate and publishes a GitHub Release from it.
+
+\`\`\`bash
+git tag 1.0.0 && git push origin 1.0.0
+\`\`\`
+`
+		: ''
+}
 ## Contributing
 
 1. Fork the repository
@@ -206,6 +219,9 @@ export function swiftFileList(config: ProjectConfig): string[] {
 		'.editorconfig',
 		'.github/workflows/ci.yml',
 	]
+	if (config.semanticRelease) {
+		files.push('.github/workflows/release.yml')
+	}
 	if (config.gitHooks) {
 		files.push(`${SWIFT_HOOKS_DIR}/pre-commit`, `${SWIFT_HOOKS_DIR}/pre-push`)
 	}
@@ -259,6 +275,11 @@ export async function generateSwiftProject(config: ProjectConfig, targetDir: str
 		path.join(workflowsDir, 'ci.yml'),
 		renderSwiftWorkflow(await readSwiftPackage(targetDir))
 	)
+
+	// A tag-triggered release, not an npm publish (#310) — see the preset.
+	if (config.semanticRelease) {
+		await fs.writeFile(path.join(workflowsDir, 'release.yml'), renderSwiftReleaseWorkflow())
+	}
 
 	// `core.hooksPath` won't stick here — `setup` scaffolds into a directory that
 	// isn't a git repo yet — so the hooks land as files and the README tells you

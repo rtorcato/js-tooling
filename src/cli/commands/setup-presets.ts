@@ -101,8 +101,10 @@ export function buildPresetConfig(name: PresetName, projectName: string): Projec
 				// commitlint *is* an npm package and needs node on PATH to run, so
 				// the Swift hooks deliberately wire no commit-msg hook.
 				commitLint: false,
-				// semantic-release publishes to npm. SwiftPM consumes git tags.
-				semanticRelease: false,
+				// The release-automation flag, not the npm tool: semantic-release
+				// publishes to npm, and SwiftPM consumes git tags, so on this path it
+				// means a tag-triggered release workflow instead (#310).
+				semanticRelease: true,
 				securityAutomation: true,
 				bundler: 'none',
 				// Every badge URL is derived from package.json (name + repository),

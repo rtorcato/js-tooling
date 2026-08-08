@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	checkPackageSwift,
 	checkSwiftGitignore,
+	checkSwiftRelease,
 	runSwiftChecks,
 } from '../../../src/languages/swift/checks.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
@@ -87,10 +88,57 @@ describe('checkSwiftGitignore', () => {
 	})
 })
 
+describe('checkSwiftRelease', () => {
+	const workflow = (triggers: string) =>
+		`name: x\n\non:\n${triggers}\njobs:\n  release:\n    runs-on: macos-latest\n`
+
+	it('is optional-missing with no workflows at all', async () => {
+		const result = await checkSwiftRelease(newTmpDir())
+		expect(result.status).toBe('optional-missing')
+		expect(result.hint).toContain('fix swift-release')
+	})
+
+	it('passes on a workflow triggered by a tag push', async () => {
+		const dir = newTmpDir()
+		await fs.outputFile(
+			join(dir, '.github/workflows/release.yml'),
+			workflow("  push:\n    tags:\n      - '[0-9]+.[0-9]+.[0-9]+'\n")
+		)
+		const result = await checkSwiftRelease(dir)
+		expect(result.status).toBe('ok')
+		expect(result.detail).toContain('release.yml')
+	})
+
+	it('does not count a branch-triggered CI workflow', async () => {
+		const dir = newTmpDir()
+		await fs.outputFile(
+			join(dir, '.github/workflows/ci.yml'),
+			workflow('  push:\n    branches: [main]\n')
+		)
+		expect((await checkSwiftRelease(dir)).status).toBe('optional-missing')
+	})
+
+	// `tags:` inside a step (docker/metadata-action emits one) is not a trigger.
+	it('does not count `tags:` appearing inside a job', async () => {
+		const dir = newTmpDir()
+		await fs.outputFile(
+			join(dir, '.github/workflows/ci.yml'),
+			`${workflow('  push:\n    branches: [main]\n')}    steps:\n      - uses: docker/metadata-action@v5\n        with:\n          tags: latest\n`
+		)
+		expect((await checkSwiftRelease(dir)).status).toBe('optional-missing')
+	})
+})
+
 describe('runSwiftChecks', () => {
-	it('covers Package.swift, SwiftLint, Periphery and the gitignore', async () => {
+	it('covers Package.swift, SwiftLint, Periphery, the gitignore and releases', async () => {
 		const names = (await runSwiftChecks(newTmpDir())).map((r) => r.check)
-		expect(names).toEqual(['Package.swift', 'SwiftLint', 'Periphery', 'Swift .gitignore'])
+		expect(names).toEqual([
+			'Package.swift',
+			'SwiftLint',
+			'Periphery',
+			'Swift .gitignore',
+			'Release automation',
+		])
 	})
 
 	it('treats Periphery as optional but SwiftLint as required', async () => {

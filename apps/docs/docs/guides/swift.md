@@ -40,6 +40,7 @@ SwiftPM resolves dependencies on the first `swift build`, and there's no
 | `.githooks/pre-commit` + `pre-push` | Node-free git hooks (SwiftLint, `swift build`/`test`) |
 | `.editorconfig` | Shared baseline plus a `[*.swift]` 4-space override |
 | `.github/workflows/ci.yml` | Swift CI on macOS runners |
+| `.github/workflows/release.yml` | Build/test gate + GitHub Release on a version tag |
 | `.github/workflows/codeql.yml` | CodeQL with `language: swift` |
 | `.github/dependabot.yml` + auto-merge workflow | Grouped dependency updates |
 | `AGENTS.md`, `CLAUDE.md`, Cursor/Copilot rules, Claude skill, `.mcp.json.example` | AI agent files (language-agnostic) |
@@ -93,7 +94,7 @@ not having. Concretely:
 | Dead code | knip | Periphery |
 | Install step | `pnpm install` | none — SwiftPM resolves on build |
 | Git hooks | Husky + lint-staged (`.husky/`) | committed `.githooks/` + `core.hooksPath` |
-| Release | semantic-release → npm | git tags → SwiftPM |
+| Release | semantic-release → npm | version tag → GitHub Release (`release.yml`) |
 | CI runner | `ubuntu-latest` | `macos-latest` (Xcode) |
 | CodeQL | `javascript-typescript` | `swift` |
 
@@ -136,6 +137,7 @@ npx @rtorcato/repo-tooling fix periphery       # .periphery.yml
 npx @rtorcato/repo-tooling fix swift-gitignore  # append build artefacts
 npx @rtorcato/repo-tooling fix swift-git-hooks  # .githooks/ + core.hooksPath
 npx @rtorcato/repo-tooling fix swift-ci         # .github/workflows/ci.yml
+npx @rtorcato/repo-tooling fix swift-release    # .github/workflows/release.yml
 npx @rtorcato/repo-tooling fix swift-codeql     # .github/workflows/codeql.yml
 npx @rtorcato/repo-tooling fix swift-gitlab-ci  # .gitlab-ci.yml
 ```

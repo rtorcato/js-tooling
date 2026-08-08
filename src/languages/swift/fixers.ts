@@ -8,7 +8,12 @@ import type { Fixer } from '../../base/fixers.js'
 import { buildPresetConfig } from '../../cli/commands/setup-presets.js'
 import { copyPreset } from '../../cli/utils/copy-preset.js'
 import { LOCKFILE_NAME, writeLockfile } from '../../cli/utils/lockfile.js'
-import { readSwiftPackage, renderSwiftGitLabCI, renderSwiftWorkflow } from './ci.js'
+import {
+	readSwiftPackage,
+	renderSwiftGitLabCI,
+	renderSwiftReleaseWorkflow,
+	renderSwiftWorkflow,
+} from './ci.js'
 import { SWIFT_HOOKS_DIR, installSwiftGitHooks } from './git-hooks.js'
 import { ensureSwiftGitignore } from './gitignore.js'
 
@@ -79,6 +84,20 @@ export const SWIFT_FIXERS: Fixer[] = [
 			const workflow = renderSwiftWorkflow(await readSwiftPackage(targetDir))
 			await fs.writeFile(path.join(workflowsDir, 'ci.yml'), workflow)
 			return { filesWritten: ['.github/workflows/ci.yml'] }
+		},
+	},
+	{
+		target: 'swift-release',
+		description:
+			'Scaffold .github/workflows/release.yml (build + test on a version tag, then publish a GitHub Release)',
+		appliesTo: ['Release automation'],
+		outputs: ['.github/workflows/release.yml'],
+		canFixDrift: true,
+		async run({ targetDir }) {
+			const workflowsDir = path.join(targetDir, '.github', 'workflows')
+			await fs.ensureDir(workflowsDir)
+			await fs.writeFile(path.join(workflowsDir, 'release.yml'), renderSwiftReleaseWorkflow())
+			return { filesWritten: ['.github/workflows/release.yml'] }
 		},
 	},
 	{
