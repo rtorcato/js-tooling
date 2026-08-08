@@ -46,6 +46,7 @@
 	"files": [
 		"dist/cli/**/*.js",
 		"dist/languages/**/*.js",
+		"dist/base/**/*.js",
 		"tooling/commitlint/commitlint.mjs",
 		"tooling/commitlint/commitlint.d.mts",
 		"tooling/esbuild/index.mjs",

@@ -179,6 +179,17 @@ try {
 	// 6. Install (fresh scaffold has no lockfile, so not --frozen).
 	run('pnpm', ['install'], projectDir)
 
+	// 6b. Run the CLI *from the installed tarball*. Up to here the tarball is
+	//     only ever a dependency — never executed — so #345 shipped: dist/base/
+	//     was missing from the `files` allowlist and every command died at load
+	//     with ERR_MODULE_NOT_FOUND, with all five preset lifecycles still green.
+	//     `--version` is enough: the crash was an unresolved static import, which
+	//     happens before any command runs.
+	//     ponytail: this catches missing *modules* only. A tooling/ asset the CLI
+	//     reads at runtime could still be absent from the tarball — run a real
+	//     command here if that ever bites.
+	run('pnpm', ['exec', 'repo-tooling', '--version'], projectDir)
+
 	// 7. Format generated files — mirrors what `setup` does post-install (the
 	//    scaffold's biome/prettier config; templates are hand-written).
 	const formatter = fs.existsSync(path.join(projectDir, 'biome.jsonc'))
