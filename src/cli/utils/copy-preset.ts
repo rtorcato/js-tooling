@@ -10,6 +10,7 @@ export type PresetName =
 	| 'oxlint'
 	| 'tsconfig'
 	| 'swiftlint'
+	| 'swift-format'
 	| 'periphery'
 	| 'claude-skill'
 	| 'mcp-example'
@@ -65,6 +66,11 @@ export const PRESETS: Record<PresetName, PresetDefinition> = {
 		source: 'tooling/swift/swiftlint.yml',
 		target: '.swiftlint.yml',
 		desc: 'SwiftLint configuration (lint + --fix; the standard swift-common runs)',
+	},
+	'swift-format': {
+		source: 'tooling/swift/swift-format.json',
+		target: '.swift-format',
+		desc: "Apple swift-format configuration (4-space, 120 columns — matches the module's .editorconfig)",
 	},
 	periphery: {
 		source: 'tooling/swift/periphery.yml',

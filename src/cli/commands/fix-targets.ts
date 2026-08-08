@@ -62,6 +62,11 @@ const SWIFT_FIX_TARGETS: Record<string, string> = {
 	Periphery: 'periphery',
 	'Swift .gitignore': 'swift-gitignore',
 	'Release automation': 'swift-release',
+	'swift-format': 'swift-format',
+	DocC: 'docc',
+	// `Swift tests` is deliberately absent: when it fails for the manifest half
+	// (no `.testTarget(`) there's nothing to run, and rewriting Package.swift
+	// isn't safe. The check's own hint covers both halves.
 }
 
 export function getFixTargetForCheck(checkName: string, language?: string): string | null {

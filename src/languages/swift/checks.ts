@@ -5,8 +5,10 @@
  * (lint + `--fix` in pre-commit, `--strict` in CI) and Periphery for dead code.
  * Deliberately *not* checked:
  *
- * - SwiftFormat — SwiftLint's `--fix` does the formatting; a second formatter
- *   would fight it.
+ * - SwiftFormat (the Nick Lockwood one) — SwiftLint's `--fix` does the
+ *   formatting; a second *rewriting* formatter would fight it. Apple's
+ *   `swift-format` is checked as of #311, but only as an optional slot: a repo
+ *   that opts into it runs it *instead of* `swiftlint --fix`.
  * - `.swift-version` — the toolchain is pinned in CI (`setup-xcode`) and the
  *   package declares `// swift-tools-version:`, so a root file would be a third
  *   place to keep in sync.
@@ -34,6 +36,17 @@ const SWIFT_FILE_CHECKS: FileCheck[] = [
 		matcher: /^(retain_public|project|schemes|targets|index_exclude):/m,
 		optional: true,
 		hint: 'Run `npx @rtorcato/repo-tooling fix periphery` to scaffold a dead-code scan config',
+	},
+	{
+		// Apple's swift-format, the formatter slot (#311) — not a second linter.
+		// Optional because SwiftLint's `--fix` already formats: a repo runs one,
+		// the other, or both, so its absence is a choice rather than drift.
+		check: 'swift-format',
+		candidates: ['.swift-format', '.swift-format.json'],
+		expected: 'is a valid swift-format configuration',
+		matcher: /"(version|lineLength|indentation|rules)"\s*:/,
+		optional: true,
+		hint: 'Run `npx @rtorcato/repo-tooling fix swift-format` to scaffold one (SwiftLint `--fix` formats without it)',
 	},
 ]
 
@@ -117,6 +130,109 @@ export async function checkPackageSwift(dir: string): Promise<CheckResult> {
 }
 
 /**
+ * Directory names under `Sources/`. For a SwiftPM package these are the target
+ * names — a target's sources and its DocC catalogue live in the same folder,
+ * so this is where both the check and the `docc` fixer have to look.
+ */
+export async function swiftSourceTargets(dir: string): Promise<string[]> {
+	try {
+		const entries = await fs.readdir(path.join(dir, 'Sources'), { withFileTypes: true })
+		return entries.filter((e) => e.isDirectory()).map((e) => e.name)
+	} catch {
+		return []
+	}
+}
+
+async function findDoccCatalogue(dir: string): Promise<string | null> {
+	for (const target of await swiftSourceTargets(dir)) {
+		const entries = await fs.readdir(path.join(dir, 'Sources', target))
+		const catalogue = entries.find((e) => e.endsWith('.docc'))
+		if (catalogue) return `Sources/${target}/${catalogue}`
+	}
+	return null
+}
+
+/**
+ * DocC, the Swift shape of the TypeDoc check (#311). Two halves have to line
+ * up: a `.docc` catalogue holds the prose, and `swift-docc-plugin` is what
+ * makes `swift package generate-documentation` exist — either alone is docs
+ * that nobody can build, or a build command with nothing to say.
+ */
+export async function checkDocC(dir: string): Promise<CheckResult> {
+	const check = 'DocC'
+	const hint = 'Run `npx @rtorcato/repo-tooling fix docc` to scaffold a DocC catalogue'
+	const manifest = path.join(dir, 'Package.swift')
+	const contents = (await fs.pathExists(manifest)) ? await fs.readFile(manifest, 'utf-8') : ''
+	const hasPlugin = contents.includes('swift-docc-plugin')
+	const catalogue = await findDoccCatalogue(dir)
+
+	if (catalogue && hasPlugin) {
+		return { check, status: 'ok', detail: `${catalogue} with swift-docc-plugin declared` }
+	}
+	if (catalogue) {
+		return {
+			check,
+			status: 'drift',
+			detail: `${catalogue} found but Package.swift declares no swift-docc-plugin`,
+			hint: 'Add `.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.4.0")` to Package.swift',
+		}
+	}
+	if (hasPlugin) {
+		return {
+			check,
+			status: 'drift',
+			detail: 'swift-docc-plugin declared but no .docc catalogue under Sources/',
+			hint,
+		}
+	}
+	return { check, status: 'optional-missing', detail: 'DocC not configured', hint }
+}
+
+/**
+ * The test setup (#311). SwiftPM has no test-runner config file to check — the
+ * suite is declared in the manifest and run by `swift test` — so the two facts
+ * worth asserting are that a test target exists at all and that CI runs it. A
+ * green pipeline over a package with no `.testTarget(` proves nothing.
+ */
+export async function checkSwiftTests(dir: string): Promise<CheckResult> {
+	const check = 'Swift tests'
+	const manifest = path.join(dir, 'Package.swift')
+	if (!(await fs.pathExists(manifest))) {
+		return { check, status: 'missing', detail: 'no Package.swift' }
+	}
+	if (!/\.testTarget\(/.test(await fs.readFile(manifest, 'utf-8'))) {
+		return {
+			check,
+			status: 'missing',
+			detail: 'Package.swift declares no `.testTarget(`',
+			hint: 'Add a `.testTarget(name: "<Target>Tests", dependencies: ["<Target>"])` to Package.swift',
+		}
+	}
+
+	const candidates: string[] = ['.gitlab-ci.yml', '.gitlab-ci.yaml']
+	const workflowsDir = path.join(dir, '.github', 'workflows')
+	if (await fs.pathExists(workflowsDir)) {
+		const files = (await fs.readdir(workflowsDir)).filter(
+			(f) => f.endsWith('.yml') || f.endsWith('.yaml')
+		)
+		candidates.unshift(...files.map((f) => path.join('.github', 'workflows', f)))
+	}
+	for (const candidate of candidates) {
+		const filepath = path.join(dir, candidate)
+		if (!(await fs.pathExists(filepath))) continue
+		if (/\bswift\s+test\b/.test(await fs.readFile(filepath, 'utf-8'))) {
+			return { check, status: 'ok', detail: `test target declared and run by ${candidate}` }
+		}
+	}
+	return {
+		check,
+		status: 'drift',
+		detail: 'test target declared but no CI job runs `swift test`',
+		hint: 'Run `npx @rtorcato/repo-tooling fix swift-ci` to regenerate a workflow that runs `swift test`',
+	}
+}
+
+/**
  * Release automation for a SwiftPM package (#310). There is no publish step to
  * look for — a release *is* a semver git tag consumers resolve with
  * `.package(url:from:)` — so "configured" means a workflow that fires on a tag
@@ -177,6 +293,8 @@ export async function runSwiftChecks(dir: string): Promise<CheckResult[]> {
 		await checkPackageSwift(dir),
 		...(await Promise.all(SWIFT_FILE_CHECKS.map((spec) => checkFile(dir, spec)))),
 		await checkSwiftGitignore(dir),
+		await checkSwiftTests(dir),
+		await checkDocC(dir),
 		await checkSwiftRelease(dir),
 	]
 }

@@ -18,12 +18,21 @@ The standard here is the one [`swift-common`](https://github.com/rtorcato/swift-
 | `Package.swift` | `missing` | — (run `swift package init`) |
 | SwiftLint | `missing` | `swiftlint` |
 | Periphery | `optional-missing` | `periphery` |
+| swift-format | `optional-missing` | `swift-format` |
 | Swift `.gitignore` | `missing` | `swift-gitignore` |
+| Swift tests | `missing` | — (manifest edit, or `swift-ci`) |
+| DocC | `optional-missing` | `docc` |
 | Release automation | `optional-missing` | `swift-release` |
 | Git hooks | `optional-missing` | `swift-git-hooks` |
 | Pre-push hook | `optional-missing` | `swift-git-hooks` |
 
 `Package.swift` is checked for two things SwiftPM will not infer: a `// swift-tools-version:` comment (without it the manifest doesn't parse) and an explicit `platforms:` clause (without it SwiftPM assumes its oldest supported deployment target, which rejects modern APIs at build time). There's no fixer — rewriting someone's manifest isn't safe, so `doctor` reports and you edit.
+
+`Swift tests` has two halves: the manifest must declare a `.testTarget(`, and
+some pipeline (`.github/workflows/*` or `.gitlab-ci.yml`) must actually run
+`swift test`. A green pipeline over a package with no test target proves
+nothing. There's no single fix target because the first half is a manifest edit;
+`fix swift-ci` covers the second.
 
 `Git hooks` and `Pre-push hook` are language-agnostic checks (they run on a JS repo too, against `.husky/`); the Swift module only supplies the shape — `.githooks/` and `swift test`.
 
@@ -55,12 +64,13 @@ There's no `commit-msg` hook: commitlint is an npm package and needs node on `PA
 ## Configs
 
 ```bash
-npx @rtorcato/repo-tooling fix swiftlint    # .swiftlint.yml
-npx @rtorcato/repo-tooling fix periphery    # .periphery.yml
+npx @rtorcato/repo-tooling fix swiftlint      # .swiftlint.yml
+npx @rtorcato/repo-tooling fix periphery      # .periphery.yml
+npx @rtorcato/repo-tooling fix swift-format   # .swift-format (optional)
 npx @rtorcato/repo-tooling fix swift-gitignore
 ```
 
-`swiftlint` and `periphery` are also available via `copy`:
+`swiftlint`, `swift-format` and `periphery` are also available via `copy`:
 
 ```bash
 npx @rtorcato/repo-tooling copy swiftlint
@@ -68,7 +78,7 @@ npx @rtorcato/repo-tooling copy swiftlint
 
 ### SwiftLint
 
-Formatting is SwiftLint's job here — `swiftlint --fix` in a pre-commit hook, `swiftlint lint --strict` in CI. **SwiftFormat is deliberately not part of the standard**; a second formatter would fight the first.
+Formatting is SwiftLint's job by default — `swiftlint --fix` in a pre-commit hook, `swiftlint lint --strict` in CI. **SwiftFormat (the Nick Lockwood one) is deliberately not part of the standard**; a second rewriting formatter would fight the first. Apple's `swift-format` is available as an opt-in slot — see [swift-format](#swift-format) below.
 
 ```yaml
 disabled_rules:
@@ -105,6 +115,55 @@ retain_public: true
 ```
 
 Periphery is best run as an informational CI job (`continue-on-error: true`) until a codebase is clean, then promoted to blocking.
+
+### swift-format
+
+Apple's `swift-format` — shipped with the toolchain since Swift 6 as `swift
+format` — is the *formatter* slot, the Biome/Prettier equivalent. It's optional
+because SwiftLint's `--fix` already formats: a repo runs one or the other, and
+the check only reports what it finds.
+
+```bash
+npx @rtorcato/repo-tooling fix swift-format   # .swift-format
+```
+
+```json
+{
+  "version": 1,
+  "lineLength": 120,
+  "indentation": { "spaces": 4 },
+  "respectsExistingLineBreaks": true,
+  "lineBreakBeforeEachArgument": false,
+  "prioritizeKeepingFunctionOutputTogether": true
+}
+```
+
+This is not a second *lint* gate — SwiftLint stays the linter either way, and
+nothing in the generated CI runs `swift format lint` unless you add it.
+
+### DocC
+
+The Swift equivalent of the TypeDoc check. Two halves have to line up: a `.docc`
+catalogue under `Sources/<Target>/` holds the prose, and `swift-docc-plugin` in
+`Package.swift` is what makes `swift package generate-documentation` exist.
+Either alone is drift — docs nobody can build, or a build command with nothing
+to say.
+
+```bash
+npx @rtorcato/repo-tooling fix docc   # Sources/<Target>/<Target>.docc/<Target>.md
+```
+
+The fixer writes the catalogue into the library product's target and stops
+there; adding the plugin dependency is a `Package.swift` edit, and this module
+doesn't rewrite manifests. It prints the line to paste:
+
+```swift
+.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.4.0")
+```
+
+Re-running it never overwrites an existing landing page — the catalogue is prose
+someone wrote, and the check stays in drift until the manifest half lands, so a
+re-run is the normal case rather than the exception.
 
 ### `.gitignore`
 
@@ -183,4 +242,4 @@ GitLab runs Swift in the official Linux image (`swift:6.0`), which has no Xcode 
 ## What isn't covered yet
 
 - **README badges.** The `README badges` check runs on a Swift repo, but there's no fixer: `fix badges` derives every badge URL from a package.json `name` + `repository`, which a SwiftPM repo hasn't got. `doctor` reports; you add the badges by hand.
-- **DocC, swift-format and test configuration.** Tracked in [#311](https://github.com/rtorcato/repo-tooling/issues/311).
+- **A `swift-docc-plugin` fixer.** `fix docc` writes the catalogue but not the manifest dependency it needs — rewriting someone's `Package.swift` isn't safe, so the check reports drift and prints the line to add.
