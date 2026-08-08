@@ -117,6 +117,48 @@ export async function checkPackageSwift(dir: string): Promise<CheckResult> {
 }
 
 /**
+ * Release automation for a SwiftPM package (#310). There is no publish step to
+ * look for — a release *is* a semver git tag consumers resolve with
+ * `.package(url:from:)` — so "configured" means a workflow that fires on a tag
+ * push. semantic-release is deliberately not accepted as evidence: its pipeline
+ * is npm end to end, and a Swift repo running it is publishing the wrong thing.
+ *
+ * Only the trigger section is searched (everything above `jobs:`), because
+ * `tags:` also appears inside job steps — docker/metadata-action emits one — and
+ * a step that mentions tags is not a release trigger.
+ */
+export async function checkSwiftRelease(dir: string): Promise<CheckResult> {
+	const check = 'Release automation'
+	const hint =
+		'Run `npx @rtorcato/repo-tooling fix swift-release` to scaffold a tag-triggered release workflow'
+	const workflowsDir = path.join(dir, '.github', 'workflows')
+
+	if (await fs.pathExists(workflowsDir)) {
+		const files = (await fs.readdir(workflowsDir)).filter(
+			(f) => f.endsWith('.yml') || f.endsWith('.yaml')
+		)
+		for (const file of files) {
+			const contents = await fs.readFile(path.join(workflowsDir, file), 'utf-8')
+			const triggers = contents.split(/^jobs:/m)[0] ?? ''
+			if (/^\s+tags:/m.test(triggers)) {
+				return {
+					check,
+					status: 'ok',
+					detail: `.github/workflows/${file} releases on a tag push`,
+				}
+			}
+		}
+	}
+
+	return {
+		check,
+		status: 'optional-missing',
+		detail: 'no workflow triggered by a version tag',
+		hint,
+	}
+}
+
+/**
  * The Swift shape of the base `Git hooks` / `Pre-push hook` checks (#309).
  * `install` is null because the wiring — `git config core.hooksPath` — is
  * per-clone local state that nothing commits; flagging its absence would fail
@@ -135,5 +177,6 @@ export async function runSwiftChecks(dir: string): Promise<CheckResult[]> {
 		await checkPackageSwift(dir),
 		...(await Promise.all(SWIFT_FILE_CHECKS.map((spec) => checkFile(dir, spec)))),
 		await checkSwiftGitignore(dir),
+		await checkSwiftRelease(dir),
 	]
 }

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { runDoctor } from '../../../src/cli/commands/doctor.js'
 import { BASE_FIXERS } from '../../../src/base/fixers.js'
 import { FIXERS } from '../../../src/languages/js/fixers.js'
-import { checkSwiftGitignore } from '../../../src/languages/swift/checks.js'
+import { checkSwiftGitignore, checkSwiftRelease } from '../../../src/languages/swift/checks.js'
 import { SWIFT_FIXERS } from '../../../src/languages/swift/fixers.js'
 import { ensureSwiftGitignore } from '../../../src/languages/swift/gitignore.js'
 import { useTmpDir } from '../../helpers/tmp-dir.js'
@@ -83,6 +83,13 @@ describe('swift fixers', () => {
 		const dir = newTmpDir()
 		await fixer('periphery').run(ctx(dir))
 		expect(await fs.readFile(join(dir, '.periphery.yml'), 'utf-8')).toContain('retain_public: true')
+	})
+
+	it('swift-release writes a workflow the Release automation check accepts', async () => {
+		const dir = newTmpDir()
+		const { filesWritten } = await fixer('swift-release').run(ctx(dir))
+		expect(filesWritten).toEqual(['.github/workflows/release.yml'])
+		expect((await checkSwiftRelease(dir)).status).toBe('ok')
 	})
 
 	// #309: the checks moved to src/base, so a Swift repo now gets them — but

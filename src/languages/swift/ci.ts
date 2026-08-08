@@ -164,6 +164,50 @@ export function renderSwiftWorkflow(pkg: SwiftPackage): string {
 }
 
 /**
+ * The release pipeline (#310). SwiftPM has no registry publish step — a release
+ * *is* a semver git tag that consumers resolve with `.package(url:from:)` — so
+ * the workflow fires on the tag rather than on a merge, and its only output is
+ * a GitHub Release with generated notes.
+ *
+ * The build/test gate runs before the release is cut because a tag is
+ * effectively permanent: SwiftPM caches resolved tags, so re-pointing a bad one
+ * doesn't reliably reach consumers who already resolved it.
+ *
+ * `gh` (preinstalled on the runner) rather than a release action: one fewer
+ * third-party pin to track, and `--verify-tag` refuses to invent a tag that
+ * isn't actually pushed.
+ */
+export function renderSwiftReleaseWorkflow(): string {
+	return `name: 🏷️  Release
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  release:
+    runs-on: ${MACOS}
+    permissions:
+      contents: write
+    steps:
+${XCODE_SETUP}
+
+      - name: 🏗️  swift build
+        run: swift build
+
+      - name: 🧪 swift test
+        run: swift test
+
+      - name: 🏷️  Publish GitHub Release
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: gh release create "\${{ github.ref_name }}" --generate-notes --verify-tag
+`
+}
+
+/**
  * GitLab runs Swift in the official Linux image. That rules out Xcode — so no
  * platform matrix and no SwiftLint (a Homebrew/macOS tool in practice); the
  * Linux-portable half of the pipeline is `swift build` + `swift test`.

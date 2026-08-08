@@ -19,6 +19,7 @@ The standard here is the one [`swift-common`](https://github.com/rtorcato/swift-
 | SwiftLint | `missing` | `swiftlint` |
 | Periphery | `optional-missing` | `periphery` |
 | Swift `.gitignore` | `missing` | `swift-gitignore` |
+| Release automation | `optional-missing` | `swift-release` |
 | Git hooks | `optional-missing` | `swift-git-hooks` |
 | Pre-push hook | `optional-missing` | `swift-git-hooks` |
 
@@ -146,6 +147,31 @@ The `platforms` matrix is emitted only when the manifest declares both a `platfo
 
 CodeQL uses `language: swift` rather than the JS matrix.
 
+### Releases
+
+```bash
+npx @rtorcato/repo-tooling fix swift-release   # .github/workflows/release.yml
+```
+
+SwiftPM has no registry publish step — a release *is* a semver git tag that
+consumers resolve with `.package(url:from:)` — so the workflow fires on the tag
+rather than on a merge:
+
+| Trigger | What runs |
+|---|---|
+| push of `1.2.3` or `v1.2.3` | `swift build`, `swift test`, then `gh release create --generate-notes --verify-tag` |
+
+The build/test gate runs *before* the release is cut because a tag is
+effectively permanent: SwiftPM caches resolved tags, so re-pointing a bad one
+doesn't reliably reach consumers who already resolved it. `gh` is preinstalled
+on GitHub runners, which is one fewer third-party action pin to track.
+
+`semantic-release` is deliberately not accepted as evidence for this check — its
+pipeline is npm end to end, and a Swift repo running it publishes the wrong
+thing. The lockfile's `semanticRelease` field is the release-automation flag
+either way: set it to `false` and `doctor` records the check as intentionally
+declined.
+
 ### GitLab
 
 GitLab runs Swift in the official Linux image (`swift:6.0`), which has no Xcode — so `.gitlab-ci.yml` covers the Linux-portable half only, `swift build` then `swift test`. No SwiftLint, no platform matrix.
@@ -157,5 +183,4 @@ GitLab runs Swift in the official Linux image (`swift:6.0`), which has no Xcode 
 ## What isn't covered yet
 
 - **README badges.** The `README badges` check runs on a Swift repo, but there's no fixer: `fix badges` derives every badge URL from a package.json `name` + `repository`, which a SwiftPM repo hasn't got. `doctor` reports; you add the badges by hand.
-- **Release automation.** SwiftPM consumes git tags, so there's no `semantic-release` equivalent wired up. Tracked in [#310](https://github.com/rtorcato/repo-tooling/issues/310).
 - **DocC, swift-format and test configuration.** Tracked in [#311](https://github.com/rtorcato/repo-tooling/issues/311).

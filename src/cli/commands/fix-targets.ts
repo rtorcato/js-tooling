@@ -61,6 +61,7 @@ const SWIFT_FIX_TARGETS: Record<string, string> = {
 	SwiftLint: 'swiftlint',
 	Periphery: 'periphery',
 	'Swift .gitignore': 'swift-gitignore',
+	'Release automation': 'swift-release',
 }
 
 export function getFixTargetForCheck(checkName: string, language?: string): string | null {
@@ -104,6 +105,10 @@ export function declinedInLock(lock: Lockfile | null, checkName: string): boolea
 				c.testing?.framework === 'none'
 			)
 		case 'semantic-release':
+		// The Swift shape of the same recorded choice (#310): `semanticRelease`
+		// is the config's release-automation flag, and on a SwiftPM repo that
+		// means a tag-triggered workflow rather than an npm publish.
+		case 'Release automation':
 			return c.semanticRelease === false
 		case 'Dependabot':
 		case 'CodeQL':
@@ -167,6 +172,7 @@ export function lockfilePatchForTarget(
 		case 'swift-git-hooks':
 			return c.gitHooks ? null : { gitHooks: true }
 		case 'semantic-release':
+		case 'swift-release':
 			return c.semanticRelease ? null : { semanticRelease: true }
 		case 'dependabot':
 		case 'renovate':

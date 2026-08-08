@@ -84,7 +84,27 @@ describe('generateSwiftProject', () => {
 			'SwiftLint: ok',
 			'Periphery: ok',
 			'Swift .gitignore: ok',
+			'Release automation: ok',
 		])
+	})
+
+	// #310: SwiftPM has no registry, so the scaffold's release path is a
+	// tag-triggered workflow rather than anything npm-shaped.
+	it('writes a tag-triggered release workflow with no npm publish in it', async () => {
+		const dir = await scaffold()
+		const release = await fs.readFile(join(dir, '.github/workflows/release.yml'), 'utf-8')
+		expect(release).toContain('tags:')
+		expect(release).toContain('gh release create')
+		expect(release).not.toMatch(/npm|semantic-release/)
+	})
+
+	it('omits the release workflow when release automation is declined', async () => {
+		const dir = newTmpDir()
+		await generateSwiftProject(
+			{ ...buildPresetConfig('swift-library', 'demo'), semanticRelease: false },
+			dir
+		)
+		expect(await fs.pathExists(join(dir, '.github/workflows/release.yml'))).toBe(false)
 	})
 
 	// #309: a fresh scaffold must satisfy the base hook checks it now gets, or
