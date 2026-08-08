@@ -1,3 +1,11 @@
+## [3.2.3](https://github.com/rtorcato/repo-tooling/compare/v3.2.2...v3.2.3) (2026-08-08)
+
+
+### Bug Fixes
+
+* **ci:** bump emitted action pins to the majors this repo runs ([#342](https://github.com/rtorcato/repo-tooling/issues/342)) ([ab3ade3](https://github.com/rtorcato/repo-tooling/commit/ab3ade34bae1c64ed4826e265c2512b45a514fb5)), closes [#340](https://github.com/rtorcato/repo-tooling/issues/340)
+* **commitlint:** ignore bot commits so dependabot PRs stop failing ([#341](https://github.com/rtorcato/repo-tooling/issues/341)) ([75ccba8](https://github.com/rtorcato/repo-tooling/commit/75ccba850b5c2eafd58fa7beffaa12bc41697155)), closes [#339](https://github.com/rtorcato/repo-tooling/issues/339)
+
 ## [3.2.2](https://github.com/rtorcato/repo-tooling/compare/v3.2.1...v3.2.2) (2026-08-07)
 
 
