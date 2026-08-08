@@ -3,7 +3,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Guard against the drift loop in #340: the generators embed `actions/*` pins as
+ * Guard against the drift loop in #340: the generators embed action pins as
  * plain strings, so Dependabot can't see them. It bumps this repo's own
  * workflows, the emitted pins stay behind, the next workflow sync in a consuming
  * repo silently reverts that repo's bump, and Dependabot re-opens the same PR.
@@ -12,12 +12,17 @@ import { describe, expect, it } from 'vitest'
  * Dependabot PR that bumps our own ci.yml also fails here until the generators
  * follow — the reminder lands on the PR that caused the drift.
  *
+ * Matches ANY org, not just `actions/`. The first cut of this test was scoped to
+ * `actions/` and so covered 24 of the 42 emitted pins; the 18 it skipped were
+ * already drifting the day it landed (codecov-action was two majors behind, and
+ * pnpm/action-setup was pinned at both v4 and v6 within the emitted set).
+ *
  * ponytail: a text scan over the sources, not a generator invocation. The pins
  * are literals in template strings, so grepping is what a reader would do.
  */
 
 const repoRoot = path.resolve(import.meta.dirname, '../../..')
-const PIN = /(actions\/[a-z0-9-]+)@v(\d+)/g
+const PIN = /\b([a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9-]*)@v(\d+)/g
 
 const pinsIn = (files: string[]) => {
 	const found = new Map<string, Map<string, string[]>>()
@@ -39,7 +44,7 @@ const emittedPins = pinsIn([
 	...glob('tooling/github-actions/workflows/*.yml'),
 ])
 
-describe("emitted actions/* pins track this repo's own workflows", () => {
+describe("emitted action pins track this repo's own workflows", () => {
 	it('finds pins on both sides (the scan itself still works)', () => {
 		expect(ownPins.size).toBeGreaterThan(0)
 		expect(emittedPins.size).toBeGreaterThan(0)
