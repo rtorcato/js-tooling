@@ -1,3 +1,11 @@
+## [3.2.5](https://github.com/rtorcato/repo-tooling/compare/v3.2.4...v3.2.5) (2026-08-08)
+
+
+### Bug Fixes
+
+* **ci:** widen the action-pin guard past the actions/ org ([#348](https://github.com/rtorcato/repo-tooling/issues/348)) ([a2adbbe](https://github.com/rtorcato/repo-tooling/commit/a2adbbe64161cd91d8d12ea5a4c2ca47be69c5a2)), closes [#316](https://github.com/rtorcato/repo-tooling/issues/316)
+* **pack:** ship dist/base so the published CLI can start ([#346](https://github.com/rtorcato/repo-tooling/issues/346)) ([10d4c72](https://github.com/rtorcato/repo-tooling/commit/10d4c723aa6a1cc13f016ce867a6ed4032cbe0f8)), closes [#345](https://github.com/rtorcato/repo-tooling/issues/345) [rtorcato/shared-docs#13](https://github.com/rtorcato/shared-docs/issues/13)
+
 ## [3.2.4](https://github.com/rtorcato/repo-tooling/compare/v3.2.3...v3.2.4) (2026-08-08)
 
 
