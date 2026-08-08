@@ -9,7 +9,7 @@ import {
 	generateSemanticReleaseConfig,
 } from '../../cli/generators/build.js'
 import { generateHuskyConfig, generatePrePushHook } from '../../cli/generators/git.js'
-import { generateGitHubActions } from '../../cli/generators/github-actions.js'
+import { CI_WORKFLOW, generateGitHubActions } from '../../cli/generators/github-actions.js'
 import { generateGitLabCI } from '../../cli/generators/gitlab-ci.js'
 import { GH_WORKFLOWS, generateGhWorkflow } from '../../cli/generators/github-workflows.js'
 import { generateESLintConfig, generatePrettierConfig } from '../../cli/generators/linting.js'
@@ -45,7 +45,8 @@ import type { ProjectConfig } from '../../cli/commands/setup.js'
 // module (#286) — import it from there.
 import type { Fixer, Pkg } from '../../base/fixers.js'
 
-function inferProjectConfig(pkg: Pkg): ProjectConfig {
+/** Exported so doctor can render the preset ci.yml it compares against (#349). */
+export function inferProjectConfig(pkg: Pkg): ProjectConfig {
 	const deps = {
 		...((pkg?.dependencies as Record<string, string> | undefined) ?? {}),
 		...((pkg?.devDependencies as Record<string, string> | undefined) ?? {}),
@@ -335,12 +336,23 @@ export const FIXERS: Fixer[] = [
 		target: 'github-actions',
 		description: 'Scaffold .github/workflows/ci.yml (+ codecov.yml when tests run)',
 		appliesTo: ['GitHub Actions', 'Coverage upload', 'npm OIDC publish'],
-		outputs: ['.github/workflows/ci.yml', 'codecov.yml'],
+		outputs: [CI_WORKFLOW, 'codecov.yml'],
 		canFixDrift: true,
-		async run({ targetDir, pkg }) {
-			await generateGitHubActions(inferProjectConfig(pkg), targetDir)
-			const filesWritten = ['.github/workflows/ci.yml']
-			if (await fs.pathExists(path.join(targetDir, 'codecov.yml'))) filesWritten.push('codecov.yml')
+		async run({ targetDir, pkg, result }) {
+			// Only a `GitHub Actions` finding means the user was shown that the
+			// workflow itself is wrong (and got the destructive-overwrite prompt).
+			// A sibling finding — Coverage upload, npm OIDC publish — must not take a
+			// customized ci.yml down with it (#349).
+			const filesWritten = await generateGitHubActions(inferProjectConfig(pkg), targetDir, {
+				overwrite: result.check === 'GitHub Actions',
+			})
+			if (!filesWritten.includes(CI_WORKFLOW)) {
+				console.log(
+					chalk.yellow(
+						`   ${CI_WORKFLOW} differs from the preset — left as-is; run \`fix github-actions --diff\` to see the delta`
+					)
+				)
+			}
 			return { filesWritten }
 		},
 	},

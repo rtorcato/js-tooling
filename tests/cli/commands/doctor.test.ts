@@ -428,6 +428,34 @@ describe('doctor extended checks', () => {
 		expect(results.find((r) => r.check === 'GitHub Actions')?.status).toBe('ok')
 	})
 
+	// #349/#340: "a workflow exists" reported ok on a ci.yml that had drifted
+	// arbitrarily far from the preset, so nothing ever noticed the sync reverting a
+	// consumer's action bump.
+	it('flags ci.yml action pins that disagree with the preset', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'name: ci\njobs:\n  lint:\n    steps:\n      - uses: actions/setup-node@v3\n'
+		)
+		const gha = (await runDoctor(dir)).find((r) => r.check === 'GitHub Actions')
+		expect(gha?.status).toBe('drift')
+		expect(gha?.detail).toMatch(/actions\/setup-node@v3/)
+	})
+
+	it('ignores action pins the preset never emits', async () => {
+		const dir = newTmpDir()
+		await seedPackageJson(dir)
+		await fs.ensureDir(join(dir, '.github', 'workflows'))
+		await fs.writeFile(
+			join(dir, '.github', 'workflows', 'ci.yml'),
+			'name: ci\njobs:\n  lint:\n    steps:\n      - uses: some-org/some-action@v1\n'
+		)
+		const gha = (await runDoctor(dir)).find((r) => r.check === 'GitHub Actions')
+		expect(gha?.status).toBe('ok')
+	})
+
 	it('reports verify script optional-missing when not in package.json', async () => {
 		const dir = newTmpDir()
 		await seedPackageJson(dir)

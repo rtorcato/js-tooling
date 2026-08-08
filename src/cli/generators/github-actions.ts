@@ -19,7 +19,24 @@ const CODECOV_YML = `coverage:
         threshold: 1%
 `
 
-export async function generateGitHubActions(config: ProjectConfig, targetDir: string) {
+/** Matches the fixer's declared output, so `fix` reports the same path it lists. */
+export const CI_WORKFLOW = '.github/workflows/ci.yml'
+
+/**
+ * @param overwrite Replace a ci.yml that no longer matches the preset. Off by
+ * default: this used to write unconditionally, so a consuming repo's customized
+ * workflow — an extra job, a Dependabot-bumped action pin — was reverted on
+ * every sync with no diff, no prompt and no backup (#349, the mechanism behind
+ * #340). Same self-enforced safe-add as github-workflows.ts, widened to "or is
+ * byte-identical anyway" so a no-op regeneration still reports honestly. Only a
+ * caller that has told the user this workflow itself is drifting passes true.
+ * @returns the files actually written, relative to targetDir.
+ */
+export async function generateGitHubActions(
+	config: ProjectConfig,
+	targetDir: string,
+	{ overwrite = false }: { overwrite?: boolean } = {}
+): Promise<string[]> {
 	const workflowsDir = path.join(targetDir, '.github', 'workflows')
 	await fs.ensureDir(workflowsDir)
 
@@ -30,11 +47,19 @@ export async function generateGitHubActions(config: ProjectConfig, targetDir: st
 	// paths meet at renderGitHubWorkflow() in src/base/ci.ts, which is the seam
 	// that actually matters.
 	const workflow = renderGitHubWorkflow(githubJobs(config))
-	await fs.writeFile(path.join(workflowsDir, 'ci.yml'), workflow)
+	const ciPath = path.join(workflowsDir, 'ci.yml')
+	const existing = (await fs.pathExists(ciPath)) ? await fs.readFile(ciPath, 'utf-8') : null
+	const filesWritten: string[] = []
+	if (overwrite || existing === null || existing === workflow) {
+		await fs.writeFile(ciPath, workflow)
+		filesWritten.push(CI_WORKFLOW)
+	}
 
 	// codecov.yml is the CI's coverage-upload companion — emit it alongside ci.yml
 	// whenever the workflow uploads coverage, so the codecov badge isn't red.
 	if (usesCoverage(config)) {
 		await fs.writeFile(path.join(targetDir, 'codecov.yml'), CODECOV_YML)
+		filesWritten.push('codecov.yml')
 	}
+	return filesWritten
 }

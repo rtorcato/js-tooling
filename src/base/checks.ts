@@ -93,7 +93,31 @@ export async function checkCommunityHealth(dir: string): Promise<CheckResult> {
 	}
 }
 
-export async function checkGitHubActions(dir: string): Promise<CheckResult> {
+/**
+ * `org/action@vN`, the only form the generators emit. Same shape as the scan in
+ * tests/cli/generators/action-pins.test.ts — major-only, because that's the
+ * granularity every emitted pin uses.
+ */
+const ACTION_PIN = /\b([a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9-]*)@v(\d+)/g
+
+function actionPins(yaml: string): Map<string, string> {
+	const pins = new Map<string, string>()
+	for (const [, action, major] of yaml.matchAll(ACTION_PIN)) {
+		if (action && major) pins.set(action, major)
+	}
+	return pins
+}
+
+/**
+ * @param preset the ci.yml this repo's generator would render right now, or null
+ * for a language whose CI generator isn't wired up. Supplied by the caller
+ * rather than rendered here: the JS preset needs a ProjectConfig and the Swift
+ * one needs Package.swift, neither of which belongs in a base check.
+ */
+export async function checkGitHubActions(
+	dir: string,
+	preset: string | null = null
+): Promise<CheckResult> {
 	const workflowsDir = path.join(dir, '.github', 'workflows')
 	if (!(await fs.pathExists(workflowsDir))) {
 		return {
@@ -115,6 +139,35 @@ export async function checkGitHubActions(dir: string): Promise<CheckResult> {
 				hint: 'Add a workflow file (e.g. ci.yml) under .github/workflows/',
 			}
 		}
+
+		// "A workflow exists" said nothing about whether it still matches the preset,
+		// so doctor reported ok on a ci.yml that had drifted arbitrarily far — the
+		// blind half of #349/#340. Compare action pins rather than the whole file: a
+		// consuming repo is *expected* to add jobs and steps, so a byte diff is noise
+		// on every customized repo, while a pin major that disagrees with the preset
+		// is exactly the drift that loops (a bump here, a sync there, forever).
+		const ciPath = path.join(workflowsDir, 'ci.yml')
+		if (preset && (await fs.pathExists(ciPath))) {
+			const ours = actionPins(preset)
+			const deltas: string[] = []
+			for (const [action, major] of actionPins(await fs.readFile(ciPath, 'utf-8'))) {
+				const expected = ours.get(action)
+				// Only the intersection is comparable — an action the repo runs but the
+				// preset never emits is the consumer's own business.
+				if (expected && expected !== major) {
+					deltas.push(`${action}@v${major} (preset emits @v${expected})`)
+				}
+			}
+			if (deltas.length > 0) {
+				return {
+					check: 'GitHub Actions',
+					status: 'drift',
+					detail: `ci.yml action pins disagree with the preset: ${deltas.join('; ')}`,
+					hint: 'Run `npx @rtorcato/repo-tooling fix github-actions --diff` to see the delta before overwriting — a pin *ahead* of the preset means regenerating would downgrade it',
+				}
+			}
+		}
+
 		return {
 			check: 'GitHub Actions',
 			status: 'ok',
