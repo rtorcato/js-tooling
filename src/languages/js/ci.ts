@@ -28,7 +28,7 @@ const SETUP_STEPS = `      - name: 📦 Checkout repository
         uses: actions/checkout@v7
 
       - name: 📦 Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
@@ -36,7 +36,7 @@ const SETUP_STEPS = `      - name: 📦 Checkout repository
         uses: pnpm/action-setup@v6
 
       - name: 📦 Restore dependencies cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pnpm-store
@@ -52,7 +52,7 @@ const DEPENDENCIES_JOB: CiJob = {
         uses: actions/checkout@v7
 
       - name: 📦 Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
@@ -64,7 +64,7 @@ const DEPENDENCIES_JOB: CiJob = {
         run: echo "key=\${{ runner.os }}-pnpm-\${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
 
       - name: 📦 Cache dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pnpm-store
@@ -184,7 +184,7 @@ ${attw}${publint}
           token: \${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: 📦 Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           registry-url: 'https://registry.npmjs.org'
@@ -193,7 +193,7 @@ ${attw}${publint}
         uses: pnpm/action-setup@v6
 
       - name: 📦 Restore dependencies cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pnpm-store

@@ -62,7 +62,7 @@ const XCODE_SETUP = `      - name: 📦 Checkout repository
  * to rebuild; key on Package.resolved so the cache invalidates with the graph.
  */
 const SPM_CACHE = `      - name: 📦 Cache SwiftPM
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             .build
@@ -138,7 +138,7 @@ ${pkg.platforms.map((p) => `          - ${p}`).join('\n')}`,
 			steps: `${XCODE_SETUP}
 
       - name: 📦 Cache DerivedData
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/Library/Developer/Xcode/DerivedData
           key: \${{ runner.os }}-derived-\${{ matrix.platform }}-\${{ hashFiles('**/Package.resolved') }}
