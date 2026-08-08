@@ -52,7 +52,18 @@ export async function generateESLintConfig(config: ProjectConfig, targetDir: str
 
 	const configType = config.linting.eslintConfig || 'base'
 
-	const eslintConfig = `import { default as config } from '@rtorcato/repo-tooling/eslint/${configType}'
+	// eslint/nextjs is a fragment: it registers the @next/next plugin and its
+	// rules but sets no parser, so on its own it can't even parse .tsx ("Parsing
+	// error: Unexpected token <"). It has to be layered onto the base config,
+	// which is what brings typescript-eslint.
+	const eslintConfig =
+		configType === 'nextjs'
+			? `import base from '@rtorcato/repo-tooling/eslint/base'
+import nextjs from '@rtorcato/repo-tooling/eslint/nextjs'
+
+export default [...base, ...nextjs]
+`
+			: `import { default as config } from '@rtorcato/repo-tooling/eslint/${configType}'
 
 export default config
 `

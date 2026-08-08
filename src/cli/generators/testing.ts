@@ -17,10 +17,23 @@ export async function generateTestingConfigs(config: ProjectConfig, targetDir: s
 export async function generateVitestConfig(config: ProjectConfig, targetDir: string) {
 	const vitestConfigPath = path.join(targetDir, 'vitest.config.ts')
 
+	// Vite reads `jsx` from tsconfig, and the next preset sets it to "preserve" so
+	// Next's own compiler handles the transform. Vitest has no such compiler, so
+	// .tsx tests fail to parse ("Unexpected token <") unless we opt back in here.
+	// `oxc` (not `esbuild`) is the Vite 8 spelling — vitest ^4 resolves Vite 8,
+	// and Vite 8 silently ignores the old `esbuild` key.
+	const jsxOverride =
+		config.projectType === 'nextjs-app'
+			? `  // tsconfig sets jsx: "preserve" for Next's compiler; vitest needs a
+  // transform of its own or .tsx tests won't parse.
+  oxc: { jsx: { runtime: 'automatic' } },
+`
+			: ''
+
 	const vitestConfig = `import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-  test: {
+${jsxOverride}  test: {
     globals: true,
     environment: '${config.testing.environment === 'browser' ? 'jsdom' : 'node'}',
     setupFiles: ['./vitest.setup.ts'],

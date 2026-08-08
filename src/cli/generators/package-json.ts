@@ -252,6 +252,24 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 	if (config.linting.tool === 'eslint' || config.linting.tool === 'both') {
 		deps['eslint'] = '^9.0.0'
 		deps['prettier'] = '^3.0.0'
+		// Everything tooling/eslint/base.mjs imports. All optional peers of
+		// repo-tooling, so pnpm skips them and `eslint .` dies on the config
+		// import — the scaffold shipped a lint script that could never run.
+		deps['@eslint/js'] = '^9.0.0'
+		deps['@typescript-eslint/eslint-plugin'] = '^8.0.0'
+		deps['typescript-eslint'] = '^8.0.0'
+		deps['eslint-plugin-import'] = '^2.0.0'
+		deps['eslint-plugin-jest'] = '^29.0.0'
+	}
+	// The shipped prettier preset lists this in `plugins`, and the nextjs eslint
+	// preset imports the Next plugin. Both are only *optional* peers of
+	// repo-tooling, so pnpm skips them and the scaffold's first format/lint dies
+	// with ERR_MODULE_NOT_FOUND.
+	if (config.formatting.tool === 'prettier') {
+		deps['@ianvs/prettier-plugin-sort-imports'] = '^4.7.0'
+	}
+	if (config.linting.eslintConfig === 'nextjs') {
+		deps['@next/eslint-plugin-next'] = '^16.2.11'
 	}
 
 	// Testing frameworks
@@ -279,6 +297,10 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 		deps['tsup'] = '^8.0.0'
 	} else if (config.bundler === 'esbuild') {
 		deps['esbuild'] = '^0.25.0'
+		// The generated build.mjs imports this directly. It's only an *optional*
+		// peer of repo-tooling, so pnpm won't pull it in — without it here every
+		// esbuild scaffold fails its first `pnpm build` with ERR_MODULE_NOT_FOUND.
+		deps['esbuild-node-externals'] = '^1.18.0'
 	} else if (config.bundler === 'rollup') {
 		deps['rollup'] = '^4.0.0'
 		deps['@rollup/plugin-typescript'] = '^12.0.0'
@@ -288,6 +310,10 @@ function getDependencies(config: ProjectConfig): Record<string, string> {
 		deps['rolldown'] = '^1.0.0'
 	} else if (config.bundler === 'vite') {
 		deps['vite'] = '^6.0.0'
+		// generateViteConfig emits `import react from '@vitejs/plugin-react'` for
+		// react-app, so the plugin has to be installed or `vite build` can't even
+		// load the config. Keep this condition in step with that one.
+		if (config.projectType === 'react-app') deps['@vitejs/plugin-react'] = '^5.0.0'
 	}
 
 	// Tailwind CSS v4 — CSS-first, wired via the PostCSS plugin.

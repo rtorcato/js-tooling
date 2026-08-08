@@ -24,6 +24,13 @@ export async function generateTSConfig(config: ProjectConfig, targetDir: string)
 		tsconfig.compilerOptions.rootDir = './src'
 	}
 
+	// web-app is the only browser target that lands on the `base` preset, whose
+	// lib is ES2022 — so `document`/`window` don't typecheck. The react and next
+	// presets already add the DOM libs themselves.
+	if (config.projectType === 'web-app' && preset === 'base') {
+		tsconfig.compilerOptions.lib = ['ES2022', 'DOM', 'DOM.Iterable']
+	}
+
 	if (config.projectType === 'nextjs-app') {
 		tsconfig.include = ['next-env.d.ts', 'src', 'app', 'pages', 'components', 'reset.d.ts']
 		tsconfig.exclude.push('.next')
