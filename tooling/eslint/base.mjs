@@ -43,6 +43,14 @@ export default tseslint.config(
 		ignores: [
 			//
 			'**/*.config.js',
+			// Root-level TS config files are outside the tsconfig `include` of every
+			// app preset, and this config lints type-aware (parserOptions.project),
+			// so linting them fails with "file was not found in any of the provided
+			// project(s)". The .js forms were already ignored; these are the same
+			// thing (the scaffold emits vitest.config.ts / vitest.setup.ts).
+			'**/*.config.ts',
+			'**/*.config.mts',
+			'**/*.setup.ts',
 			'.turbo',
 			'dist',
 			'build',

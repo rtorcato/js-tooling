@@ -9,8 +9,12 @@
     // "moduleResolution": "node", // Prefer "bundler" if you're using Vite, esbuild, etc.
     // "target": "esnext", // 
     "lib": ["ES2022"], // Specify library files to be included in the compilation
-    "rootDir": "src",
-    "outDir": "dist",
+    // ${configDir} for the same reason as paths/tsBuildInfoFile below: a bare
+    // "src" resolves against THIS file, i.e. inside node_modules, so every
+    // consumer that didn't redeclare rootDir got TS6059 "not under rootDir" the
+    // moment a file outside the preset's own directory entered the program.
+    "rootDir": "${configDir}/src",
+    "outDir": "${configDir}/dist",
 
     
     // 🔍 JavaScript Support

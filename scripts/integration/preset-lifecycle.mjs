@@ -20,9 +20,6 @@ const REPO = process.cwd()
 const CLI = path.join(REPO, 'dist', 'cli', 'index.js')
 const PRESET = process.argv[2] ?? 'library'
 
-// Only `library` is wired end-to-end today; other presets join once green (#99).
-const SUPPORTED = new Set(['library'])
-
 function run(cmd, args, cwd) {
 	console.log(`\n$ ${cmd} ${args.join(' ')}${cwd && cwd !== REPO ? `  (cwd=${cwd})` : ''}`)
 	execFileSync(cmd, args, { stdio: 'inherit', cwd: cwd ?? REPO })
@@ -33,8 +30,121 @@ function fail(msg) {
 	process.exit(1)
 }
 
-if (!SUPPORTED.has(PRESET))
-	fail(`preset "${PRESET}" is not wired for integration yet (have: ${[...SUPPORTED].join(', ')})`)
+const write = (dir, rel, body) => {
+	const file = path.join(dir, rel)
+	fs.mkdirSync(path.dirname(file), { recursive: true })
+	fs.writeFileSync(file, body)
+}
+
+// A plain TS entry + one test. The base tsconfig excludes *.test.ts, so the
+// test is exercised by vitest, not tsc.
+const seedNodeEntry = (dir) => {
+	write(dir, 'src/index.ts', 'export const greet = (name: string): string => `hello ${name}`\n')
+	write(
+		dir,
+		'src/index.test.ts',
+		"import { expect, it } from 'vitest'\nimport { greet } from './index'\n\nit('greets', () => {\n\texpect(greet('world')).toBe('hello world')\n})\n"
+	)
+}
+
+// `vite build` on an app (as opposed to library mode) resolves from index.html,
+// so a bare src/ entry is not enough.
+const seedWebEntry = (dir) => {
+	seedNodeEntry(dir)
+	write(
+		dir,
+		'index.html',
+		'<!doctype html>\n<html lang="en">\n\t<head>\n\t\t<meta charset="utf-8" />\n\t\t<title>probe</title>\n\t</head>\n\t<body>\n\t\t<div id="root"></div>\n\t\t<script type="module" src="/src/main.ts"></script>\n\t</body>\n</html>\n'
+	)
+	write(
+		dir,
+		'src/main.ts',
+		"import { greet } from './index'\n\nconst root = document.querySelector('#root')\nif (root) root.textContent = greet('world')\n"
+	)
+}
+
+// Exercises the jsx transform, .tsx linting and a real react-dom mount, which is
+// what distinguishes react-app from web-app.
+const seedReactEntry = (dir) => {
+	write(
+		dir,
+		'src/App.tsx',
+		'export const App = ({ name }: { name: string }) => <h1>hello {name}</h1>\n'
+	)
+	write(
+		dir,
+		'src/App.test.tsx',
+		"import { expect, it } from 'vitest'\nimport { App } from './App'\n\nit('builds an element', () => {\n\texpect(App({ name: 'world' }).props.children).toContain('hello ')\n})\n"
+	)
+	write(
+		dir,
+		'src/main.tsx',
+		"import { createRoot } from 'react-dom/client'\nimport { App } from './App'\n\ncreateRoot(document.querySelector('#root') as HTMLElement).render(<App name=\"world\" />)\n"
+	)
+	write(
+		dir,
+		'index.html',
+		'<!doctype html>\n<html lang="en">\n\t<head>\n\t\t<meta charset="utf-8" />\n\t\t<title>probe</title>\n\t</head>\n\t<body>\n\t\t<div id="root"></div>\n\t\t<script type="module" src="/src/main.tsx"></script>\n\t</body>\n</html>\n'
+	)
+}
+
+// The next tsconfig includes app/ and next-env.d.ts; the eslint preset's
+// @next/next rules only fire on a real page/component tree.
+const seedNextEntry = (dir) => {
+	write(dir, 'next-env.d.ts', '/// <reference types="next" />\n')
+	write(dir, 'app/page.tsx', 'export default function Page() {\n\treturn <h1>hello world</h1>\n}\n')
+	write(
+		dir,
+		'app/layout.tsx',
+		'export default function Layout({ children }: { children: React.ReactNode }) {\n\treturn (\n\t\t<html lang="en">\n\t\t\t<body>{children}</body>\n\t\t</html>\n\t)\n}\n'
+	)
+	write(
+		dir,
+		'src/page.test.tsx',
+		"import { expect, it } from 'vitest'\nimport Page from '../app/page'\n\nit('renders a heading', () => {\n\texpect(Page().type).toBe('h1')\n})\n"
+	)
+}
+
+/**
+ * Per-preset lifecycle. `seed` writes the source a real consumer would bring
+ * (the presets are tooling-only — they scaffold no app code). `appDeps` are that
+ * same consumer's runtime deps: anything the *tooling* needs belongs in the
+ * generator's dependency list, not here, so a gap there fails this test rather
+ * than being papered over.
+ */
+const PRESETS = {
+	library: { seed: seedNodeEntry, build: true },
+	'node-api': { seed: seedNodeEntry, build: true },
+	'web-app': { seed: seedWebEntry, build: true },
+	'react-app': {
+		seed: seedReactEntry,
+		build: true,
+		appDeps: {
+			react: '^19.0.0',
+			'react-dom': '^19.0.0',
+			'@types/react': '^19.0.0',
+			'@types/react-dom': '^19.0.0',
+		},
+	},
+	// bundler: 'none' — the preset emits no build script, so there is nothing to
+	// run here. Wiring up `next build` would be testing Next.js, not the scaffold.
+	'nextjs-app': {
+		seed: seedNextEntry,
+		build: false,
+		appDeps: {
+			next: '^16.0.0',
+			react: '^19.0.0',
+			'react-dom': '^19.0.0',
+			'@types/react': '^19.0.0',
+		},
+	},
+}
+
+const spec = PRESETS[PRESET]
+if (!spec)
+	fail(
+		`preset "${PRESET}" is not wired for integration yet (have: ${Object.keys(PRESETS).join(', ')})`
+	)
 if (!fs.existsSync(CLI)) fail(`CLI not built at ${CLI} — run "pnpm build-cli" first`)
 
 const packDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jst-pack-'))
@@ -50,26 +160,18 @@ try {
 	// 2. Scaffold the preset (files only; we install ourselves after repointing the dep).
 	run('node', [CLI, 'setup', '--preset', PRESET, '--directory', projectDir, '--skip-install'])
 
-	// 3. Repoint @rtorcato/repo-tooling at the local tarball.
+	// 3. Repoint @rtorcato/repo-tooling at the local tarball, and add the app deps
+	//    a real consumer of this preset would already have.
 	const pkgPath = path.join(projectDir, 'package.json')
 	const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
 	if (!pkg.devDependencies?.['@rtorcato/repo-tooling'])
 		fail('scaffold has no @rtorcato/repo-tooling devDependency')
 	pkg.devDependencies['@rtorcato/repo-tooling'] = `file:${tarball}`
+	if (spec.appDeps) pkg.dependencies = { ...pkg.dependencies, ...spec.appDeps }
 	fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
 
-	// 4. Seed what a real consumer writes: an entry module + one test. The base
-	// tsconfig excludes *.test.ts, so the test is exercised by vitest, not tsc.
-	const srcDir = path.join(projectDir, 'src')
-	fs.mkdirSync(srcDir, { recursive: true })
-	fs.writeFileSync(
-		path.join(srcDir, 'index.ts'),
-		'export const greet = (name: string): string => `hello ${name}`\n'
-	)
-	fs.writeFileSync(
-		path.join(srcDir, 'index.test.ts'),
-		"import { expect, it } from 'vitest'\nimport { greet } from './index'\n\nit('greets', () => {\n\texpect(greet('world')).toBe('hello world')\n})\n"
-	)
+	// 4. Seed what a real consumer writes: an entry module + one test.
+	spec.seed(projectDir)
 
 	// 5. git init so husky's `prepare` hook has a repo to attach to.
 	run('git', ['init', '-q'], projectDir)
@@ -79,10 +181,14 @@ try {
 
 	// 7. Format generated files — mirrors what `setup` does post-install (the
 	//    scaffold's biome/prettier config; templates are hand-written).
-	run('pnpm', ['exec', 'biome', 'check', '--write', '.'], projectDir)
+	const formatter = fs.existsSync(path.join(projectDir, 'biome.jsonc'))
+		? ['exec', 'biome', 'check', '--write', '.']
+		: ['exec', 'prettier', '--write', '.']
+	run('pnpm', formatter, projectDir)
 
 	// 8. Build.
-	run('pnpm', ['build'], projectDir)
+	if (spec.build) run('pnpm', ['build'], projectDir)
+	else console.log(`\nℹ️  ${PRESET} has no build script (bundler: none) — skipping build`)
 
 	// 9. Every path the package advertises (main/module/types/exports) must exist
 	//    on disk after the build — the #92 exports/output mismatch class.
@@ -102,9 +208,15 @@ try {
 	const missing = [...advertised].filter((rel) => !fs.existsSync(path.join(projectDir, rel)))
 	if (missing.length > 0)
 		fail(`package.json points at files that don't exist after build:\n  ${missing.join('\n  ')}`)
-	console.log(`\n✅ all ${advertised.size} advertised entry paths exist`)
+	// App presets advertise nothing (they're not published), so this check is
+	// vacuous for them — say so rather than printing a reassuring "all 0".
+	console.log(
+		advertised.size > 0
+			? `\n✅ all ${advertised.size} advertised entry paths exist`
+			: `\nℹ️  ${PRESET} advertises no entry paths (not a published package) — nothing to check`
+	)
 
-	// 10. Full verify chain (typecheck + lint + test + publint for the library preset).
+	// 10. Full verify chain (typecheck + lint + test, plus publint/attw on library).
 	run('pnpm', ['verify'], projectDir)
 
 	console.log(`\n✅ ${PRESET} preset lifecycle passed`)

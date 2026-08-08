@@ -21,6 +21,29 @@ pnpm test --run    # single run (used in CI)
 pnpm coverage      # coverage report
 ```
 
+## Integration (preset lifecycle)
+
+`scripts/integration/preset-lifecycle.mjs <preset>` scaffolds a preset from the
+current working tree, repoints its `@rtorcato/repo-tooling` dep at a `pnpm pack`
+tarball, then installs, builds and runs `pnpm verify` against it. This is the only
+check that exercises a real install, so it's where missing dependencies and bad
+shipped configs surface.
+
+```bash
+pnpm build-cli                                          # required first
+node scripts/integration/preset-lifecycle.mjs react-app
+```
+
+Wired presets: `library`, `node-api`, `web-app`, `react-app`, `nextjs-app`. Each
+declares its own seed files and whether it has a build step in the `PRESETS` map —
+the presets are tooling-only, so the script writes the app source a consumer would
+bring. Anything the *tooling* needs belongs in the generator's dependency list, not
+in the script's `appDeps`, so a gap there fails the test instead of being hidden.
+
+In CI only `library` runs on pull requests; the four app presets run on push to
+main (each costs a full install + build). A green PR therefore does not mean all
+five presets were verified.
+
 ## Writing generator tests
 
 Each generator is a pure function that writes files into a target directory. Use the `useTmpDir` helper to isolate writes per test:
