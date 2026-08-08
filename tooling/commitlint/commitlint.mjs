@@ -1,6 +1,16 @@
 export default {
 	extends: ["@commitlint/config-conventional"],
-	ignores: [(commit) => commit.includes("[skip ci]")],
+	ignores: [
+		(commit) => commit.includes("[skip ci]"),
+		// Bot commit bodies are machine-written blocks (dependabot's
+		// `- dependency-name: …` YAML) that never wrap at 72, so every bot PR
+		// failed body-max-line-length. commitlint can't relax a single rule per
+		// commit, so skip bot commits wholesale — squash-merge uses the PR
+		// title, which is still linted on the merge commit.
+		// ponytail: matches the trailer, not a bare "[bot]", so a human commit
+		// that merely mentions a bot is still linted.
+		(commit) => /^Signed-off-by: .*\[bot\]/m.test(commit),
+	],
 	rules: {
 		// Enforce strict type validation
 		"type-enum": [
