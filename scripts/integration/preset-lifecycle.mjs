@@ -8,8 +8,12 @@
 // tarball of this repo, so the test validates THIS branch's generated output +
 // presets, not whatever `latest` is on npm.
 //
+// swift-library has no such dep and no npm lifecycle at all, so it runs its own
+// step list (`swift build` → `swift test` → `swiftlint`) — see swiftLifecycle.
+//
 // Usage: node scripts/integration/preset-lifecycle.mjs [preset]   (default: library)
 // Requires: `pnpm build-cli` first, and network access to the npm registry.
+// swift-library additionally requires a Swift toolchain on PATH.
 
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
@@ -110,7 +114,7 @@ const seedNextEntry = (dir) => {
  * (the presets are tooling-only — they scaffold no app code). `appDeps` are that
  * same consumer's runtime deps: anything the *tooling* needs belongs in the
  * generator's dependency list, not here, so a gap there fails this test rather
- * than being papered over.
+ * than being papered over. `swift: true` opts out of the JS lifecycle entirely.
  */
 const PRESETS = {
 	library: { seed: seedNodeEntry, build: true },
@@ -138,6 +142,9 @@ const PRESETS = {
 			'@types/react': '^19.0.0',
 		},
 	},
+	// The whole JS lifecycle is inapplicable: no package.json to repoint, no
+	// pnpm, no biome, no `pnpm verify`. See swiftLifecycle below (#312).
+	'swift-library': { swift: true },
 }
 
 const spec = PRESETS[PRESET]
@@ -147,18 +154,40 @@ if (!spec)
 	)
 if (!fs.existsSync(CLI)) fail(`CLI not built at ${CLI} — run "pnpm build-cli" first`)
 
-const packDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jst-pack-'))
+let packDir = ''
 const projectDir = fs.mkdtempSync(path.join(os.tmpdir(), `jst-${PRESET}-`))
 
-try {
-	// 1. Pack the working tree so the scaffold tests local code, not npm's latest.
+const onPath = (bin) => {
+	try {
+		execFileSync('command', ['-v', bin], { stdio: 'ignore', shell: true })
+		return true
+	} catch {
+		return false
+	}
+}
+
+/**
+ * Swift diverges from every JS preset: the scaffold writes its own source and
+ * test target (SwiftPM refuses to build an empty one), so there is nothing to
+ * seed, no `@rtorcato/repo-tooling` dep to repoint and nothing to install. The
+ * lifecycle is the gate the scaffold's own CI and pre-push hook run.
+ */
+function swiftLifecycle() {
+	run('swift', ['build'], projectDir)
+	run('swift', ['test'], projectDir)
+	// SwiftLint is a separate install, not part of a Swift toolchain. Say when it
+	// didn't run rather than reporting a lint gate that was never exercised.
+	if (onPath('swiftlint')) run('swiftlint', ['lint', '--strict'], projectDir)
+	else console.log('\n⚠️  swiftlint not on PATH — lint gate NOT exercised')
+}
+
+function jsLifecycle() {
+	// 2. Pack the working tree so the scaffold tests local code, not npm's latest.
+	packDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jst-pack-'))
 	run('pnpm', ['pack', '--pack-destination', packDir])
 	const tgz = fs.readdirSync(packDir).find((f) => f.endsWith('.tgz'))
 	if (!tgz) fail('pnpm pack produced no tarball')
 	const tarball = path.join(packDir, tgz)
-
-	// 2. Scaffold the preset (files only; we install ourselves after repointing the dep).
-	run('node', [CLI, 'setup', '--preset', PRESET, '--directory', projectDir, '--skip-install'])
 
 	// 3. Repoint @rtorcato/repo-tooling at the local tarball, and add the app deps
 	//    a real consumer of this preset would already have.
@@ -218,9 +247,18 @@ try {
 
 	// 10. Full verify chain (typecheck + lint + test, plus publint/attw on library).
 	run('pnpm', ['verify'], projectDir)
+}
+
+try {
+	// 1. Scaffold the preset (files only; the JS path installs itself once the dep
+	//    is repointed, and the Swift path has nothing to install).
+	run('node', [CLI, 'setup', '--preset', PRESET, '--directory', projectDir, '--skip-install'])
+
+	if (spec.swift) swiftLifecycle()
+	else jsLifecycle()
 
 	console.log(`\n✅ ${PRESET} preset lifecycle passed`)
-	fs.rmSync(packDir, { recursive: true, force: true })
+	if (packDir) fs.rmSync(packDir, { recursive: true, force: true })
 	fs.rmSync(projectDir, { recursive: true, force: true })
 } catch (err) {
 	// Leave the throwaway dirs in place on failure for debugging.
