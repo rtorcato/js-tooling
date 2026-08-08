@@ -40,9 +40,8 @@ the presets are tooling-only, so the script writes the app source a consumer wou
 bring. Anything the *tooling* needs belongs in the generator's dependency list, not
 in the script's `appDeps`, so a gap there fails the test instead of being hidden.
 
-In CI only `library` runs on pull requests; the four app presets run on push to
-main (each costs a full install + build). A green PR therefore does not mean all
-five presets were verified.
+All five run in CI on every pull request and push, on each supported Node major.
+The whole set takes about 1m40s, so there's no coverage gate to reason about.
 
 ## Writing generator tests
 
