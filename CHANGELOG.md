@@ -1,3 +1,10 @@
+# [3.4.0](https://github.com/rtorcato/repo-tooling/compare/v3.3.0...v3.4.0) (2026-08-08)
+
+
+### Features
+
+* **swift:** add DocC, swift-format and test-configuration checks ([#353](https://github.com/rtorcato/repo-tooling/issues/353)) ([57b29f7](https://github.com/rtorcato/repo-tooling/commit/57b29f741e2a5112ad0e8621aed549417870a6c4)), closes [#311](https://github.com/rtorcato/repo-tooling/issues/311) [#351](https://github.com/rtorcato/repo-tooling/issues/351) [#310](https://github.com/rtorcato/repo-tooling/issues/310)
+
 # [3.3.0](https://github.com/rtorcato/repo-tooling/compare/v3.2.5...v3.3.0) (2026-08-08)
 
 
