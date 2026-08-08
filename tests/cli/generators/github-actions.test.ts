@@ -108,7 +108,7 @@ describe('generateGitHubActions', () => {
 
 		const content = await fs.readFile(join(dir, WORKFLOW_PATH), 'utf-8')
 		expect(content).toContain('pnpm coverage')
-		expect(content).toContain('codecov/codecov-action@v5')
+		expect(content).toContain('codecov/codecov-action@v7')
 		expect(content).toContain('CODECOV_TOKEN')
 		expect(await fs.pathExists(join(dir, 'codecov.yml'))).toBe(true)
 	})

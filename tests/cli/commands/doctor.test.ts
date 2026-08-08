@@ -1110,7 +1110,7 @@ describe('doctor README badges check', () => {
 		await fs.ensureDir(join(dir, '.github', 'workflows'))
 		await fs.writeFile(
 			join(dir, '.github', 'workflows', 'ci.yml'),
-			'name: CI\njobs:\n  test:\n    steps:\n      - uses: codecov/codecov-action@v5\n'
+			'name: CI\njobs:\n  test:\n    steps:\n      - uses: codecov/codecov-action@v7\n'
 		)
 		const results = await runDoctor(dir)
 		const r = results.find((c) => c.check === 'Coverage upload')
